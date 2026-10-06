@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CI tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ruff tomli
+
+      - name: Validate metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          try:
+              import tomllib
+          except ModuleNotFoundError:
+              import tomli as tomllib
+
+          data = tomllib.loads(Path("pyproject.toml").read_text())
+          deps = data["tool"]["bench"]["frappe-dependencies"]
+          assert deps["frappe"] == ">=15.0.0,<17.0.0", deps["frappe"]
+          assert deps["erpnext"] == ">=15.0.0,<17.0.0", deps["erpnext"]
+          assert Path("reckon_saas_platform/hooks.py").exists()
+          assert Path("reckon_saas_platform/patches.txt").exists()
+          assert Path("reckon_saas_platform/modules.txt").read_text().strip() == "SaaS Platform"
+          PY
+
+      - name: Compile Python and validate JSON
+        run: |
+          python -m compileall -q reckon_saas_platform
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in Path("reckon_saas_platform").rglob("*.json"):
+              json.loads(path.read_text())
+          PY
+
+      - name: Lint Python
+        run: ruff check .
+
+      - name: Check HRMS remains optional
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          hooks = Path("reckon_saas_platform/hooks.py").read_text()
+          assert '"hrms"' not in hooks.lower()
+          PY
