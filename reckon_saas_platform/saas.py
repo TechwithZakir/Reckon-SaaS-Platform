@@ -27,13 +27,18 @@ def public_signup(
     plan: str,
     billing_cycle: str = "Monthly",
 ):
-    return create_registration(
+    registration = create_registration(
         business_name=business_name,
         owner_email=owner_email,
         owner_name=owner_name,
         plan=plan,
         billing_cycle=billing_cycle,
-    ).name
+    )
+    return {
+        "ok": True,
+        "registration": registration.name,
+        "message": _("Signup submitted. Please wait for payment verification and tenant provisioning."),
+    }
 
 
 @frappe.whitelist()
@@ -114,6 +119,21 @@ def create_registration(
     plan: str,
     billing_cycle: str = "Monthly",
 ):
+    business_name = (business_name or "").strip()
+    owner_email = (owner_email or "").strip().lower()
+    owner_name = (owner_name or "").strip()
+    plan = (plan or "").strip()
+    billing_cycle = (billing_cycle or "Monthly").strip()
+
+    if not business_name:
+        frappe.throw(_("Business Name is required."))
+    if not owner_name:
+        frappe.throw(_("Owner Name is required."))
+    if not owner_email:
+        frappe.throw(_("Owner Email is required."))
+    if not plan or not frappe.db.exists("SaaS Plan", plan):
+        frappe.throw(_("Please select a valid SaaS plan."))
+
     plan_doc = frappe.get_doc("SaaS Plan", plan)
     registration = frappe.get_doc(
         {
@@ -280,7 +300,7 @@ def _get_or_create_company(company_name: str):
         {
             "doctype": "Company",
             "company_name": company_name,
-            "abbr": _abbr(company_name),
+            "abbr": _unique_abbr(company_name),
             "default_currency": "BDT",
             "country": "Bangladesh",
         }
@@ -290,6 +310,10 @@ def _get_or_create_company(company_name: str):
 def _get_or_create_admin_user(email: str, full_name: str):
     if frappe.db.exists("User", email):
         return frappe.get_doc("User", email)
+    roles = []
+    if frappe.db.exists("Role", "Reckon Distribution Admin"):
+        roles.append({"role": "Reckon Distribution Admin"})
+
     user = frappe.get_doc(
         {
             "doctype": "User",
@@ -297,7 +321,7 @@ def _get_or_create_admin_user(email: str, full_name: str):
             "first_name": full_name or email,
             "send_welcome_email": 0,
             "enabled": 1,
-            "roles": [{"role": "Reckon Distribution Admin"}],
+            "roles": roles,
         }
     )
     return user.insert(ignore_permissions=True)
@@ -325,6 +349,20 @@ def _assign_company_admin(user: str, company: str):
 def _abbr(company_name: str) -> str:
     letters = "".join(part[:1] for part in company_name.split() if part).upper()[:5]
     return letters or "RDS"
+
+
+def _unique_abbr(company_name: str) -> str:
+    base = _abbr(company_name)
+    if not frappe.db.exists("Company", {"abbr": base}):
+        return base
+
+    for index in range(2, 100):
+        suffix = str(index)
+        candidate = f"{base[: 5 - len(suffix)]}{suffix}"
+        if not frappe.db.exists("Company", {"abbr": candidate}):
+            return candidate
+
+    frappe.throw(_("Could not generate a unique company abbreviation."))
 
 
 def _require_vendor() -> None:

@@ -356,6 +356,27 @@
     box-shadow: 0 15px 30px rgba(47, 125, 246, 0.25);
   }
   .rs-submit span { margin-left: 10px; font-size: 22px; vertical-align: -1px; }
+  .rs-submit[disabled] { opacity: 0.68; cursor: wait; }
+
+  .rs-message {
+    display: none;
+    margin: 0 0 22px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .rs-message.is-visible { display: block; }
+  .rs-message.is-error {
+    color: #8a1f1f;
+    background: #fff0f0;
+    border: 1px solid #f0c7c7;
+  }
+  .rs-message.is-success {
+    color: #11613f;
+    background: #eefbf5;
+    border: 1px solid #b9ead2;
+  }
 
   .rs-powered {
     width: min(1560px, 100%);
@@ -433,6 +454,8 @@
       <h2 class="rs-form-title">Create your distribution company</h2>
       <p class="rs-form-subtitle">Submit the business details. Access opens after vendor payment verification and tenant provisioning.</p>
 
+      <div id="signup_message" class="rs-message" role="status" aria-live="polite"></div>
+
       <form class="rs-signup-form" method="post" action="/api/method/reckon_saas_platform.saas.public_signup">
         <div class="rs-field">
           <label for="business_name">Business Name</label>
@@ -479,4 +502,47 @@
 
   <footer class="rs-powered">Powered by ERPNext</footer>
 </main>
+
+<script>
+  (function () {
+    const form = document.querySelector(".rs-signup-form");
+    const message = document.getElementById("signup_message");
+    const button = form && form.querySelector(".rs-submit");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "rs-message is-visible " + (type === "success" ? "is-success" : "is-error");
+    }
+
+    if (!form || !message || !button) return;
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      button.disabled = true;
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          credentials: "same-origin",
+          headers: { "X-Frappe-CSRF-Token": window.csrf_token || "" },
+        });
+        const payload = await response.json();
+        const data = payload.message || payload;
+
+        if (!response.ok || data.ok === false || payload.exc) {
+          showMessage(data.message || payload._server_messages || "Signup failed. Please check the details and try again.", "error");
+          return;
+        }
+
+        showMessage(data.message || "Signup submitted. Please wait for payment verification.", "success");
+        form.reset();
+      } catch (error) {
+        showMessage("Signup failed. Please try again or contact support.", "error");
+      } finally {
+        button.disabled = false;
+      }
+    });
+  })();
+</script>
 {% endblock %}
