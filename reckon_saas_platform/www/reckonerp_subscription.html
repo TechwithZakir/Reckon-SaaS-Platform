@@ -3,23 +3,40 @@
 {% block title %}Subscription and Payment{% endblock %}
 
 {% block page_content %}
-<main class="reckon-distribution-shell">
-  <section class="rd-hero">
-    <p class="rd-kicker">Subscription</p>
-    <h1>Payment and activation status</h1>
-    <p>Company: {{ summary.company or "Not assigned" }}</p>
-    <p>Status: <strong>{{ summary.status }}</strong></p>
-    {% if summary.payment %}
-    <p>Payment: {{ summary.payment.status }} • {{ summary.payment.currency }} {{ summary.payment.amount }}</p>
-    {% endif %}
-    {% if summary.provisioning %}
-    <p>Provisioning: {{ summary.provisioning.status }} • {{ summary.provisioning.current_step or "" }}</p>
-    {% endif %}
-    {% if summary.operational_access %}
-    <a class="btn btn-primary" href="/app/distribution">Open Distribution</a>
-    {% else %}
-    <p>Your operational workspace is locked until payment is verified and provisioning is complete.</p>
-    {% endif %}
-  </section>
+<link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
+<main class="rs-portal">
+  <div class="rs-portal__inner">
+    <header class="rs-portal__topbar">
+      <div class="rs-portal__brand"><span class="rs-portal__mark" aria-hidden="true"></span><span>ReckonERP</span><span class="rs-portal__product">Distribution SaaS</span></div>
+      <a class="rs-portal__button" href="/logout">Log out</a>
+    </header>
+    <section class="rs-portal__hero">
+      <div><p class="rs-portal__eyebrow">Tenant account</p><h1>Subscription &amp; activation</h1><p>Track your company plan, payment verification, and provisioning status in one place.</p></div>
+      {% if summary.operational_access %}<a class="rs-portal__button rs-portal__button--primary" href="/app/distribution">Open Distribution</a>{% endif %}
+    </section>
+    <section class="rs-portal__grid">
+      <article class="rs-portal__card">
+        <div class="rs-portal__label">Company</div><div class="rs-portal__value">{{ summary.company or "Not assigned" }}</div>
+        <div class="rs-portal__list"><div class="rs-portal__row"><span>Subscription</span><strong>{{ summary.subscription or "Pending" }}</strong></div><div class="rs-portal__row"><span>Plan</span><strong>{{ summary.plan or "Awaiting selection" }}</strong></div></div>
+      </article>
+      <article class="rs-portal__card">
+        <div class="rs-portal__label">Access status</div><div class="rs-portal__value"><span class="rs-portal__status{% if not summary.operational_access %} rs-portal__status--warning{% endif %}">{{ summary.status }}</span></div>
+        <div class="rs-portal__list"><div class="rs-portal__row"><span>Operational access</span><strong>{{ "Enabled" if summary.operational_access else "Locked" }}</strong></div></div>
+      </article>
+      <article class="rs-portal__card">
+        <div class="rs-portal__label">Payment</div><div class="rs-portal__value">{% if summary.payment %}{{ summary.payment.currency }} {{ summary.payment.amount }}{% else %}Pending{% endif %}</div>
+        <div class="rs-portal__list"><div class="rs-portal__row"><span>Verification</span><strong>{{ summary.payment.status if summary.payment else "Not submitted" }}</strong></div><div class="rs-portal__row"><span>Reference</span><strong>{{ summary.payment.gateway_reference if summary.payment and summary.payment.gateway_reference else "Add through support" }}</strong></div></div>
+      </article>
+      <article class="rs-portal__card rs-portal__card--wide">
+        <p class="rs-portal__eyebrow">Provisioning</p><h2>Company setup progress</h2>
+        {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ summary.provisioning.current_step or "Queued" }}</strong></div></div>{% else %}<p>Provisioning will begin after payment verification.</p>{% endif %}
+      </article>
+      <article class="rs-portal__card">
+        <p class="rs-portal__eyebrow">Next step</p><h2>{% if summary.operational_access %}Open your workspace{% else %}Complete activation{% endif %}</h2>
+        {% if summary.operational_access %}<p>Your company is ready for distribution operations.</p><a class="rs-portal__button rs-portal__button--primary" href="/app/distribution">Go to workspace</a>{% else %}<p class="rs-portal__notice">Your workspace stays protected until payment and provisioning are verified.</p>{% endif %}
+      </article>
+    </section>
+    <footer class="rs-portal__footer">Need help? Contact your ReckonERP administrator.</footer>
+  </div>
 </main>
 {% endblock %}

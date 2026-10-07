@@ -1,0 +1,60 @@
+:root {
+  --rs-brand: #1769e8;
+  --rs-brand-dark: #12356f;
+  --rs-ink: #10284d;
+  --rs-muted: #667b9f;
+  --rs-line: #dbe5f2;
+  --rs-soft: #f4f8fd;
+  --rs-success: #138a61;
+  --rs-warning: #ad6b00;
+}
+
+body:has(.rs-portal) {
+  background: #f5f8fc;
+}
+
+.rs-portal {
+  min-height: 100vh;
+  color: var(--rs-ink);
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  padding: 28px clamp(18px, 5vw, 72px) 56px;
+}
+
+.rs-portal a { color: var(--rs-brand); }
+.rs-portal__inner { width: min(1180px, 100%); margin: 0 auto; }
+.rs-portal__topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 30px; }
+.rs-portal__brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; color: var(--rs-brand-dark); }
+.rs-portal__mark { width: 34px; height: 34px; border-radius: 9px; background: var(--rs-brand); position: relative; }
+.rs-portal__mark::after { content: "R"; color: #fff; font-weight: 900; font-size: 23px; position: absolute; left: 8px; top: 3px; }
+.rs-portal__product { border-left: 1px solid var(--rs-line); padding-left: 14px; color: var(--rs-muted); font-size: 14px; font-weight: 600; }
+.rs-portal__eyebrow { color: var(--rs-brand); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px; }
+.rs-portal h1 { color: var(--rs-brand-dark); font-size: clamp(30px, 4vw, 48px); line-height: 1.08; margin: 0; letter-spacing: 0; }
+.rs-portal h2 { color: var(--rs-brand-dark); font-size: 22px; margin: 0; letter-spacing: 0; }
+.rs-portal p { color: var(--rs-muted); line-height: 1.55; }
+.rs-portal__hero { display: flex; justify-content: space-between; align-items: end; gap: 22px; margin-bottom: 24px; }
+.rs-portal__hero p { margin: 8px 0 0; max-width: 660px; }
+.rs-portal__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.rs-portal__button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 9px 15px; border: 1px solid var(--rs-line); border-radius: 7px; background: #fff; color: var(--rs-ink) !important; font-weight: 700; text-decoration: none; cursor: pointer; }
+.rs-portal__button--primary { color: #fff !important; background: var(--rs-brand); border-color: var(--rs-brand); }
+.rs-portal__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.rs-portal__card { background: #fff; border: 1px solid var(--rs-line); border-radius: 8px; padding: 20px; box-shadow: 0 8px 24px rgba(27, 66, 116, .05); }
+.rs-portal__card--wide { grid-column: span 2; }
+.rs-portal__label { color: var(--rs-muted); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.rs-portal__value { color: var(--rs-brand-dark); font-size: 26px; font-weight: 800; margin-top: 8px; }
+.rs-portal__status { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 99px; background: #eaf7f1; color: var(--rs-success); font-size: 13px; font-weight: 800; }
+.rs-portal__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.rs-portal__status--warning { background: #fff5df; color: var(--rs-warning); }
+.rs-portal__list { display: grid; gap: 0; margin: 14px 0 0; }
+.rs-portal__row { display: flex; justify-content: space-between; gap: 18px; padding: 13px 0; border-bottom: 1px solid var(--rs-line); }
+.rs-portal__row:last-child { border-bottom: 0; }
+.rs-portal__row span:first-child { color: var(--rs-muted); }
+.rs-portal__row strong { text-align: right; }
+.rs-portal__notice { padding: 14px 16px; border: 1px solid #f2d99e; border-radius: 7px; background: #fff9ea; color: #815400; }
+.rs-portal__footer { margin-top: 28px; text-align: center; color: var(--rs-muted); font-size: 13px; }
+
+@media (max-width: 760px) {
+  .rs-portal { padding: 20px 14px 40px; }
+  .rs-portal__topbar, .rs-portal__hero { align-items: flex-start; flex-direction: column; }
+  .rs-portal__grid { grid-template-columns: 1fr; }
+  .rs-portal__card--wide { grid-column: auto; }
+}
