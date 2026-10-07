@@ -3,28 +3,414 @@
 {% block title %}SaaS Admin{% endblock %}
 
 {% block page_content %}
-<main class="reckon-distribution-shell">
-  <section class="rd-hero">
-    <p class="rd-kicker">Vendor Control</p>
-    <h1>SaaS Admin</h1>
-    <p>Plans: {{ summary.plans }} • Registrations: {{ summary.registrations }} • Subscriptions: {{ summary.subscriptions }}</p>
-    <p>Pending payments: {{ summary.payments_pending }} • Pending seed jobs: {{ summary.seed_jobs_pending }}</p>
+<style>
+  .rs-admin {
+    --rs-blue: #2f7df6;
+    --rs-ink: #071d49;
+    --rs-muted: #5a6c8f;
+    --rs-line: #d8e2f1;
+    --rs-bg: #f6f9fd;
+    color: var(--rs-ink);
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 18px 64px;
+  }
+  .rs-admin a { color: var(--rs-blue); }
+  .rs-topbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  .rs-title h1 {
+    margin: 0 0 6px;
+    font-size: clamp(32px, 5vw, 54px);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+  .rs-title p { margin: 0; color: var(--rs-muted); }
+  .rs-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .rs-button {
+    border: 1px solid var(--rs-line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--rs-ink);
+    min-height: 40px;
+    padding: 9px 14px;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .rs-button.primary {
+    background: var(--rs-blue);
+    border-color: var(--rs-blue);
+    color: #fff;
+  }
+  .rs-button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+  .rs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .rs-card {
+    border: 1px solid var(--rs-line);
+    border-radius: 8px;
+    background: #fff;
+    padding: 16px;
+  }
+  .rs-card .label {
+    color: var(--rs-muted);
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .rs-card .value {
+    font-size: 28px;
+    line-height: 1;
+    font-weight: 750;
+  }
+  .rs-section {
+    margin-top: 22px;
+  }
+  .rs-section h2 {
+    margin: 0 0 12px;
+    font-size: 22px;
+    letter-spacing: 0;
+  }
+  .rs-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rs-line);
+    border-radius: 8px;
+    background: #fff;
+  }
+  .rs-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 860px;
+  }
+  .rs-table th,
+  .rs-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--rs-line);
+    vertical-align: top;
+    text-align: left;
+  }
+  .rs-table th {
+    color: var(--rs-muted);
+    background: var(--rs-bg);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  .rs-table tr:last-child td { border-bottom: 0; }
+  .rs-muted { color: var(--rs-muted); }
+  .rs-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #0b55c5;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .rs-message {
+    display: none;
+    margin: 0 0 16px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--rs-line);
+    background: #fff;
+  }
+  .rs-message.success {
+    display: block;
+    border-color: #b8e7cd;
+    background: #effaf4;
+    color: #176b3a;
+  }
+  .rs-message.error {
+    display: block;
+    border-color: #f3c3c3;
+    background: #fff2f2;
+    color: #9e1d1d;
+  }
+  .rs-inline-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 290px;
+  }
+  .rs-inline-form input {
+    width: 160px;
+    min-height: 38px;
+    border: 1px solid var(--rs-line);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  @media (max-width: 860px) {
+    .rs-topbar { align-items: flex-start; flex-direction: column; }
+    .rs-actions { justify-content: flex-start; }
+    .rs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 520px) {
+    .rs-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<main class="rs-admin">
+  <div class="rs-topbar">
+    <div class="rs-title">
+      <p>Vendor Control</p>
+      <h1>SaaS Admin</h1>
+      <p>Review signups, verify payments, retry provisioning, and open SaaS records in Desk.</p>
+    </div>
+    <div class="rs-actions">
+      <a class="rs-button" href="/app">Desk</a>
+      <a class="rs-button" href="/app/saas-registration">Registrations</a>
+      <a class="rs-button" href="/app/saas-plan">Plans</a>
+      <a class="rs-button primary" href="/reckonerp-signup">Public Signup</a>
+    </div>
+  </div>
+
+  <div id="rs-admin-message" class="rs-message"></div>
+
+  <section class="rs-grid" aria-label="SaaS summary">
+    <div class="rs-card">
+      <div class="label">Plans</div>
+      <div class="value">{{ summary.plans }}</div>
+    </div>
+    <div class="rs-card">
+      <div class="label">Registrations</div>
+      <div class="value">{{ summary.registrations }}</div>
+    </div>
+    <div class="rs-card">
+      <div class="label">Subscriptions</div>
+      <div class="value">{{ summary.subscriptions }}</div>
+    </div>
+    <div class="rs-card">
+      <div class="label">Needs Action</div>
+      <div class="value">{{ summary.payments_pending + summary.seed_jobs_pending }}</div>
+    </div>
   </section>
-  <section class="rd-hero">
+
+  <section class="rs-section">
     <h2>Pending Payments</h2>
-    {% for payment in pending_payments %}
-    <p>{{ payment.name }} • {{ payment.company }} • {{ payment.currency }} {{ payment.amount }} • {{ payment.gateway_reference or "No reference" }}</p>
-    {% else %}
-    <p>No pending payments.</p>
-    {% endfor %}
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Payment</th>
+            <th>Company</th>
+            <th>Amount</th>
+            <th>Reference</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in pending_payments %}
+          <tr>
+            <td><a href="/app/saas-payment/{{ payment.name }}">{{ payment.name }}</a></td>
+            <td>{{ payment.company }}</td>
+            <td>{{ payment.currency }} {{ payment.amount }}</td>
+            <td>{{ payment.gateway_reference or "No reference" }}</td>
+            <td>
+              <form class="rs-inline-form" data-rs-action="verify-payment" data-payment="{{ payment.name }}">
+                <input name="reference" placeholder="Reference" value="{{ payment.gateway_reference or '' }}">
+                <button class="rs-button primary" type="submit">Verify</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="rs-muted">No pending payments.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
-  <section class="rd-hero">
+
+  <section class="rs-section">
     <h2>Provisioning Jobs</h2>
-    {% for job in seed_jobs %}
-    <p>{{ job.name }} • {{ job.company }} • {{ job.status }} • {{ job.current_step or "" }}</p>
-    {% else %}
-    <p>No provisioning jobs.</p>
-    {% endfor %}
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Company</th>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Current Step</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in seed_jobs %}
+          <tr>
+            <td><a href="/app/tenant-provisioning-job/{{ job.name }}">{{ job.name }}</a></td>
+            <td>{{ job.company }}</td>
+            <td>{{ job.seed_version }}</td>
+            <td><span class="rs-pill">{{ job.status }}</span></td>
+            <td>
+              {{ job.current_step or "" }}
+              {% if job.error %}<div class="rs-muted">{{ job.error }}</div>{% endif %}
+            </td>
+            <td>
+              {% if job.status != "Complete" %}
+              <button class="rs-button" data-rs-action="retry-seed" data-company="{{ job.company }}">Run / Retry</button>
+              {% else %}
+              <span class="rs-muted">Complete</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="rs-muted">No provisioning jobs.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rs-section">
+    <h2>Recent Registrations</h2>
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Registration</th>
+            <th>Business</th>
+            <th>Owner</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Linked Records</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for registration in registrations %}
+          <tr>
+            <td><a href="/app/saas-registration/{{ registration.name }}">{{ registration.name }}</a></td>
+            <td>{{ registration.business_name }}</td>
+            <td>{{ registration.owner_email }}</td>
+            <td>{{ registration.plan }}</td>
+            <td><span class="rs-pill">{{ registration.status }}</span></td>
+            <td>
+              {% if registration.company %}<a href="/app/company/{{ registration.company }}">{{ registration.company }}</a>{% endif %}
+              {% if registration.payment %} · <a href="/app/saas-payment/{{ registration.payment }}">Payment</a>{% endif %}
+              {% if registration.provisioning_job %} · <a href="/app/tenant-provisioning-job/{{ registration.provisioning_job }}">Seed</a>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="rs-muted">No registrations yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rs-section">
+    <h2>Subscriptions</h2>
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Subscription</th>
+            <th>Company</th>
+            <th>Admin</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for subscription in subscriptions %}
+          <tr>
+            <td><a href="/app/saas-subscription/{{ subscription.name }}">{{ subscription.name }}</a></td>
+            <td>{{ subscription.company }}</td>
+            <td>{{ subscription.company_admin or "" }}</td>
+            <td>{{ subscription.plan }}</td>
+            <td><span class="rs-pill">{{ subscription.status }}</span></td>
+            <td>{{ subscription.currency }} {{ subscription.price }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="rs-muted">No subscriptions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </section>
 </main>
+
+<script>
+  (function () {
+    const message = document.getElementById("rs-admin-message");
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = "rs-message " + type;
+    }
+
+    function call(method, args) {
+      return fetch("/api/method/" + method, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Frappe-CSRF-Token": window.frappe && frappe.csrf_token ? frappe.csrf_token : "",
+        },
+        body: JSON.stringify(args || {}),
+      }).then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok || data.exc) {
+            throw new Error(data._server_messages || data.message || "Request failed");
+          }
+          return data.message;
+        });
+      });
+    }
+
+    document.querySelectorAll("[data-rs-action='verify-payment']").forEach(function (form) {
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const button = form.querySelector("button");
+        button.disabled = true;
+        call("reckon_saas_platform.saas.verify_payment_manual", {
+          payment: form.dataset.payment,
+          reference: form.querySelector("[name='reference']").value,
+        })
+          .then(function () {
+            showMessage("Payment verified. Refreshing dashboard...", "success");
+            window.setTimeout(function () { window.location.reload(); }, 700);
+          })
+          .catch(function (error) {
+            button.disabled = false;
+            showMessage(error.message, "error");
+          });
+      });
+    });
+
+    document.querySelectorAll("[data-rs-action='retry-seed']").forEach(function (button) {
+      button.addEventListener("click", function () {
+        button.disabled = true;
+        call("reckon_saas_platform.saas.retry_tenant_seed_job", {
+          company: button.dataset.company,
+        })
+          .then(function () {
+            showMessage("Provisioning job completed. Refreshing dashboard...", "success");
+            window.setTimeout(function () { window.location.reload(); }, 700);
+          })
+          .catch(function (error) {
+            button.disabled = false;
+            showMessage(error.message, "error");
+          });
+      });
+    });
+  })();
+</script>
 {% endblock %}

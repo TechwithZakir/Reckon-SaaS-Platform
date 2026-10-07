@@ -25,11 +25,11 @@ def setup_roles() -> None:
                     "role_name": role.name,
                     "desk_access": 1,
                     "is_custom": 1,
-                    "home_page": "reckon-saas-admin",
                 }
             ).insert(ignore_permissions=True)
         else:
-            frappe.db.set_value("Role", role.name, {"desk_access": 1, "home_page": "reckon-saas-admin"})
+            frappe.db.set_value("Role", role.name, "desk_access", 1)
+            frappe.db.set_value("Role", role.name, "home_page", "")
 
 
 def setup_workspace() -> None:

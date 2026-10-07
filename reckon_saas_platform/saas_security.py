@@ -7,7 +7,7 @@ def is_vendor_user(user: str | None = None) -> bool:
     user = user or frappe.session.user
     if user == "Administrator":
         return True
-    return "Reckon Vendor Superuser" in frappe.get_roles(user) or "System Manager" in frappe.get_roles(user)
+    return "Reckon Vendor Superuser" in frappe.get_roles(user)
 
 
 def get_vendor_only_query(user: str | None = None) -> str:
