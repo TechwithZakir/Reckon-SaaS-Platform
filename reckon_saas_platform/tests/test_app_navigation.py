@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from reckon_saas_platform import hooks
 from reckon_saas_platform.api import check_app_permission
+from reckon_saas_platform.install import _workspace_doc
 
 
 def test_saas_app_has_a_real_desk_route():
@@ -28,6 +29,13 @@ def test_saas_app_is_visible_to_vendor_users():
             return_value=["Reckon Vendor Superuser"],
         ):
             assert check_app_permission() is True
+
+
+def test_saas_workspace_uses_url_field_for_public_pages():
+    links = _workspace_doc()["links"]
+    assert [link["type"] for link in links] == ["URL", "URL", "URL"]
+    assert all(link.get("url") for link in links)
+    assert all("link_to" not in link for link in links)
 
 
 def frappe_session(user: str):

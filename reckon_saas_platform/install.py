@@ -83,7 +83,7 @@ def _workspace_doc(update: bool = False) -> dict:
             for doctype, label in SAAS_DOCTYPES
         ],
         "links": [
-            {"label": label, "type": "URL", "link_to": url}
+            {"label": label, "type": "URL", "url": url}
             for label, url in SAAS_WEB_PAGES
         ],
         "charts": [],
