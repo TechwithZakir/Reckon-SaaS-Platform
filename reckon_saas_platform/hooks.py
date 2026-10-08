@@ -4,6 +4,22 @@ app_publisher = "Reckon Technologies Ltd."
 app_description = "Reusable SaaS tenant, plan, subscription, payment, and provisioning platform"
 app_email = "support@reckon.tech"
 app_license = "MIT"
+app_logo_url = "/assets/reckon_saas_platform/images/reckon-saas-platform-icon.svg"
+app_icon_url = app_logo_url
+app_icon_title = app_title
+app_icon_route = "/desk/reckon-saas-admin"
+
+add_to_apps_screen = [
+    {
+        "name": app_name,
+        "logo": app_logo_url,
+        "title": app_title,
+        "route": app_icon_route,
+        "desk_route": app_icon_route,
+        "has_permission": "reckon_saas_platform.api.check_app_permission",
+        "sequence_id": 20,
+    }
+]
 
 required_apps = ["frappe", "erpnext"]
 
