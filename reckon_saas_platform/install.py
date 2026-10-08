@@ -5,6 +5,23 @@ from frappe import _
 
 from reckon_saas_platform.constants import PLATFORM_ROLES, SAAS_PLATFORM_WORKSPACE
 
+SAAS_WORKSPACE_ROLES = ["Reckon Vendor Superuser", "System Manager"]
+
+SAAS_DOCTYPES = [
+    ("SaaS Plan", "Plans"),
+    ("SaaS Registration", "Registrations"),
+    ("SaaS Subscription", "Subscriptions"),
+    ("SaaS Payment", "Payments"),
+    ("Tenant Provisioning Job", "Provisioning Jobs"),
+    ("Tenant User Assignment", "Tenant User Assignments"),
+]
+
+SAAS_WEB_PAGES = [
+    ("Vendor SaaS Admin", "/reckon-saas-admin"),
+    ("Public Signup", "/reckonerp-signup"),
+    ("Tenant Subscription", "/reckonerp-subscription"),
+]
+
 
 def after_install() -> None:
     setup_roles()
@@ -51,13 +68,24 @@ def _workspace_doc(update: bool = False) -> dict:
         "public": 0,
         "is_hidden": 0,
         "icon": "settings",
-        "roles": [{"role": role.name} for role in PLATFORM_ROLES],
+        "roles": [{"role": role} for role in SAAS_WORKSPACE_ROLES],
         "content": """[
  {"id":"intro","type":"header","data":{"text":"Reckon SaaS Admin"}},
  {"id":"summary","type":"paragraph","data":{"text":"Plans, registrations, subscriptions, payments, and tenant provisioning."}}
 ]""",
-        "shortcuts": [],
-        "links": [],
+        "shortcuts": [
+            {
+                "label": label,
+                "type": "DocType",
+                "link_to": doctype,
+                "doc_view": "List",
+            }
+            for doctype, label in SAAS_DOCTYPES
+        ],
+        "links": [
+            {"label": label, "type": "URL", "link_to": url}
+            for label, url in SAAS_WEB_PAGES
+        ],
         "charts": [],
         "number_cards": [],
     }
