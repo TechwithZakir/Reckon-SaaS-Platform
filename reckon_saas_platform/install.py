@@ -81,11 +81,11 @@ def _workspace_doc(update: bool = False) -> dict:
                 "doc_view": "List",
             }
             for doctype, label in SAAS_DOCTYPES
-        ],
-        "links": [
-            {"label": label, "type": "URL", "url": url}
+        ] + [
+            {"label": label, "type": "URL", "url": url, "color": "Blue"}
             for label, url in SAAS_WEB_PAGES
         ],
+        "links": [],
         "charts": [],
         "number_cards": [],
     }

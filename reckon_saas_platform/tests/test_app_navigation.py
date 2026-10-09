@@ -32,10 +32,11 @@ def test_saas_app_is_visible_to_vendor_users():
 
 
 def test_saas_workspace_uses_url_field_for_public_pages():
-    links = _workspace_doc()["links"]
-    assert [link["type"] for link in links] == ["URL", "URL", "URL"]
-    assert all(link.get("url") for link in links)
-    assert all("link_to" not in link for link in links)
+    workspace = _workspace_doc()
+    public_links = [link for link in workspace["shortcuts"] if link["type"] == "URL"]
+    assert len(public_links) == 3
+    assert all(link.get("url") for link in public_links)
+    assert workspace["links"] == []
 
 
 def frappe_session(user: str):
