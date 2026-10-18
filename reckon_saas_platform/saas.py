@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import re
 import secrets
+from collections import Counter
 from urllib.parse import urlencode
 
 import frappe
@@ -372,16 +373,14 @@ def _module_stats() -> list[dict]:
         ("active_subscriptions", "SaaS Subscription", {"status": ["in", sorted(SAAS_ACTIVE_STATUSES)]}),
     )
     for key, doctype, filters in queries:
-        rows = frappe.get_all(
-            doctype,
-            filters=filters,
-            fields=["saas_module", "count(name) as total"],
-            group_by="saas_module",
-            ignore_permissions=True,
+        # Count in Python: Frappe v16 rejects SQL functions written as field
+        # strings ("count(name)"), and the v16 dict syntax does not exist in v15.
+        modules = frappe.get_all(
+            doctype, filters=filters, pluck="saas_module", ignore_permissions=True
         )
-        for row in rows:
-            if row.saas_module in stats:
-                stats[row.saas_module][key] = row.total
+        for module, total in Counter(modules).items():
+            if module in stats:
+                stats[module][key] = total
     return list(stats.values())
 
 

@@ -99,6 +99,31 @@ class SidebarAndWorkspaceTests(unittest.TestCase):
         self.assertEqual(page["name"], "saas-dashboard")
         self.assertEqual({row["role"] for row in page["roles"]}, {"Reckon Vendor Superuser", "System Manager"})
 
+    def test_module_stats_count_without_sql_function_fields(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            def get_all(doctype, **kwargs):
+                fields = kwargs.get("fields") or []
+                # Frappe v16 rejects SQL functions written as strings, e.g. "count(name)".
+                self.assertFalse([field for field in fields if "(" in str(field)], doctype)
+                if doctype == "SaaS Module":
+                    return [_Dict(name="distribution", module_name="Distribution SaaS"),
+                            _Dict(name="crm", module_name="CRM")]
+                return {
+                    "SaaS Plan": ["distribution", "distribution", "crm"],
+                    "SaaS Registration": ["distribution", None],
+                    "SaaS Subscription": ["crm"],
+                }[doctype]
+
+            frappe.get_all.side_effect = get_all
+            stats = {row["module"]: row for row in saas._module_stats()}
+
+        self.assertEqual(
+            (stats["distribution"]["plans"], stats["distribution"]["registrations"],
+             stats["distribution"]["active_subscriptions"]),
+            (2, 1, 0),
+        )
+        self.assertEqual((stats["crm"]["plans"], stats["crm"]["active_subscriptions"]), (1, 1))
+
     def test_vendor_dashboard_data_requires_vendor(self):
         with platform_modules("saas") as (frappe, (saas,)):
             with patch.object(saas, "is_vendor_user", return_value=False):
