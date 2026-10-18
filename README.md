@@ -34,3 +34,19 @@ email link and, by default, an SMS one-time code. Configure it in
 
 Failed provisioning jobs show on `/reckon-saas-admin` with a **Retry
 Provisioning** button.
+
+## Modules and plans
+
+Each product app declares its module in the `reckon_saas_modules` hook. On
+install and on every migrate the platform creates a **SaaS Module** record for
+it (`/app/saas-module`). Every **SaaS Plan** belongs to one module, and
+registrations and subscriptions record the module they were bought for.
+
+- Untick **Available for Sale** on a module to stop new signups for its plans.
+- `/reckonerp-signup?module=<key>` shows only that module's plans; without the
+  parameter, plans are grouped by module.
+- A company keeps Desk access while any of its module subscriptions is active.
+  `is_subscription_active(company, saas_module=...)` checks a single module.
+
+The vendor **Dashboard** (`/app/saas-dashboard`) is the first item in the SaaS
+Platform sidebar.

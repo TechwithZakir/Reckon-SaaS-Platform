@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import frappe
 
-from reckon_saas_platform.saas import get_vendor_saas_summary
+from reckon_saas_platform.saas import get_vendor_dashboard
 from reckon_saas_platform.saas_security import is_vendor_user
 
 
@@ -12,67 +12,11 @@ def get_context(context):
 
     context.no_cache = 1
     context.title = "SaaS Admin"
-    context.summary = frappe._dict(get_vendor_saas_summary())
-    context.pending_payments = frappe.get_all(
-        "SaaS Payment",
-        filters={"status": "Pending Verification"},
-        fields=[
-            "name",
-            "company",
-            "amount",
-            "currency",
-            "gateway_provider",
-            "gateway_reference",
-            "subscription",
-            "creation",
-        ],
-        ignore_permissions=True,
-        order_by="creation desc",
-    )
-    context.seed_jobs = frappe.get_all(
-        "Tenant Provisioning Job",
-        fields=["name", "company", "seed_version", "status", "current_step", "error"],
-        ignore_permissions=True,
-        order_by="modified desc",
-        limit=20,
-    )
-    context.registrations = frappe.get_all(
-        "SaaS Registration",
-        fields=[
-            "name",
-            "business_name",
-            "owner_email",
-            "owner_phone",
-            "plan",
-            "status",
-            "email_verified",
-            "phone_verification_required",
-            "phone_verified",
-            "error",
-            "company",
-            "payment",
-            "provisioning_job",
-            "creation",
-        ],
-        ignore_permissions=True,
-        order_by="creation desc",
-        limit=20,
-    )
-    context.subscriptions = frappe.get_all(
-        "SaaS Subscription",
-        fields=[
-            "name",
-            "company",
-            "company_admin",
-            "plan",
-            "status",
-            "price",
-            "currency",
-            "end_date",
-            "grace_until",
-        ],
-        ignore_permissions=True,
-        order_by="modified desc",
-        limit=20,
-    )
+    data = get_vendor_dashboard()
+    context.summary = frappe._dict(data["summary"])
+    context.module_stats = data["module_stats"]
+    context.pending_payments = data["pending_payments"]
+    context.seed_jobs = data["seed_jobs"]
+    context.registrations = data["registrations"]
+    context.subscriptions = data["subscriptions"]
     return context

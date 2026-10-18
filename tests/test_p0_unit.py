@@ -11,13 +11,13 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from frappe_stub import _Dict, platform_modules
+from frappe_stub import _Dict, plan_lookup, platform_modules
 
 
 class SignupValidationTests(unittest.TestCase):
     def test_existing_company_is_refused_before_any_tenant_record(self):
         with platform_modules("saas") as (frappe, (saas,)):
-            frappe.db.get_value.return_value = 1  # plan enabled
+            frappe.db.get_value.side_effect = plan_lookup()
             frappe.db.exists.side_effect = lambda doctype, *args: doctype == "Company"
             with self.assertRaises(saas.SignupConflictError) as raised:
                 saas.create_registration(
@@ -31,7 +31,7 @@ class SignupValidationTests(unittest.TestCase):
 
     def test_existing_user_is_refused(self):
         with platform_modules("saas") as (frappe, (saas,)):
-            frappe.db.get_value.return_value = 1
+            frappe.db.get_value.side_effect = plan_lookup()
             frappe.db.exists.side_effect = lambda doctype, *args: doctype == "User"
             with self.assertRaises(saas.SignupConflictError):
                 saas.create_registration(
@@ -44,7 +44,7 @@ class SignupValidationTests(unittest.TestCase):
 
     def test_new_signup_creates_only_a_pending_registration(self):
         with platform_modules("saas") as (frappe, (saas,)):
-            frappe.db.get_value.return_value = 1
+            frappe.db.get_value.side_effect = plan_lookup()
             registration = Mock(flags=_Dict())
             frappe.get_doc.return_value.insert.return_value = registration
             result = saas.create_registration(
@@ -73,7 +73,7 @@ class SignupValidationTests(unittest.TestCase):
         ]
         for case in cases:
             with self.subTest(case=case), platform_modules("saas") as (frappe, (saas,)):
-                frappe.db.get_value.return_value = 1
+                frappe.db.get_value.side_effect = plan_lookup()
                 values = {
                     "business_name": "Co",
                     "owner_email": "o@example.com",
@@ -87,7 +87,7 @@ class SignupValidationTests(unittest.TestCase):
 
     def test_disabled_or_unknown_plan_is_a_400(self):
         with platform_modules("saas") as (frappe, (saas,)):
-            frappe.db.get_value.return_value = 0
+            frappe.db.get_value.side_effect = plan_lookup(enabled=0)
             with self.assertRaises(saas.SignupValidationError):
                 saas.create_registration(
                     business_name="Co", owner_email="o@example.com", owner_name="O", plan="Old"

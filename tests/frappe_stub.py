@@ -53,6 +53,19 @@ class FakeSettings(_Dict):
         return self["passwords"].get(fieldname)
 
 
+def plan_lookup(enabled=1, saas_module="distribution", module_enabled=1):
+    """``frappe.db.get_value`` side effect for SaaS Plan / SaaS Module lookups."""
+
+    def get_value(doctype, *args, **kwargs):
+        if doctype == "SaaS Plan":
+            return _Dict(enabled=enabled, saas_module=saas_module)
+        if doctype == "SaaS Module":
+            return module_enabled
+        return None
+
+    return get_value
+
+
 def build_requests() -> ModuleType:
     requests = ModuleType("requests")
 

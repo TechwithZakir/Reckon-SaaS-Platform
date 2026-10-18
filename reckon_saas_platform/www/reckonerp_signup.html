@@ -514,8 +514,12 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 2-6 5 5 5-5 2 6"/><path d="M5 10h14l-1 8H6z"/></svg>
             <select id="plan" name="plan" required>
               <option value="">Select a plan</option>
-              {% for plan in plans %}
-              <option value="{{ plan.name }}">{{ plan.plan_name }} • {{ plan.currency }} {{ plan.price }} / {{ plan.billing_cycle }}</option>
+              {% for group in plan_groups %}
+              <optgroup label="{{ group.module_name }}">
+                {% for plan in group.plans %}
+                <option value="{{ plan.name }}"{% if plan_groups|length == 1 and group.plans|length == 1 %} selected{% endif %}>{{ plan.plan_name }} • {{ plan.currency }} {{ plan.price }} / {{ plan.billing_cycle }}</option>
+                {% endfor %}
+              </optgroup>
               {% endfor %}
             </select>
           </div>

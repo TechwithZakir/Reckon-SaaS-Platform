@@ -227,7 +227,7 @@ def get_subscription_summary():
     tenant = resolve_tenant()
     subscription = get_company_subscription(tenant.company)
     if not subscription:
-        return {"company": tenant.company, "status": "Missing"}
+        return {"company": tenant.company, "status": "Missing", "modules": []}
 
     payment = frappe.db.get_value(
         "SaaS Payment",
@@ -244,6 +244,7 @@ def get_subscription_summary():
     return {
         "company": tenant.company,
         "subscription": subscription.name,
+        "saas_module": subscription.saas_module,
         "status": subscription.status,
         "plan": subscription.plan,
         "price": subscription.price,
@@ -252,6 +253,7 @@ def get_subscription_summary():
         "grace_until": subscription.grace_until,
         "payment": payment,
         "provisioning": job,
+        "modules": get_company_module_subscriptions(tenant.company),
         "operational_access": _has_operational_access(tenant.company),
     }
 
@@ -260,12 +262,145 @@ def get_subscription_summary():
 def get_vendor_saas_summary():
     _require_vendor()
     return {
+        "modules": frappe.db.count("SaaS Module", {"enabled": 1}),
         "plans": frappe.db.count("SaaS Plan"),
         "registrations": frappe.db.count("SaaS Registration"),
+        "registrations_failed": frappe.db.count("SaaS Registration", {"status": "Failed"}),
         "subscriptions": frappe.db.count("SaaS Subscription"),
+        "subscriptions_active": frappe.db.count(
+            "SaaS Subscription", {"status": ["in", sorted(SAAS_ACTIVE_STATUSES)]}
+        ),
         "payments_pending": frappe.db.count("SaaS Payment", {"status": "Pending Verification"}),
         "seed_jobs_pending": frappe.db.count("Tenant Provisioning Job", {"status": ["!=", "Complete"]}),
     }
+
+
+@frappe.whitelist()
+def get_vendor_dashboard() -> dict:
+    """Everything the vendor dashboards show: Desk page and /reckon-saas-admin."""
+    _require_vendor()
+    return {
+        "summary": get_vendor_saas_summary(),
+        "modules": frappe.get_all(
+            "SaaS Module",
+            fields=["name", "module_name", "enabled", "app_name", "description"],
+            order_by="module_name asc",
+            ignore_permissions=True,
+        ),
+        "module_stats": _module_stats(),
+        "pending_payments": frappe.get_all(
+            "SaaS Payment",
+            filters={"status": "Pending Verification"},
+            fields=[
+                "name",
+                "company",
+                "amount",
+                "currency",
+                "gateway_provider",
+                "gateway_reference",
+                "subscription",
+                "creation",
+            ],
+            ignore_permissions=True,
+            order_by="creation desc",
+        ),
+        "seed_jobs": frappe.get_all(
+            "Tenant Provisioning Job",
+            fields=["name", "company", "seed_version", "status", "current_step", "error"],
+            ignore_permissions=True,
+            order_by="modified desc",
+            limit=20,
+        ),
+        "registrations": frappe.get_all(
+            "SaaS Registration",
+            fields=[
+                "name",
+                "business_name",
+                "owner_email",
+                "owner_phone",
+                "saas_module",
+                "plan",
+                "status",
+                "email_verified",
+                "phone_verification_required",
+                "phone_verified",
+                "error",
+                "company",
+                "payment",
+                "provisioning_job",
+                "creation",
+            ],
+            ignore_permissions=True,
+            order_by="creation desc",
+            limit=20,
+        ),
+        "subscriptions": frappe.get_all(
+            "SaaS Subscription",
+            fields=[
+                "name",
+                "company",
+                "company_admin",
+                "saas_module",
+                "plan",
+                "status",
+                "price",
+                "currency",
+                "end_date",
+                "grace_until",
+            ],
+            ignore_permissions=True,
+            order_by="modified desc",
+            limit=20,
+        ),
+    }
+
+
+def _module_stats() -> list[dict]:
+    """Per-module plan, registration and active-subscription counts."""
+    stats = {}
+    for module in frappe.get_all("SaaS Module", fields=["name", "module_name"], ignore_permissions=True):
+        stats[module.name] = {
+            "module": module.name,
+            "module_name": module.module_name,
+            "plans": 0,
+            "registrations": 0,
+            "active_subscriptions": 0,
+        }
+    queries = (
+        ("plans", "SaaS Plan", {}),
+        ("registrations", "SaaS Registration", {}),
+        ("active_subscriptions", "SaaS Subscription", {"status": ["in", sorted(SAAS_ACTIVE_STATUSES)]}),
+    )
+    for key, doctype, filters in queries:
+        rows = frappe.get_all(
+            doctype,
+            filters=filters,
+            fields=["saas_module", "count(name) as total"],
+            group_by="saas_module",
+            ignore_permissions=True,
+        )
+        for row in rows:
+            if row.saas_module in stats:
+                stats[row.saas_module][key] = row.total
+    return list(stats.values())
+
+
+def get_company_module_subscriptions(company: str) -> list[dict]:
+    """The company's latest subscription per module, with whether it is active."""
+    rows = frappe.get_all(
+        "SaaS Subscription",
+        filters={"company": company},
+        fields=["name", "saas_module", "plan", "status", "end_date", "grace_until"],
+        order_by="creation desc",
+        ignore_permissions=True,
+    )
+    latest = {}
+    for row in rows:
+        latest.setdefault(row.saas_module or "", row)
+    return [
+        {**row, "active": _subscription_row_active(row)}
+        for row in latest.values()
+    ]
 
 
 def get_user_home_page(user: str):
@@ -317,8 +452,11 @@ def create_registration(
 
     if billing_cycle not in BILLING_CYCLES:
         frappe.throw(_("Please select a valid billing cycle."), SignupValidationError)
-    if not plan or not frappe.db.get_value("SaaS Plan", plan, "enabled"):
+    plan_row = frappe.db.get_value("SaaS Plan", plan, ["enabled", "saas_module"], as_dict=True) if plan else None
+    if not plan_row or not plan_row.enabled:
         frappe.throw(_("Please select a valid SaaS plan."), SignupValidationError)
+    if plan_row.saas_module and not frappe.db.get_value("SaaS Module", plan_row.saas_module, "enabled"):
+        frappe.throw(_("This module is not available for signup."), SignupValidationError)
 
     _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
@@ -330,6 +468,7 @@ def create_registration(
         "owner_name": owner_name,
         "owner_phone": phone,
         "plan": plan,
+        "saas_module": plan_row.saas_module,
         "billing_cycle": billing_cycle,
         "status": "Pending Verification",
         "email_verified": 0,
@@ -603,6 +742,7 @@ def _create_registration_subscription(doc, plan_doc, company: str, admin_user: s
             "company": company,
             "company_admin": admin_user,
             "plan": plan_doc.name,
+            "saas_module": plan_doc.saas_module or doc.get("saas_module"),
             "plan_version": plan_doc.plan_version,
             "billing_cycle": doc.billing_cycle,
             "status": "Pending",
@@ -668,7 +808,7 @@ def run_tenant_seed_job(company: str, seed_version: str = CURRENT_SEED_VERSION):
     try:
         # Seed only generic non-sensitive placeholders. Do not copy Items, Customers,
         # Suppliers, prices, balances, contacts, or stock.
-        for handler_path in get_seed_handlers():
+        for handler_path in get_seed_handlers(_company_module_keys(company)):
             job.db_set("current_step", handler_path)
             frappe.get_attr(handler_path)(company=company, seed_version=seed_version)
     except Exception as exc:
@@ -693,6 +833,19 @@ def run_tenant_seed_job(company: str, seed_version: str = CURRENT_SEED_VERSION):
     return job
 
 
+def _company_module_keys(company: str) -> set[str] | None:
+    """Modules the company subscribes to; ``None`` (all modules) for legacy rows."""
+    keys = set(
+        frappe.get_all(
+            "SaaS Subscription",
+            filters={"company": company, "saas_module": ["is", "set"]},
+            pluck="saas_module",
+            ignore_permissions=True,
+        )
+    )
+    return keys or None
+
+
 def verify_payment(payment: str, reference: str | None = None):
     payment_doc = frappe.get_doc("SaaS Payment", payment)
     payment_doc.status = "Verified"
@@ -709,13 +862,22 @@ def verify_payment(payment: str, reference: str | None = None):
     return subscription
 
 
-def is_subscription_active(company: str) -> bool:
-    subscription = get_company_subscription(company)
-    if not subscription:
-        return False
+def is_subscription_active(company: str, saas_module: str | None = None) -> bool:
+    """True when the company has an active subscription.
+
+    With ``saas_module`` only that module's latest subscription counts. Without
+    it, any module's latest subscription being active is enough, so a tenant who
+    buys several modules keeps Desk access while one of them is still live.
+    """
+    if saas_module:
+        subscription = get_company_subscription(company, saas_module=saas_module)
+        return bool(subscription) and _subscription_row_active(subscription)
+    return any(row["active"] for row in get_company_module_subscriptions(company))
+
+
+def _subscription_row_active(subscription) -> bool:
     if subscription.status not in SAAS_ACTIVE_STATUSES:
         return False
-
     if subscription.status == "Grace" and subscription.grace_until:
         return getdate(subscription.grace_until) >= getdate(nowdate())
     if subscription.end_date and getdate(subscription.end_date) < getdate(nowdate()):
@@ -777,10 +939,13 @@ def _operational_access_cache_key(company: str) -> str:
     return f"{OPERATIONAL_ACCESS_CACHE_PREFIX}::{company}"
 
 
-def get_company_subscription(company: str):
+def get_company_subscription(company: str, saas_module: str | None = None):
+    filters = {"company": company}
+    if saas_module:
+        filters["saas_module"] = saas_module
     name = frappe.db.get_value(
         "SaaS Subscription",
-        {"company": company},
+        filters,
         "name",
         order_by="creation desc",
     )

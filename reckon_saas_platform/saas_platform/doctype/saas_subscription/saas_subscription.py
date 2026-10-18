@@ -9,6 +9,8 @@ class SaaSSubscription(Document):
         self.name = frappe.model.naming.make_autoname("SUB-.#####")
 
     def validate(self) -> None:
+        if not self.saas_module and self.plan:
+            self.saas_module = frappe.db.get_value("SaaS Plan", self.plan, "saas_module")
         if not self.is_new():
             previous_price = frappe.db.get_value(self.doctype, self.name, "price")
             previous_plan_version = frappe.db.get_value(self.doctype, self.name, "plan_version")

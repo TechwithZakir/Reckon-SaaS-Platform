@@ -176,7 +176,8 @@
       <p>Review signups, verify payments, retry provisioning, and open SaaS records in Desk.</p>
     </div>
     <div class="rs-actions">
-      <a class="rs-button" href="/app">Desk</a>
+      <a class="rs-button" href="/app/saas-dashboard">Desk Dashboard</a>
+      <a class="rs-button" href="/app/saas-module">Modules</a>
       <a class="rs-button" href="/app/saas-registration">Registrations</a>
       <a class="rs-button" href="/app/saas-plan">Plans</a>
       <a class="rs-button primary" href="/reckonerp-signup">Public Signup</a>
@@ -200,7 +201,35 @@
     </div>
     <div class="rs-card">
       <div class="label">Needs Action</div>
-      <div class="value">{{ summary.payments_pending + summary.seed_jobs_pending }}</div>
+      <div class="value">{{ summary.payments_pending + summary.seed_jobs_pending + summary.registrations_failed }}</div>
+    </div>
+  </section>
+
+  <section class="rs-section">
+    <h2>Modules</h2>
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>Plans</th>
+            <th>Registrations</th>
+            <th>Active Subscriptions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for module in module_stats %}
+          <tr>
+            <td><a href="/app/saas-module/{{ module.module }}">{{ module.module_name }}</a></td>
+            <td><a href="/app/saas-plan?saas_module={{ module.module }}">{{ module.plans }}</a></td>
+            <td><a href="/app/saas-registration?saas_module={{ module.module }}">{{ module.registrations }}</a></td>
+            <td><a href="/app/saas-subscription?saas_module={{ module.module }}">{{ module.active_subscriptions }}</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="rs-muted">No modules registered. Run bench migrate after installing a product app.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -289,6 +318,7 @@
             <th>Registration</th>
             <th>Business</th>
             <th>Owner</th>
+            <th>Module</th>
             <th>Plan</th>
             <th>Status</th>
             <th>Linked Records</th>
@@ -304,6 +334,7 @@
               {{ registration.owner_email }}{% if registration.email_verified %} ✓{% endif %}
               {% if registration.owner_phone %}<br><span class="rs-muted">{{ registration.owner_phone }}{% if registration.phone_verified %} ✓{% elif registration.phone_verification_required %} (unverified){% endif %}</span>{% endif %}
             </td>
+            <td>{{ registration.saas_module or "" }}</td>
             <td>{{ registration.plan }}</td>
             <td>
               <span class="rs-pill">{{ registration.status }}</span>
@@ -321,7 +352,7 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="rs-muted">No registrations yet.</td></tr>
+          <tr><td colspan="8" class="rs-muted">No registrations yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -337,6 +368,7 @@
             <th>Subscription</th>
             <th>Company</th>
             <th>Admin</th>
+            <th>Module</th>
             <th>Plan</th>
             <th>Status</th>
             <th>Price</th>
@@ -348,12 +380,13 @@
             <td><a href="/app/saas-subscription/{{ subscription.name }}">{{ subscription.name }}</a></td>
             <td>{{ subscription.company }}</td>
             <td>{{ subscription.company_admin or "" }}</td>
+            <td>{{ subscription.saas_module or "" }}</td>
             <td>{{ subscription.plan }}</td>
             <td><span class="rs-pill">{{ subscription.status }}</span></td>
             <td>{{ subscription.currency }} {{ subscription.price }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="rs-muted">No subscriptions yet.</td></tr>
+          <tr><td colspan="7" class="rs-muted">No subscriptions yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

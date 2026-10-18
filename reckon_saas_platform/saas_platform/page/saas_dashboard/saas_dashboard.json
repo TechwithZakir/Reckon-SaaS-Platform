@@ -1,0 +1,10 @@
+{
+ "doctype":"Page",
+ "icon":"layout-dashboard",
+ "module":"SaaS Platform",
+ "name":"saas-dashboard",
+ "page_name":"saas-dashboard",
+ "roles":[{"role":"Reckon Vendor Superuser"},{"role":"System Manager"}],
+ "standard":"Yes",
+ "title":"SaaS Dashboard"
+}

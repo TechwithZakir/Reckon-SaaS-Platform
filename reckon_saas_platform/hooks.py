@@ -25,6 +25,8 @@ required_apps = ["frappe", "erpnext"]
 
 after_install = "reckon_saas_platform.install.after_install"
 after_migrate = "reckon_saas_platform.install.after_migrate"
+# Register a product app's SaaS module as soon as that app is installed.
+after_app_install = "reckon_saas_platform.install.after_app_install"
 
 # Tenant users may use Desk and the API only while their company is provisioned
 # and subscribed. See reckon_saas_platform.saas_gate.

@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-from frappe_stub import FakeSettings, _Dict, platform_modules
+from frappe_stub import FakeSettings, _Dict, plan_lookup, platform_modules
 
 NOW = datetime(2026, 10, 18, 12, 0, 0)
 
@@ -160,7 +160,7 @@ class RecaptchaTests(unittest.TestCase):
 
 class PhoneSignupTests(unittest.TestCase):
     def _create(self, saas, frappe, **overrides):
-        frappe.db.get_value.return_value = 1  # plan enabled
+        frappe.db.get_value.side_effect = plan_lookup()
         registration = Mock(flags=_Dict())
         frappe.get_doc.return_value.insert.return_value = registration
         values = {
