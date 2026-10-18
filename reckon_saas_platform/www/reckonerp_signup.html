@@ -1,572 +1,393 @@
 {% extends "templates/web.html" %}
 
-{% block title %}Reckon ERP Signup{% endblock %}
+{% block title %}{% if module %}{{ module.name|e }} Signup · {% endif %}Reckon ERP{% endblock %}
 
 {% block head_include %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
-    --reckon-blue: #2f7df6;
-    --reckon-navy: #062761;
-    --reckon-ink: #082453;
-    --reckon-muted: #607395;
-    --reckon-line: #cbd7e8;
+    --rk-green: #3cd400;
+    --rk-green-dark: #2a9a00;
+    --rk-blue: #139bd9;
+    --rk-blue-dark: #0b78ab;
+    --rk-ink: #0d2240;
+    --rk-muted: #5b6b82;
+    --rk-line: #dbe4ef;
+    --rk-card: #ffffff;
+    --rk-danger: #c62d3c;
+    --rk-radius: 14px;
   }
 
+  .navbar, .web-footer, .page-breadcrumbs, .page-header-wrapper { display: none !important; }
+  .page-content-wrapper, .page_content, .container { max-width: none !important; padding: 0 !important; margin: 0 !important; }
   body {
-    background:
-      radial-gradient(circle at 18% 12%, rgba(47, 125, 246, 0.12), transparent 28%),
-      radial-gradient(circle at 78% 78%, rgba(47, 125, 246, 0.08), transparent 32%),
-      linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
-  }
-
-  .navbar, .web-footer, .page-breadcrumbs { display: none !important; }
-
-  .reckon-signup {
-    min-height: 100vh;
-    padding: 28px clamp(18px, 5vw, 72px) 30px;
-    color: var(--reckon-ink);
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
-  }
-
-  .rs-topbar {
-    width: min(1560px, 100%);
-    margin: 0 auto 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .rs-brand { display: flex; align-items: center; gap: 22px; color: #173764; }
-
-  .rs-mark { width: 50px; height: 42px; position: relative; }
-  .rs-mark::before, .rs-mark::after {
-    content: "";
-    position: absolute;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #5ca4ff 0%, #1f6fec 100%);
-    box-shadow: 0 8px 22px rgba(47, 125, 246, 0.28);
-  }
-  .rs-mark::before { inset: 0 11px 22px 0; }
-  .rs-mark::after {
-    width: 34px;
-    height: 30px;
-    left: 9px;
-    top: 12px;
-    transform: skewX(-18deg);
-    border-bottom-left-radius: 3px;
-  }
-
-  .rs-logo-text {
-    font-size: clamp(28px, 2.2vw, 38px);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  .rs-logo-text span { color: var(--reckon-blue); }
-  .rs-divider { height: 31px; width: 1px; background: #4e6285; opacity: 0.8; }
-  .rs-product { font-size: 18px; color: #334b72; white-space: nowrap; }
-
-  .rs-login {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--reckon-blue);
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 16px;
-  }
-
-  .rs-login-icon {
-    width: 24px;
-    height: 24px;
-    border: 3px solid var(--reckon-blue);
-    border-left: 0;
-    border-radius: 4px;
-    position: relative;
-  }
-  .rs-login-icon::before {
-    content: "→";
-    position: absolute;
-    left: -13px;
-    top: -8px;
-    font-size: 28px;
-    line-height: 1;
-  }
-
-  .rs-card {
-    width: min(1560px, 100%);
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.94);
-    border-radius: 10px;
-    box-shadow: 0 24px 70px rgba(42, 79, 122, 0.12);
-    padding: clamp(16px, 1.6vw, 24px);
-    display: grid;
-    grid-template-columns: minmax(420px, 0.82fr) minmax(460px, 1fr);
-    gap: clamp(42px, 5vw, 76px);
-    align-items: stretch;
-  }
-
-  .rs-info {
-    min-height: 700px;
-    padding: clamp(36px, 4vw, 56px);
-    background: linear-gradient(135deg, #f8fbff 0%, #edf6ff 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  .rs-info::before {
-    content: "";
-    position: absolute;
-    inset: auto -90px -120px auto;
-    width: 380px;
-    height: 380px;
-    border-radius: 50%;
-    background: rgba(47, 125, 246, 0.08);
-  }
-
-  .rs-welcome {
-    color: #69a3ff;
-    font-size: 20px;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin: 0 0 8px;
-  }
-
-  .rs-info h1 {
-    font-size: clamp(46px, 4vw, 62px);
-    line-height: 0.98;
     margin: 0;
-    color: #0a2a61;
-    letter-spacing: -0.04em;
-  }
-  .rs-info h1 span { color: var(--reckon-blue); }
-
-  .rs-info-copy {
-    color: #596b8d;
-    font-size: 22px;
-    line-height: 1.42;
-    max-width: 520px;
-    margin: 14px 0 38px;
+    background:
+      radial-gradient(1100px 520px at 0% 0%, rgba(19, 155, 217, 0.10), transparent 60%),
+      radial-gradient(900px 480px at 100% 100%, rgba(60, 212, 0, 0.10), transparent 60%),
+      #f7fafd;
+    color: var(--rk-ink);
+    font-family: Inter, "Segoe UI", system-ui, -apple-system, "Noto Sans Bengali", sans-serif;
   }
 
-  .rs-benefits { display: grid; gap: 24px; position: relative; z-index: 1; }
-  .rs-benefit {
-    display: grid;
-    grid-template-columns: 52px 1fr;
-    gap: 22px;
-    align-items: center;
-  }
-  .rs-benefit-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    display: grid;
-    place-items: center;
-    font-size: 26px;
-    font-weight: 700;
-  }
-  .rs-benefit:nth-child(1) .rs-benefit-icon { background: #e7f0ff; color: var(--reckon-blue); }
-  .rs-benefit:nth-child(2) .rs-benefit-icon { background: #d9f5ec; color: #08a275; }
-  .rs-benefit:nth-child(3) .rs-benefit-icon { background: #efe5ff; color: #834ce8; }
-  .rs-benefit strong { display: block; font-size: 17px; color: #082453; margin-bottom: 4px; }
-  .rs-benefit span { color: #7a8bac; font-size: 15px; }
+  .rk-page *, .rk-page *::before, .rk-page *::after { box-sizing: border-box; }
+  .rk-page { min-height: 100vh; display: flex; flex-direction: column; }
+  .rk-shell { width: min(1180px, 100% - 32px); margin: 0 auto; }
 
-  .rs-illustration {
-    height: 260px;
-    margin: 34px auto 0;
-    max-width: 540px;
-    position: relative;
-    z-index: 1;
-  }
-  .rs-ground {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 18px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #b8d7ff, transparent);
-  }
-  .rs-laptop {
-    position: absolute;
-    left: 22%;
-    bottom: 34px;
-    width: 300px;
-    height: 176px;
-    border: 10px solid #0e4ca0;
-    border-radius: 13px 13px 4px 4px;
-    background: #f7fbff;
-    box-shadow: 0 20px 30px rgba(19, 72, 139, 0.18);
-  }
-  .rs-laptop::before {
-    content: "";
-    position: absolute;
-    left: -10px;
-    top: -10px;
-    bottom: -10px;
-    width: 42px;
-    border-radius: 13px 0 0 4px;
-    background: linear-gradient(180deg, #144d9f, #08306d);
-  }
-  .rs-laptop::after {
-    content: "";
-    position: absolute;
-    left: -28px;
-    right: -28px;
-    bottom: -22px;
-    height: 18px;
-    border-radius: 0 0 18px 18px;
-    background: #0b3f8d;
-  }
-  .rs-chart {
-    position: absolute;
-    right: 38px;
-    bottom: 40px;
-    width: 78px;
-    height: 70px;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-  }
-  .rs-chart i {
-    display: block;
-    width: 13px;
-    border-radius: 5px 5px 0 0;
-    background: #3c8cff;
-  }
-  .rs-chart i:nth-child(1) { height: 22px; opacity: 0.62; }
-  .rs-chart i:nth-child(2) { height: 36px; opacity: 0.78; }
-  .rs-chart i:nth-child(3) { height: 54px; }
+  .rk-header { padding: 22px 0; }
+  .rk-header .rk-shell { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .rk-logo img { height: 46px; width: auto; display: block; }
+  .rk-signin { color: var(--rk-muted); font-size: 14px; text-decoration: none; text-align: right; }
+  .rk-signin strong { color: var(--rk-blue-dark); }
+  .rk-signin:hover strong { text-decoration: underline; }
 
-  .rs-phone {
-    position: absolute;
-    left: calc(22% + 284px);
-    bottom: 24px;
-    width: 86px;
-    height: 142px;
-    border: 8px solid #0c4a9b;
-    border-radius: 15px;
-    background: #f8fbff;
-    box-shadow: 0 16px 28px rgba(19, 72, 139, 0.18);
+  .rk-main { flex: 1; padding: 12px 0 48px; }
+  .rk-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: start; }
+
+  .rk-hero { padding-top: 18px; }
+  .rk-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark); font-size: 13px; font-weight: 600;
   }
-  .rs-phone i {
-    display: block;
-    height: 10px;
-    margin: 15px 13px;
-    border-radius: 10px;
-    background: #c8dcf6;
+  .rk-eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--rk-green); }
+  .rk-hero h1 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.12; margin: 18px 0 14px; letter-spacing: -0.02em; }
+  .rk-hero h1 span { color: var(--rk-green-dark); }
+  .rk-lead { font-size: 17px; line-height: 1.6; color: var(--rk-muted); max-width: 520px; margin: 0 0 26px; }
+  .rk-features { list-style: none; padding: 0; margin: 0 0 30px; display: grid; gap: 12px; }
+  .rk-features li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.5; }
+  .rk-features li::before {
+    content: "✓"; flex: 0 0 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(60, 212, 0, 0.14); color: var(--rk-green-dark); font-weight: 700; font-size: 13px;
+  }
+  .rk-steps-preview { display: flex; gap: 10px; flex-wrap: wrap; color: var(--rk-muted); font-size: 13px; }
+  .rk-steps-preview span { padding: 6px 10px; border: 1px dashed var(--rk-line); border-radius: 8px; background: #fff; }
+
+  .rk-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 26px; }
+  .rk-module {
+    display: block; padding: 16px; border: 1px solid var(--rk-line); border-radius: var(--rk-radius);
+    background: #fff; color: var(--rk-ink); text-decoration: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .rk-module:hover { border-color: var(--rk-blue); box-shadow: 0 8px 24px rgba(19, 155, 217, 0.12); }
+  .rk-module strong { display: block; font-size: 16px; margin-bottom: 4px; }
+  .rk-module small { color: var(--rk-muted); line-height: 1.45; }
+
+  .rk-card {
+    background: var(--rk-card); border: 1px solid var(--rk-line); border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(13, 34, 64, 0.08); padding: 28px clamp(20px, 3vw, 34px) 30px;
   }
 
-  .rs-plant { position: absolute; left: 44px; bottom: 44px; width: 58px; height: 88px; }
-  .rs-plant::before {
-    content: "";
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 0;
-    height: 36px;
-    background: #ffffff;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 8px 16px rgba(32, 84, 128, 0.1);
+  .rk-stepper { display: flex; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; counter-reset: step; }
+  .rk-stepper li {
+    flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #9aa8bb;
+    counter-increment: step; white-space: nowrap;
   }
-  .rs-plant i {
-    position: absolute;
-    bottom: 31px;
-    width: 22px;
-    height: 58px;
-    border-radius: 100% 0;
-    background: #37b98f;
+  .rk-stepper li::before {
+    content: counter(step); width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px solid var(--rk-line); background: #fff; font-size: 12px;
   }
-  .rs-plant i:nth-child(1) { left: 2px; transform: rotate(-30deg); }
-  .rs-plant i:nth-child(2) { left: 18px; height: 72px; transform: rotate(5deg); }
-  .rs-plant i:nth-child(3) { right: 3px; transform: rotate(34deg); }
+  .rk-stepper li.is-active { color: var(--rk-ink); }
+  .rk-stepper li.is-active::before { border-color: var(--rk-blue); color: var(--rk-blue); }
+  .rk-stepper li.is-done { color: var(--rk-green-dark); }
+  .rk-stepper li.is-done::before { content: "✓"; border-color: var(--rk-green); background: var(--rk-green); color: #fff; }
 
-  .rs-form-wrap {
-    padding: clamp(38px, 4vw, 56px) clamp(26px, 3vw, 50px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+  .rk-card h2 { font-size: 22px; margin: 0 0 6px; }
+  .rk-sub { color: var(--rk-muted); font-size: 14px; margin: 0 0 22px; line-height: 1.5; }
 
-  .rs-form-title {
-    margin: 0 0 16px;
-    font-size: clamp(36px, 3vw, 48px);
-    line-height: 1.08;
-    letter-spacing: -0.04em;
-    color: var(--reckon-navy);
+  .rk-field { margin-bottom: 16px; }
+  .rk-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .rk-field input, .rk-field select {
+    width: 100%; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px;
+    font-size: 15px; color: var(--rk-ink); background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
   }
+  .rk-field input:focus, .rk-field select:focus { border-color: var(--rk-blue); box-shadow: 0 0 0 3px rgba(19, 155, 217, 0.15); }
+  .rk-field .rk-hint { font-size: 12px; color: var(--rk-muted); margin-top: 5px; }
+  .rk-field .rk-hint a { color: var(--rk-blue-dark); }
+  .rk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-  .rs-form-subtitle {
-    margin: 0 0 34px;
-    color: #52688f;
-    font-size: 20px;
-    line-height: 1.42;
-    max-width: 680px;
+  .rk-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px;
+    border: 0; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none;
+    background: linear-gradient(135deg, var(--rk-green) 0%, var(--rk-green-dark) 100%); color: #fff;
+    box-shadow: 0 10px 22px rgba(60, 212, 0, 0.25);
   }
+  .rk-btn:hover { color: #fff; text-decoration: none; }
+  .rk-btn[disabled] { opacity: .65; cursor: wait; }
+  .rk-btn.is-block { width: 100%; }
+  .rk-btn.is-blue { background: linear-gradient(135deg, var(--rk-blue) 0%, var(--rk-blue-dark) 100%); box-shadow: 0 10px 22px rgba(19, 155, 217, 0.22); }
+  .rk-terms { font-size: 12px; color: var(--rk-muted); text-align: center; margin: 14px 0 0; }
 
-  .rs-signup-form, .rs-otp-form { width: min(720px, 100%); }
-  .rs-signup-form[hidden], .rs-otp-form[hidden] { display: none; }
-  .rs-captcha { min-height: 78px; }
-  .rs-link-button {
-    margin-left: 16px;
-    border: 0;
-    background: transparent;
-    color: #246ced;
-    font-size: 15px;
-    font-weight: 650;
-    cursor: pointer;
-  }
-  .rs-link-button[disabled] { color: #8a9ab7; cursor: wait; }
-  .rs-field { margin-bottom: 26px; }
-  .rs-field label {
-    display: block;
-    color: #062761;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
+  .rk-alert { display: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.45; margin-bottom: 18px; }
+  .rk-alert.is-visible { display: block; }
+  .rk-alert.is-error { background: #fdecee; color: var(--rk-danger); border: 1px solid #f6c5cb; }
+  .rk-alert.is-success { background: #ecfbe4; color: #22720a; border: 1px solid #c6efb0; }
+  .rk-alert.is-info { background: #e8f5fc; color: var(--rk-blue-dark); border: 1px solid #bfe3f5; }
 
-  .rs-input-shell {
-    height: 54px;
-    border: 1px solid var(--reckon-line);
-    border-radius: 8px;
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    align-items: center;
-    background: #fff;
-    overflow: hidden;
+  .rk-verify-item { border: 1px solid var(--rk-line); border-radius: var(--rk-radius); padding: 18px; margin-bottom: 14px; }
+  .rk-verify-item[hidden] { display: none; }
+  .rk-verify-head { display: flex; align-items: center; gap: 12px; }
+  .rk-verify-icon {
+    width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; display: grid; place-items: center;
+    background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark); font-size: 18px;
   }
-  .rs-input-shell:focus-within {
-    border-color: var(--reckon-blue);
-    box-shadow: 0 0 0 4px rgba(47, 125, 246, 0.11);
-  }
-  .rs-input-shell svg {
-    width: 22px;
-    height: 22px;
-    margin: 0 auto;
-    color: #526b91;
-  }
-  .rs-input-shell input, .rs-input-shell select {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    outline: 0;
-    color: #18365f;
-    font-size: 16px;
-    background: transparent;
-    padding-right: 18px;
-  }
-  .rs-input-shell input::placeholder { color: #8a9ab7; }
+  .rk-verify-head h3 { font-size: 15px; margin: 0; }
+  .rk-verify-head p { font-size: 13px; color: var(--rk-muted); margin: 2px 0 0; overflow-wrap: anywhere; }
+  .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #fff4e0; color: #9a5b00; white-space: nowrap; }
+  .rk-chip.is-done { background: #ecfbe4; color: #22720a; }
+  .rk-verify-body { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .rk-otp { flex: 1 1 160px; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px; font-size: 20px; letter-spacing: 6px; text-align: center; }
+  .rk-otp:focus { outline: none; border-color: var(--rk-blue); box-shadow: 0 0 0 3px rgba(19, 155, 217, 0.15); }
+  .rk-link { background: none; border: 0; padding: 0; color: var(--rk-blue-dark); font-weight: 600; font-size: 13px; cursor: pointer; }
+  .rk-link[disabled] { color: #9aa8bb; cursor: default; }
+  .rk-verify-item.is-complete .rk-verify-body { display: none; }
 
-  .rs-submit {
-    margin-top: 4px;
-    min-width: 220px;
-    height: 52px;
-    border: 0;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #2f86ff 0%, #246ced 100%);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 750;
-    box-shadow: 0 15px 30px rgba(47, 125, 246, 0.25);
-  }
-  .rs-submit span { margin-left: 10px; font-size: 22px; vertical-align: -1px; }
-  .rs-submit[disabled] { opacity: 0.68; cursor: wait; }
+  .rk-done { text-align: center; padding: 10px 0 4px; }
+  .rk-done-icon { width: 68px; height: 68px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; font-size: 30px; background: rgba(60, 212, 0, 0.14); color: var(--rk-green-dark); }
+  .rk-done-icon.is-wait { background: rgba(19, 155, 217, 0.12); color: var(--rk-blue-dark); }
+  .rk-done-icon.is-error { background: #fdecee; color: var(--rk-danger); }
+  .rk-done h2 { margin-bottom: 8px; }
+  .rk-done p { color: var(--rk-muted); line-height: 1.6; margin: 0 auto 20px; max-width: 420px; }
+  .rk-done [hidden] { display: none; }
 
-  .rs-message {
-    display: none;
-    margin: 0 0 22px;
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 15px;
-    line-height: 1.4;
-  }
-  .rs-message.is-visible { display: block; }
-  .rs-message.is-error {
-    color: #8a1f1f;
-    background: #fff0f0;
-    border: 1px solid #f0c7c7;
-  }
-  .rs-message.is-success {
-    color: #11613f;
-    background: #eefbf5;
-    border: 1px solid #b9ead2;
-  }
+  [data-step][hidden] { display: none !important; }
 
-  .rs-powered {
-    width: min(1560px, 100%);
-    margin: 36px auto 0;
-    text-align: center;
-    color: #7083a3;
-    font-size: 14px;
-  }
+  .rk-footer { border-top: 1px solid var(--rk-line); background: #fff; padding: 28px 0 22px; }
+  .rk-footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 28px; align-items: start; }
+  .rk-footer img { height: 34px; width: auto; display: block; margin-bottom: 10px; }
+  .rk-footer p { margin: 0; color: var(--rk-muted); font-size: 13px; line-height: 1.6; }
+  .rk-footer h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #8b98ab; margin: 0 0 10px; }
+  .rk-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
+  .rk-footer a { color: var(--rk-ink); text-decoration: none; }
+  .rk-footer a:hover { color: var(--rk-blue-dark); }
+  .rk-copy { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rk-line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #8b98ab; }
 
-  @media (max-width: 1080px) {
-    .rs-card { grid-template-columns: 1fr; }
-    .rs-info { min-height: 560px; }
+  @media (max-width: 920px) {
+    .rk-grid { grid-template-columns: 1fr; gap: 28px; }
+    .rk-hero { padding-top: 0; }
+    .rk-footer-grid { grid-template-columns: 1fr 1fr; }
   }
-
-  @media (max-width: 640px) {
-    .reckon-signup { padding: 18px 12px 24px; }
-    .rs-topbar { gap: 16px; align-items: flex-start; }
-    .rs-brand { gap: 12px; flex-wrap: wrap; }
-    .rs-divider { display: none; }
-    .rs-product { width: 100%; font-size: 15px; }
-    .rs-login { font-size: 14px; }
-    .rs-card { padding: 10px; gap: 16px; }
-    .rs-info { min-height: auto; padding: 28px 22px; }
-    .rs-info-copy, .rs-form-subtitle { font-size: 17px; }
-    .rs-illustration { display: none; }
-    .rs-form-wrap { padding: 28px 14px 24px; }
-    .rs-field { margin-bottom: 20px; }
-    .rs-submit { width: 100%; }
+  @media (max-width: 560px) {
+    .rk-logo img { height: 36px; }
+    .rk-features, .rk-steps-preview { display: none; }
+    .rk-lead { font-size: 15px; margin-bottom: 8px; }
+    .rk-signin { font-size: 13px; }
+    .rk-row { grid-template-columns: 1fr; gap: 0; }
+    .rk-stepper li span { display: none; }
+    .rk-footer-grid { grid-template-columns: 1fr; }
   }
 </style>
 {% endblock %}
 
 {% block page_content %}
-<link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
-<main class="reckon-signup">
-  <header class="rs-topbar">
-    <div class="rs-brand">
-      <div class="rs-mark" aria-hidden="true"></div>
-      <div class="rs-logo-text">Reckon<span>ERP</span></div>
-      <div class="rs-divider"></div>
-      <div class="rs-product">Distribution SaaS</div>
+<div class="rk-page">
+  <header class="rk-header">
+    <div class="rk-shell">
+      <a class="rk-logo" href="{{ company.website }}" target="_blank" rel="noopener">
+        <img src="{{ company.logo }}" alt="{{ company.name|e }}">
+      </a>
+      <a class="rk-signin" href="/login">Already have an account? <strong>Sign in</strong></a>
     </div>
-    <a class="rs-login" href="/login">Login <span class="rs-login-icon" aria-hidden="true"></span></a>
   </header>
 
-  <section class="rs-card">
-    <aside class="rs-info">
-      <p class="rs-welcome">Welcome to</p>
-      <h1>Reckon<span>ERP</span></h1>
-      <p class="rs-info-copy">Your complete distribution management solution in the cloud.</p>
+  <main class="rk-main">
+    <div class="rk-shell rk-grid">
+      <section class="rk-hero">
+        <span class="rk-eyebrow">{% if module %}{{ module.name|e }}{% else %}Reckon ERP · Cloud business software{% endif %}</span>
+        {% if module %}
+        <h1>Start your <span>{{ module.name|e }}</span> workspace</h1>
+        <p class="rk-lead">{{ (module.description or "Create your company workspace in minutes. Your data stays inside your own company, and access opens after verification and payment.")|e }}</p>
+        {% else %}
+        <h1>Run your business on <span>Reckon ERP</span></h1>
+        <p class="rk-lead">Choose a module, create your company workspace, and verify your email{% if phone_required %} and mobile{% endif %}. Access opens after payment verification.</p>
+        {% endif %}
 
-      <div class="rs-benefits">
-        <div class="rs-benefit">
-          <div class="rs-benefit-icon">▧</div>
-          <div><strong>Manage Your Business</strong><span>Sales, Purchase, Inventory, Accounting &amp; more</span></div>
-        </div>
-        <div class="rs-benefit">
-          <div class="rs-benefit-icon">⌾</div>
-          <div><strong>Secure &amp; Reliable</strong><span>Your data is always safe with us</span></div>
-        </div>
-        <div class="rs-benefit">
-          <div class="rs-benefit-icon">☁</div>
-          <div><strong>Access Anywhere</strong><span>Work from anywhere, anytime</span></div>
-        </div>
-      </div>
-
-      <div class="rs-illustration" aria-hidden="true">
-        <div class="rs-plant"><i></i><i></i><i></i></div>
-        <div class="rs-laptop"><div class="rs-chart"><i></i><i></i><i></i></div></div>
-        <div class="rs-phone"><i></i><i></i><i></i><i></i></div>
-        <div class="rs-ground"></div>
-      </div>
-    </aside>
-
-    <section class="rs-form-wrap">
-      <h2 class="rs-form-title">Create your distribution company</h2>
-      <p class="rs-form-subtitle">Submit the business details, then verify your {% if phone_required %}mobile number and {% endif %}email. Access opens after vendor payment verification and tenant provisioning.</p>
-
-      {% if verified and phone_pending %}
-      <div id="signup_message" class="rs-message is-visible is-success" role="status" aria-live="polite">Email verified. Enter the code we sent to your mobile to finish.</div>
-      {% elif verified %}
-      <div id="signup_message" class="rs-message is-visible is-success" role="status" aria-live="polite">Email verified. Your workspace is being prepared; you will be able to sign in after payment verification.</div>
-      {% else %}
-      <div id="signup_message" class="rs-message" role="status" aria-live="polite"></div>
-      {% endif %}
-
-      <form class="rs-signup-form" method="post" action="/api/method/reckon_saas_platform.saas.public_signup"{% if phone_pending %} hidden{% endif %}>
-        <div class="rs-field">
-          <label for="business_name">Business Name</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7v18"/><path d="M14 8h3a2 2 0 0 1 2 2v11"/><path d="M9 7h1M9 11h1M9 15h1"/></svg>
-            <input id="business_name" name="business_name" placeholder="Enter your business name" maxlength="140" required>
-          </div>
-        </div>
-
-        <div class="rs-field">
-          <label for="owner_name">Owner Name</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
-            <input id="owner_name" name="owner_name" placeholder="Enter owner name" maxlength="140" required>
-          </div>
-        </div>
-
-        <div class="rs-field">
-          <label for="owner_email">Owner Email</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
-            <input id="owner_email" name="owner_email" type="email" placeholder="Enter owner email" maxlength="140" required>
-          </div>
-        </div>
-
-        <div class="rs-field">
-          <label for="owner_phone">Owner Mobile</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-            <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="16"{% if phone_required %} required{% endif %}>
-          </div>
-        </div>
-
-        <div class="rs-field">
-          <label for="plan">Plan</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 10 2-6 5 5 5-5 2 6"/><path d="M5 10h14l-1 8H6z"/></svg>
-            <select id="plan" name="plan" required>
-              <option value="">Select a plan</option>
-              {% for group in plan_groups %}
-              <optgroup label="{{ group.module_name }}">
-                {% for plan in group.plans %}
-                <option value="{{ plan.name }}"{% if plan_groups|length == 1 and group.plans|length == 1 %} selected{% endif %}>{{ plan.plan_name }} • {{ plan.currency }} {{ plan.price }} / {{ plan.billing_cycle }}</option>
-                {% endfor %}
-              </optgroup>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-
-        <input type="hidden" name="billing_cycle" value="Monthly">
-        <input type="hidden" id="captcha_token" name="captcha_token" value="">
-        {% if recaptcha_site_key %}
-        <div class="rs-field rs-captcha">
-          <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+        {% if show_module_picker %}
+        <div class="rk-modules" aria-label="Choose a module">
+          {% for item in modules %}
+          <a class="rk-module" href="/reckonerp-signup?module={{ item.key }}">
+            <strong>{{ item.name|e }}</strong>
+            <small>{{ (item.description or "View plans and start a workspace.")|e }}</small>
+          </a>
+          {% endfor %}
         </div>
         {% endif %}
-        {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
-        {% block signup_captcha %}{% endblock %}
-        <button class="rs-submit" type="submit">Submit Signup <span>→</span></button>
-      </form>
 
-      <form class="rs-otp-form" data-registration="{{ registration or '' }}"{% if not phone_pending %} hidden{% endif %}>
-        <div class="rs-field">
-          <label for="otp">SMS Verification Code</label>
-          <div class="rs-input-shell">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-            <input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" required>
+        <ul class="rk-features">
+          {% if module and module.features %}
+            {% for feature in module.features %}<li>{{ feature|e }}</li>{% endfor %}
+          {% else %}
+          <li>Bangla-first workflows built for Bangladesh businesses</li>
+          <li>Each company's data is kept separate and private</li>
+          <li>Works on desktop and mobile, from anywhere</li>
+          {% endif %}
+          <li>Verified signup: email link{% if phone_required %} and SMS code{% endif %}</li>
+        </ul>
+
+        <div class="rk-steps-preview" aria-hidden="true">
+          <span>1 · Company details</span><span>2 · Verify {% if phone_required %}email &amp; mobile{% else %}email{% endif %}</span><span>3 · Workspace setup</span>
+        </div>
+      </section>
+
+      <section class="rk-card" aria-live="polite">
+        <ol class="rk-stepper">
+          <li data-stepper="details"><span>Details</span></li>
+          <li data-stepper="verify"><span>Verify</span></li>
+          <li data-stepper="done"><span>Ready</span></li>
+        </ol>
+
+        <div id="rk-alert" class="rk-alert{% if module_unavailable %} is-visible is-error{% endif %}" role="status">{% if module_unavailable %}That module is not available for signup. Please choose one of the modules on this page.{% endif %}</div>
+
+        <div data-step="details"{% if registration %} hidden{% endif %}>
+          <h2>Create your company</h2>
+          <p class="rk-sub">Takes about two minutes. We'll send a verification link to your email{% if phone_required %} and a code to your mobile{% endif %}.</p>
+
+          {% if plans %}
+          <form id="rk-signup-form" novalidate>
+            <div class="rk-field">
+              <label for="business_name">Business name</label>
+              <input id="business_name" name="business_name" autocomplete="organization" maxlength="140" placeholder="e.g. Rahman Traders" required>
+            </div>
+            <div class="rk-row">
+              <div class="rk-field">
+                <label for="owner_name">Your name</label>
+                <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="Full name" required>
+              </div>
+              <div class="rk-field">
+                <label for="owner_phone">Mobile number{% if not phone_required %} (optional){% endif %}</label>
+                <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="01XXXXXXXXX"{% if phone_required %} required{% endif %}>
+              </div>
+            </div>
+            <div class="rk-field">
+              <label for="owner_email">Work email</label>
+              <input id="owner_email" name="owner_email" type="email" autocomplete="email" maxlength="140" placeholder="you@company.com" required>
+            </div>
+            <div class="rk-field">
+              <label for="plan">Plan</label>
+              <select id="plan" name="plan" required>
+                {% if plans|length > 1 %}<option value="">Select a plan</option>{% endif %}
+                {% for group in plan_groups %}
+                  {% if plan_groups|length > 1 %}<optgroup label="{{ group.module_name|e }}">{% endif %}
+                  {% for plan in group.plans %}
+                  <option value="{{ plan.name|e }}">{{ plan.plan_name|e }} — {{ plan.currency|e }} {{ plan.price }} / {{ plan.billing_cycle|e }}</option>
+                  {% endfor %}
+                  {% if plan_groups|length > 1 %}</optgroup>{% endif %}
+                {% endfor %}
+              </select>
+              {% if module and modules|length > 1 %}<div class="rk-hint">Plans for {{ module.name|e }}. <a href="/reckonerp-signup">See all modules</a></div>{% endif %}
+            </div>
+
+            <input type="hidden" name="billing_cycle" value="Monthly">
+            <input type="hidden" name="module" value="{{ selected_module }}">
+            <input type="hidden" id="captcha_token" name="captcha_token" value="">
+            {% if recaptcha_site_key %}
+            <div class="rk-field"><div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key|e }}"></div></div>
+            {% endif %}
+            {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
+            {% block signup_captcha %}{% endblock %}
+
+            <button class="rk-btn is-block" type="submit" id="rk-submit">Create workspace →</button>
+            <p class="rk-terms">By continuing you agree to be contacted about your account by {{ company.name|e }}</p>
+          </form>
+          {% elif not module_unavailable %}
+          <div class="rk-alert is-visible is-info">No plans are open for signup right now. Please contact us at <a href="mailto:{{ company.email }}">{{ company.email }}</a>.</div>
+          {% endif %}
+        </div>
+
+        <div data-step="verify" hidden>
+          <h2>Verify your details</h2>
+          <p class="rk-sub">Your workspace is created after {% if phone_required %}both checks are{% else %}this check is{% endif %} complete. Keep this page open; it updates automatically.</p>
+
+          <div class="rk-verify-item" data-verify="email">
+            <div class="rk-verify-head">
+              <div class="rk-verify-icon" aria-hidden="true">✉</div>
+              <div>
+                <h3>Email</h3>
+                <p data-email-target>Open the verification link we sent to your email.</p>
+              </div>
+              <span class="rk-chip" data-chip="email">Pending</span>
+            </div>
+            <div class="rk-verify-body">
+              <button type="button" class="rk-link" data-resend="email">Resend email</button>
+            </div>
+          </div>
+
+          <div class="rk-verify-item" data-verify="phone"{% if not phone_required %} hidden{% endif %}>
+            <div class="rk-verify-head">
+              <div class="rk-verify-icon" aria-hidden="true">✆</div>
+              <div>
+                <h3>Mobile</h3>
+                <p>Enter the 6-digit code we sent by SMS.</p>
+              </div>
+              <span class="rk-chip" data-chip="phone">Pending</span>
+            </div>
+            <form class="rk-verify-body" id="rk-otp-form" novalidate>
+              <input class="rk-otp" id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" aria-label="SMS code">
+              <button type="submit" class="rk-btn is-blue">Verify</button>
+              <button type="button" class="rk-link" data-resend="phone">Send a new code</button>
+            </form>
           </div>
         </div>
-        <button class="rs-submit" type="submit">Verify Mobile <span>→</span></button>
-        <button class="rs-link-button rs-resend" type="button">Send a new code</button>
-      </form>
-    </section>
-  </section>
 
-  <footer class="rs-powered">Powered by ERPNext</footer>
-</main>
+        <div data-step="done" hidden>
+          <div class="rk-done">
+            <div class="rk-done-icon" data-done-icon>✓</div>
+            <h2 data-done-title>You're all set</h2>
+            <p data-done-text></p>
+            <a class="rk-btn" href="/login" data-done-action>Go to sign in</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="rk-footer">
+    <div class="rk-shell">
+      <div class="rk-footer-grid">
+        <div>
+          <img src="{{ company.logo }}" alt="{{ company.name|e }}">
+          <p>{{ company.name|e }} builds cloud ERP for growing businesses in Bangladesh.</p>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:{{ company.email }}">{{ company.email }}</a></li>
+            <li><a href="tel:{{ company.phone|replace('-', '') }}">{{ company.phone }}</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="{{ company.website }}" target="_blank" rel="noopener">www.reckon.tech</a></li>
+            <li><a href="/login">Sign in</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="rk-copy">
+        <span>© {{ current_year }} {{ company.name|e }} All rights reserved.</span>
+        <span>Powered by Reckon ERP</span>
+      </div>
+    </div>
+  </footer>
+</div>
 
 {% if recaptcha_site_key %}
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endif %}
 <script>
   (function () {
-    const form = document.querySelector(".rs-signup-form");
-    const otpForm = document.querySelector(".rs-otp-form");
-    const message = document.getElementById("signup_message");
-    const button = form && form.querySelector(".rs-submit");
+    const state = {
+      registration: "{{ registration }}",
+      module: "{{ selected_module }}",
+      supportEmail: "{{ company.email }}",
+      email: "",
+      timer: null,
+    };
+    const alertBox = document.getElementById("rk-alert");
+    const form = document.getElementById("rk-signup-form");
+    const otpForm = document.getElementById("rk-otp-form");
 
-    function showMessage(text, type) {
-      message.textContent = text;
-      message.className = "rs-message is-visible " + (type === "success" ? "is-success" : "is-error");
+    function showAlert(text, type) {
+      alertBox.textContent = text || "";
+      alertBox.className = "rk-alert" + (text ? " is-visible is-" + (type || "info") : "");
     }
 
     function errorText(payload, fallback) {
@@ -581,97 +402,236 @@
       return (data && typeof data.message === "string" && data.message) || fallback;
     }
 
-    async function post(method, body) {
-      const response = await fetch("/api/method/" + method, {
-        method: "POST",
+    async function call(method, params, httpMethod) {
+      const isGet = httpMethod === "GET";
+      const query = isGet ? "?" + new URLSearchParams(params).toString() : "";
+      let body;
+      if (!isGet) {
+        if (params instanceof FormData) {
+          body = params;
+        } else {
+          body = new FormData();
+          Object.keys(params || {}).forEach(function (key) { body.append(key, params[key]); });
+        }
+      }
+      const response = await fetch("/api/method/" + method + query, {
+        method: isGet ? "GET" : "POST",
         body: body,
         credentials: "same-origin",
-        headers: { "X-Frappe-CSRF-Token": window.csrf_token || "" },
+        headers: { "X-Frappe-CSRF-Token": window.csrf_token || "", Accept: "application/json" },
       });
       const payload = await response.json().catch(function () { return {}; });
       const data = payload.message || payload;
       if (!response.ok || data.ok === false || payload.exc || payload.exc_type) {
-        throw new Error(errorText(payload, "Request failed. Please check the details and try again."));
+        throw new Error(errorText(payload, "Something went wrong. Please try again."));
       }
       return data;
     }
 
-    function resetCaptcha() {
-      if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
-        window.grecaptcha.reset();
-      }
+    function setStep(step) {
+      const order = ["details", "verify", "done"];
+      document.querySelectorAll("[data-step]").forEach(function (panel) {
+        panel.hidden = panel.getAttribute("data-step") !== step;
+      });
+      document.querySelectorAll("[data-stepper]").forEach(function (item) {
+        const index = order.indexOf(item.getAttribute("data-stepper"));
+        const current = order.indexOf(step);
+        item.classList.toggle("is-active", index === current);
+        item.classList.toggle("is-done", index < current || (step === "done" && index === current));
+      });
     }
 
-    function showOtpStep(registration) {
-      otpForm.dataset.registration = registration;
-      form.hidden = true;
-      otpForm.hidden = false;
-      otpForm.querySelector("#otp").focus();
+    function rememberRegistration() {
+      const params = new URLSearchParams(window.location.search);
+      params.set("registration", state.registration);
+      if (state.module) params.set("module", state.module);
+      params.delete("verified");
+      params.delete("phone_pending");
+      window.history.replaceState(null, "", window.location.pathname + "?" + params.toString());
     }
 
-    if (!form || !message || !button) return;
+    function markItem(kind, done) {
+      const item = document.querySelector('[data-verify="' + kind + '"]');
+      const chip = document.querySelector('[data-chip="' + kind + '"]');
+      if (!item || !chip) return;
+      item.classList.toggle("is-complete", done);
+      chip.classList.toggle("is-done", done);
+      chip.textContent = done ? "Verified" : "Pending";
+    }
 
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      const captcha = document.getElementById("captcha_token");
-      if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
-        captcha.value = window.grecaptcha.getResponse();
-        if (!captcha.value) {
-          showMessage("Please confirm you are not a robot.", "error");
-          return;
-        }
+    function showDone(stage) {
+      const icon = document.querySelector("[data-done-icon]");
+      const title = document.querySelector("[data-done-title]");
+      const text = document.querySelector("[data-done-text]");
+      const action = document.querySelector("[data-done-action]");
+      icon.className = "rk-done-icon";
+      action.hidden = false;
+      action.textContent = "Go to sign in";
+      action.setAttribute("href", "/login");
+      if (stage === "provisioning") {
+        icon.classList.add("is-wait");
+        icon.textContent = "⏳";
+        title.textContent = "Preparing your workspace";
+        text.textContent = "Verification is complete. We are creating your company now; this usually takes a minute.";
+        action.hidden = true;
+      } else if (stage === "ready") {
+        icon.textContent = "✓";
+        title.textContent = "Your workspace is created";
+        text.textContent = "We have emailed you a link to set your password. Full access opens as soon as our team verifies your payment.";
+      } else if (stage === "failed") {
+        icon.classList.add("is-error");
+        icon.textContent = "!";
+        title.textContent = "We could not finish the setup";
+        text.textContent = "Our team has been notified and will contact you shortly. You can also reach us at " + state.supportEmail + ".";
+        action.textContent = "Contact support";
+        action.setAttribute("href", "mailto:" + state.supportEmail);
+      } else {
+        icon.classList.add("is-error");
+        icon.textContent = "!";
+        title.textContent = "This signup has expired";
+        text.textContent = "Verification links are valid for 48 hours. Please start again.";
+        action.textContent = "Start again";
+        action.setAttribute("href", "/reckonerp-signup" + (state.module ? "?module=" + encodeURIComponent(state.module) : ""));
       }
-      button.disabled = true;
+      setStep("done");
+    }
 
+    function applyStatus(status) {
+      document.querySelector('[data-verify="phone"]').hidden = !status.phone_required;
+      markItem("email", status.email_verified);
+      markItem("phone", status.phone_verified);
+      if (status.stage === "verify") {
+        setStep("verify");
+        return true;
+      }
+      showDone(status.stage);
+      return status.stage === "provisioning";
+    }
+
+    async function refreshStatus() {
+      if (!state.registration) return;
+      clearTimeout(state.timer);
       try {
-        const data = await post("reckon_saas_platform.saas.public_signup", new FormData(form));
-        showMessage(data.message || "Signup received. Check your email for the verification link.", "success");
-        form.reset();
-        if (data.phone_verification_required) {
-          showOtpStep(data.registration);
-        }
+        const status = await call(
+          "reckon_saas_platform.saas.get_registration_verification_status",
+          { registration: state.registration },
+          "GET"
+        );
+        if (applyStatus(status)) state.timer = setTimeout(refreshStatus, 5000);
       } catch (error) {
-        showMessage(error.message || "Signup failed. Please try again or contact support.", "error");
+        showAlert(error.message, "error");
+      }
+    }
+
+    function cooldown(button, seconds) {
+      const label = button.textContent;
+      let left = seconds;
+      button.disabled = true;
+      button.textContent = label + " (" + left + "s)";
+      const tick = setInterval(function () {
+        left -= 1;
+        button.textContent = label + " (" + left + "s)";
+        if (left <= 0) {
+          clearInterval(tick);
+          button.disabled = false;
+          button.textContent = label;
+        }
+      }, 1000);
+    }
+
+    if (form) {
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        const captcha = document.getElementById("captcha_token");
+        if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
+          captcha.value = window.grecaptcha.getResponse();
+          if (!captcha.value) {
+            showAlert("Please confirm you are not a robot.", "error");
+            return;
+          }
+        }
+        const submit = document.getElementById("rk-submit");
+        submit.disabled = true;
+        showAlert("");
+        try {
+          const data = await call("reckon_saas_platform.saas.public_signup", new FormData(form));
+          state.registration = data.registration;
+          state.email = form.owner_email.value.trim();
+          document.querySelector("[data-email-target]").textContent =
+            "Open the verification link we sent to " + state.email + ".";
+          rememberRegistration();
+          showAlert(data.message, "success");
+          applyStatus({
+            stage: "verify",
+            email_verified: false,
+            phone_required: data.phone_verification_required,
+            phone_verified: false,
+          });
+          state.timer = setTimeout(refreshStatus, 5000);
+          const otp = document.getElementById("otp");
+          if (data.phone_verification_required && otp) otp.focus();
+        } catch (error) {
+          showAlert(error.message, "error");
+        } finally {
+          if (window.grecaptcha && document.querySelector(".g-recaptcha")) window.grecaptcha.reset();
+          submit.disabled = false;
+        }
+      });
+    }
+
+    otpForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const otp = document.getElementById("otp");
+      const code = otp.value.trim();
+      if (!/^[0-9]{6}$/.test(code)) {
+        showAlert("Enter the 6-digit code from the SMS.", "error");
+        return;
+      }
+      const button = otpForm.querySelector("button[type=submit]");
+      button.disabled = true;
+      try {
+        const data = await call("reckon_saas_platform.saas.verify_registration_phone", {
+          registration: state.registration,
+          otp: code,
+        });
+        showAlert(data.message, "success");
+        otp.value = "";
+        refreshStatus();
+      } catch (error) {
+        showAlert(error.message, "error");
       } finally {
-        resetCaptcha();
         button.disabled = false;
       }
     });
 
-    if (!otpForm) return;
-
-    otpForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      const submit = otpForm.querySelector(".rs-submit");
-      const body = new FormData();
-      body.append("registration", otpForm.dataset.registration || "");
-      body.append("otp", otpForm.querySelector("#otp").value.trim());
-      submit.disabled = true;
-      try {
-        const data = await post("reckon_saas_platform.saas.verify_registration_phone", body);
-        showMessage(data.message, "success");
-        otpForm.hidden = true;
-      } catch (error) {
-        showMessage(error.message, "error");
-      } finally {
-        submit.disabled = false;
-      }
+    document.querySelectorAll("[data-resend]").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const kind = button.getAttribute("data-resend");
+        const method = kind === "email"
+          ? "reckon_saas_platform.saas.resend_registration_email"
+          : "reckon_saas_platform.saas.resend_registration_otp";
+        button.disabled = true;
+        try {
+          const data = await call(method, { registration: state.registration });
+          showAlert(data.message, "success");
+          cooldown(button, 60);
+        } catch (error) {
+          showAlert(error.message, "error");
+          button.disabled = false;
+        }
+      });
     });
 
-    otpForm.querySelector(".rs-resend").addEventListener("click", async function (event) {
-      const resend = event.currentTarget;
-      const body = new FormData();
-      body.append("registration", otpForm.dataset.registration || "");
-      resend.disabled = true;
-      try {
-        const data = await post("reckon_saas_platform.saas.resend_registration_otp", body);
-        showMessage(data.message, "success");
-      } catch (error) {
-        showMessage(error.message, "error");
-      } finally {
-        window.setTimeout(function () { resend.disabled = false; }, 30000);
-      }
-    });
+    {% if verified %}
+    showAlert("{% if phone_pending %}Email verified. Enter the SMS code to finish.{% else %}Email verified. Thank you!{% endif %}", "success");
+    {% endif %}
+    if (state.registration) {
+      setStep("verify");
+      refreshStatus();
+    } else {
+      setStep("details");
+    }
   })();
 </script>
 {% endblock %}

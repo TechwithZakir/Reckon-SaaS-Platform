@@ -29,3 +29,12 @@ SIGNUP_RATE_LIMIT_PER_HOUR = 5
 VERIFY_RATE_LIMIT_PER_HOUR = 20
 OTP_MAX_RESENDS = 5
 OPERATIONAL_ACCESS_CACHE_TTL_SECONDS = 300
+
+# Shown in the public signup and subscription page footers.
+VENDOR_COMPANY = {
+    "name": "Reckon Technologies Ltd.",
+    "website": "https://www.reckon.tech/",
+    "email": "hello@reckon.tech",
+    "phone": "+8801325-009955",
+    "logo": "/assets/reckon_saas_platform/images/reckon-tech-logo.png",
+}

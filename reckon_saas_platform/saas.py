@@ -102,6 +102,7 @@ def public_signup(
     billing_cycle: str = "Monthly",
     captcha_token: str | None = None,
     owner_phone: str | None = None,
+    module: str | None = None,
 ):
     verify_signup_captcha(captcha_token)
     registration = create_registration(
@@ -111,6 +112,7 @@ def public_signup(
         plan=plan,
         billing_cycle=billing_cycle,
         owner_phone=owner_phone,
+        saas_module=module,
     )
     send_registration_verification(registration)
     phone_required = bool(registration.phone_verification_required)
@@ -137,9 +139,11 @@ def verify_registration_email(key: str):
     if request is not None and request.method == "GET":
         from werkzeug.utils import redirect
 
-        query = {"verified": "1"}
+        query = {"verified": "1", "registration": registration.name}
         if phone_pending:
-            query.update({"phone_pending": "1", "registration": registration.name})
+            query["phone_pending"] = "1"
+        if registration.get("saas_module"):
+            query["module"] = registration.saas_module
         return redirect(f"/reckonerp-signup?{urlencode(query)}")
     return {
         "ok": True,
@@ -174,6 +178,89 @@ def verify_registration_phone(registration: str, otp: str):
 def resend_registration_otp(registration: str):
     resend_registration_phone_otp(registration)
     return {"ok": True, "message": _("A new code has been sent by SMS.")}
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=_verify_rate_limit, seconds=60 * 60)
+def resend_registration_email(registration: str):
+    resend_registration_verification_email(registration)
+    return {"ok": True, "message": _("A new verification link has been sent to your email.")}
+
+
+def _status_rate_limit() -> int:
+    # The signup page polls this while the owner verifies, so allow more calls.
+    return _verify_rate_limit() * 10
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@rate_limit(limit=_status_rate_limit, seconds=60 * 60)
+def get_registration_verification_status(registration: str):
+    return registration_verification_status(registration)
+
+
+REGISTRATION_STAGES = {
+    "Pending Verification": "verify",
+    "Provisioning": "provisioning",
+    "Pending Payment": "ready",
+    "Active": "ready",
+    "Failed": "failed",
+}
+
+
+def registration_verification_status(registration: str) -> dict:
+    """Progress of a signup for the public page. Only booleans, never contact details."""
+    row = None
+    if isinstance(registration, str) and registration:
+        row = frappe.db.get_value(
+            "SaaS Registration",
+            registration,
+            ["status", "email_verified", "phone_verification_required", "phone_verified"],
+            as_dict=True,
+        )
+    if not row:
+        frappe.throw(_("This verification request is invalid or has expired."), SignupValidationError)
+    return {
+        "stage": REGISTRATION_STAGES.get(row.status, "closed"),
+        "email_verified": bool(row.email_verified),
+        "phone_required": bool(row.phone_verification_required),
+        "phone_verified": bool(row.phone_verified),
+    }
+
+
+def resend_registration_verification_email(registration: str):
+    """Send a fresh email link. The previous link stops working."""
+    invalid = _("This verification request is invalid or has expired.")
+    name = None
+    if isinstance(registration, str) and registration:
+        name = frappe.db.get_value(
+            "SaaS Registration",
+            {"name": registration, "status": "Pending Verification", "email_verified": 0},
+            "name",
+        )
+    if not name:
+        frappe.throw(invalid, SignupValidationError)
+    doc = frappe.get_doc("SaaS Registration", name, for_update=True)
+    if _verification_expired(doc):
+        doc.db_set({"status": "Cancelled", "email_verification_hash": None, "phone_otp_hash": None})
+        frappe.throw(invalid, SignupValidationError)
+
+    cooldown_key = f"reckon_saas_email_resend_cooldown::{name}"
+    count_key = f"reckon_saas_email_resend_count::{name}"
+    if frappe.cache.get_value(cooldown_key):
+        frappe.throw(_("Please wait before requesting another email."), OTPThrottledError)
+    sent = cint(frappe.cache.get_value(count_key))
+    if sent >= OTP_MAX_RESENDS:
+        frappe.throw(_("Too many emails requested. Please sign up again later."), OTPThrottledError)
+
+    token = frappe.generate_hash(length=32)
+    doc.db_set("email_verification_hash", _hash_token(token))
+    _send_verification_email(doc, token)
+    cooldown = cint(get_signup_settings().otp_resend_cooldown_seconds) or 60
+    frappe.cache.set_value(cooldown_key, 1, expires_in_sec=cooldown)
+    frappe.cache.set_value(
+        count_key, sent + 1, expires_in_sec=REGISTRATION_VERIFICATION_TTL_HOURS * 3600
+    )
+    return doc
 
 
 def verify_signup_captcha(token: str | None) -> None:
@@ -422,6 +509,7 @@ def create_registration(
     plan: str,
     billing_cycle: str = "Monthly",
     owner_phone: str | None = None,
+    saas_module: str | None = None,
 ):
     """Record a signup request without touching Company or User.
 
@@ -456,6 +544,10 @@ def create_registration(
         frappe.throw(_("Please select a valid SaaS plan."), SignupValidationError)
     if plan_row.saas_module and not frappe.db.get_value("SaaS Module", plan_row.saas_module, "enabled"):
         frappe.throw(_("This module is not available for signup."), SignupValidationError)
+    # A module-specific signup page (?module=<key>) may only sell that module's plans.
+    if saas_module and isinstance(saas_module, str) and saas_module.strip():
+        if plan_row.saas_module != saas_module.strip():
+            frappe.throw(_("Please select a plan for this module."), SignupValidationError)
 
     _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
@@ -500,8 +592,11 @@ def send_registration_verification(registration) -> None:
         _send_otp_sms(registration.owner_phone, otp)
 
     token = registration.flags.get("verification_token")
-    if not token:
-        return
+    if token:
+        _send_verification_email(registration, token)
+
+
+def _send_verification_email(registration, token: str) -> None:
     link = get_url(f"/api/method/reckon_saas_platform.saas.verify_registration_email?key={token}")
     frappe.sendmail(
         recipients=[registration.owner_email],
@@ -1062,7 +1157,9 @@ def _create_tenant_admin_user(email: str, full_name: str, mobile_no: str | None 
             "doctype": "User",
             "email": email,
             "first_name": full_name or email,
-            "send_welcome_email": 0,
+            # The owner verified this address; the welcome email carries the
+            # link to set a password and sign in.
+            "send_welcome_email": 1,
             "enabled": 1,
             "roles": roles,
             "mobile_no": mobile_no,

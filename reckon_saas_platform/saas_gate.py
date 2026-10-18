@@ -35,6 +35,8 @@ EXEMPT_METHODS = frozenset(
         "reckon_saas_platform.saas.verify_registration_email",
         "reckon_saas_platform.saas.verify_registration_phone",
         "reckon_saas_platform.saas.resend_registration_otp",
+        "reckon_saas_platform.saas.resend_registration_email",
+        "reckon_saas_platform.saas.get_registration_verification_status",
     }
 )
 _API_METHOD_PREFIXES = ("/api/method/", "/api/v1/method/", "/api/v2/method/")
