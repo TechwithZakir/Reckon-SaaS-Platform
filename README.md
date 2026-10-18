@@ -50,3 +50,35 @@ registrations and subscriptions record the module they were bought for.
 
 The vendor **Dashboard** (`/app/saas-dashboard`) is the first item in the SaaS
 Platform sidebar.
+
+## Installing and updating apps safely
+
+`bench get-app <url>` clones into a folder named after the repository
+(`Reckon-SaaS-Platform`) and then renames it to the app name
+(`reckon_saas_platform`). When that rename fails, because the app is already
+installed or an old folder is in the way, the bench can keep a repo-named folder
+and `sites/apps.txt` can list a name Python cannot import. Every later
+`bench build` and `bench migrate` then crashes with
+`ModuleNotFoundError: No module named 'Reckon-…'`.
+
+Use `scripts/reckon_bench.py` from the bench directory instead of calling
+`bench get-app` directly:
+
+```bash
+# Install a new app. If it is already installed, it is updated (git pull) instead.
+python apps/reckon_saas_platform/scripts/reckon_bench.py get-app https://github.com/TechwithZakir/Reckon-Accounts-SaaS
+
+# Update installed apps
+python apps/reckon_saas_platform/scripts/reckon_bench.py update reckon_saas_platform reckon_distribution reckon_accounts_saas
+
+# Check, then repair, sites/apps.txt and leftover folders
+python apps/reckon_saas_platform/scripts/reckon_bench.py doctor
+python apps/reckon_saas_platform/scripts/reckon_bench.py doctor --apply
+```
+
+`get-app` repairs the registry before and after calling bench, so a failed
+install never leaves bench unable to build. `doctor --apply` backs up
+`sites/apps.txt` under `sites/.app-registry-backups/` and moves leftover
+repo-named folders to `archived/apps/`. It uses only the Python standard library,
+so it works even when bench itself cannot start, and it never changes a site's
+database.
