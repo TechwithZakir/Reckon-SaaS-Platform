@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import unittest
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
+from urllib.parse import parse_qs, unquote, urlparse
 
 from frappe_stub import _Dict, plan_lookup, platform_modules
 
@@ -14,9 +16,10 @@ DISTRIBUTION = _Dict(name="distribution", module_name="Distribution SaaS", descr
 CRM = _Dict(name="crm", module_name="CRM", description="", features="")
 
 
-def _page_context(page, frappe, form_dict, modules=(DISTRIBUTION, CRM), plans=()):
+def _page_context(page, frappe, form_dict, modules=(DISTRIBUTION, CRM), plans=(), cookies=None, headers=None):
     frappe.form_dict = _Dict(form_dict)
     frappe.local.form_dict = frappe.form_dict
+    frappe.local.request = SimpleNamespace(cookies=cookies or {}, headers=headers or {})
 
     def get_all(doctype, **kwargs):
         if doctype == "SaaS Module":
@@ -56,13 +59,15 @@ class SignupPageModuleParamTests(unittest.TestCase):
         self.assertTrue(context.show_module_picker)
         self.assertEqual(len(context.plans), 2)
 
-    def test_unknown_or_unsafe_module_param_shows_notice_and_no_plans(self):
+    def test_unknown_or_unsafe_module_param_shows_notice_and_the_selector(self):
         for value in ("hr", '"><script>', "Distribution"):
             with self.subTest(value=value), platform_modules("www.reckonerp_signup") as (frappe, (page,)):
                 context = _page_context(page, frappe, {"module": value}, plans=self.PLANS)
                 self.assertTrue(context.module_unavailable)
-                self.assertEqual(context.plans, [])
+                self.assertTrue(context.show_module_picker)
                 self.assertEqual(context.selected_module, "")
+                # Unsafe values are never echoed into the language links.
+                self.assertNotIn("script", context.lang_links["bn"])
 
     def test_registration_param_opens_verify_step_only_for_valid_names(self):
         with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
@@ -79,6 +84,70 @@ class SignupPageModuleParamTests(unittest.TestCase):
         self.assertEqual(context.company["website"], "https://www.reckon.tech/")
         self.assertTrue(context.company["logo"].endswith("reckon-tech-logo.png"))
         self.assertEqual(context.current_year, "2026")
+
+
+class SignupPageLanguageAndContactTests(unittest.TestCase):
+    PLANS = (
+        _Dict(name="Dist Basic", plan_name="Basic", saas_module="distribution", price=1500,
+              currency="BDT", billing_cycle="Monthly", features="5 users\nBangla app"),
+        _Dict(name="CRM Pro", plan_name="Pro", saas_module="crm", price=99.5, currency="USD",
+              billing_cycle="Yearly", features=""),
+    )
+
+    def test_language_from_param_cookie_or_browser(self):
+        cases = [
+            ({"lang": "bn"}, {}, {}, "bn"),
+            ({"lang": "en"}, {"reckon_signup_lang": "bn"}, {}, "en"),
+            ({}, {"reckon_signup_lang": "bn"}, {}, "bn"),
+            ({}, {}, {"Accept-Language": "bn-BD,bn;q=0.9"}, "bn"),
+            ({"lang": "fr"}, {}, {"Accept-Language": "en-US"}, "en"),
+        ]
+        for form_dict, cookies, headers, expected in cases:
+            with self.subTest(form_dict=form_dict, cookies=cookies), platform_modules(
+                "www.reckonerp_signup"
+            ) as (frappe, (page,)):
+                context = _page_context(page, frappe, form_dict, cookies=cookies, headers=headers)
+                self.assertEqual(context.lang, expected)
+                self.assertEqual(context.t["product"], "ReckonERP SaaS")
+
+    def test_bangla_text_is_used(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            context = _page_context(page, frappe, {"lang": "bn"})
+        self.assertEqual(context.t["signin"], "সাইন ইন")
+        self.assertEqual(context.js_strings["verified"], "যাচাই হয়েছে")
+
+    def test_language_links_keep_module_and_registration(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            context = _page_context(page, frappe, {"module": "distribution", "registration": "REG-7"})
+        query = parse_qs(urlparse(context.lang_links["bn"]).query)
+        self.assertEqual(query, {"module": ["distribution"], "registration": ["REG-7"], "lang": ["bn"]})
+
+    def test_plan_cards_show_price_period_and_module(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            context = _page_context(page, frappe, {}, plans=self.PLANS)
+        basic, pro = context.plan_cards
+        self.assertEqual((basic["module"], basic["symbol"], basic["amount"], basic["period"]),
+                         ("distribution", "৳", "1,500", "month"))
+        self.assertEqual(basic["features"], ["5 users", "Bangla app"])
+        self.assertEqual((pro["module"], pro["symbol"], pro["amount"], pro["period"]), ("crm", "$", "99.50", "year"))
+
+    def test_plan_period_in_bangla(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            context = _page_context(page, frappe, {"lang": "bn"}, plans=self.PLANS[:1])
+        self.assertEqual(context.plan_cards[0]["period"], "মাস")
+
+    def test_whatsapp_link_names_the_module(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            context = _page_context(page, frappe, {"module": "distribution"})
+        url = urlparse(context.whatsapp_url)
+        self.assertEqual((url.netloc, url.path), ("wa.me", "/8801325009955"))
+        self.assertIn("Distribution SaaS", unquote(parse_qs(url.query)["text"][0]))
+
+    def test_english_and_bangla_strings_cover_the_same_keys(self):
+        with platform_modules("signup_i18n") as (_frappe, (i18n,)):
+            en, bn = i18n.STRINGS["en"], i18n.STRINGS["bn"]
+        self.assertEqual(set(en), set(bn))
+        self.assertEqual(set(en["js"]), set(bn["js"]))
 
 
 class ModuleSpecificSignupTests(unittest.TestCase):

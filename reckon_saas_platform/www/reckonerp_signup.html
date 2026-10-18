@@ -1,9 +1,13 @@
 {% extends "templates/web.html" %}
 
-{% block title %}{% if module %}{{ module.name|e }} Signup · {% endif %}Reckon ERP{% endblock %}
+{% block title %}{% if module %}{{ module.name|e }} · {% endif %}{{ title|e }}{% endblock %}
 
 {% block head_include %}
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{% if lang == "bn" %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap">
+{% endif %}
 <style>
   :root {
     --rk-green: #3cd400;
@@ -15,6 +19,7 @@
     --rk-line: #dbe4ef;
     --rk-card: #ffffff;
     --rk-danger: #c62d3c;
+    --rk-whatsapp: #25d366;
     --rk-radius: 14px;
   }
 
@@ -27,56 +32,62 @@
       radial-gradient(900px 480px at 100% 100%, rgba(60, 212, 0, 0.10), transparent 60%),
       #f7fafd;
     color: var(--rk-ink);
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, "Noto Sans Bengali", sans-serif;
+    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  body.rk-lang-bn, .rk-lang-bn input, .rk-lang-bn select, .rk-lang-bn button {
+    font-family: "Noto Sans Bengali", Inter, "Segoe UI", system-ui, sans-serif;
   }
 
   .rk-page *, .rk-page *::before, .rk-page *::after { box-sizing: border-box; }
   .rk-page { min-height: 100vh; display: flex; flex-direction: column; }
   .rk-shell { width: min(1180px, 100% - 32px); margin: 0 auto; }
 
-  .rk-header { padding: 22px 0; }
+  .rk-header { padding: 18px 0; }
   .rk-header .rk-shell { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .rk-logo img { height: 46px; width: auto; display: block; }
-  .rk-signin { color: var(--rk-muted); font-size: 14px; text-decoration: none; text-align: right; }
+  .rk-brand { display: flex; align-items: center; gap: 14px; min-width: 0; text-decoration: none; }
+  .rk-brand img { height: 44px; width: auto; display: block; }
+  .rk-brand-text { display: flex; flex-direction: column; border-left: 1px solid var(--rk-line); padding-left: 14px; min-width: 0; }
+  .rk-brand-text strong { font-size: 17px; color: var(--rk-ink); white-space: nowrap; }
+  .rk-brand-text span { font-size: 13px; color: var(--rk-green-dark); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rk-header-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+  .rk-lang { display: inline-flex; border: 1px solid var(--rk-line); border-radius: 999px; padding: 3px; background: #fff; }
+  .rk-lang a { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--rk-muted); text-decoration: none; }
+  .rk-lang a.is-active { background: var(--rk-blue); color: #fff; }
+  .rk-signin { color: var(--rk-muted); font-size: 14px; text-decoration: none; }
   .rk-signin strong { color: var(--rk-blue-dark); }
   .rk-signin:hover strong { text-decoration: underline; }
 
-  .rk-main { flex: 1; padding: 12px 0 48px; }
-  .rk-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: start; }
+  .rk-main { flex: 1; padding: 8px 0 56px; }
+  .rk-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 44px; align-items: start; }
 
-  .rk-hero { padding-top: 18px; }
+  .rk-hero { padding-top: 22px; }
   .rk-eyebrow {
     display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
     background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark); font-size: 13px; font-weight: 600;
   }
   .rk-eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--rk-green); }
-  .rk-hero h1 { font-size: clamp(30px, 3.4vw, 44px); line-height: 1.12; margin: 18px 0 14px; letter-spacing: -0.02em; }
+  .rk-hero h1 { font-size: clamp(28px, 3.2vw, 42px); line-height: 1.18; margin: 18px 0 14px; letter-spacing: -0.01em; }
   .rk-hero h1 span { color: var(--rk-green-dark); }
-  .rk-lead { font-size: 17px; line-height: 1.6; color: var(--rk-muted); max-width: 520px; margin: 0 0 26px; }
-  .rk-features { list-style: none; padding: 0; margin: 0 0 30px; display: grid; gap: 12px; }
+  .rk-lead { font-size: 17px; line-height: 1.65; color: var(--rk-muted); max-width: 520px; margin: 0 0 26px; }
+  .rk-features { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 12px; }
   .rk-features li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; line-height: 1.5; }
   .rk-features li::before {
     content: "✓"; flex: 0 0 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
     background: rgba(60, 212, 0, 0.14); color: var(--rk-green-dark); font-weight: 700; font-size: 13px;
   }
-  .rk-steps-preview { display: flex; gap: 10px; flex-wrap: wrap; color: var(--rk-muted); font-size: 13px; }
-  .rk-steps-preview span { padding: 6px 10px; border: 1px dashed var(--rk-line); border-radius: 8px; background: #fff; }
-
-  .rk-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 26px; }
-  .rk-module {
-    display: block; padding: 16px; border: 1px solid var(--rk-line); border-radius: var(--rk-radius);
-    background: #fff; color: var(--rk-ink); text-decoration: none; transition: border-color .15s, box-shadow .15s;
+  .rk-help {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--rk-radius);
+    background: #fff; border: 1px solid var(--rk-line); max-width: 460px;
   }
-  .rk-module:hover { border-color: var(--rk-blue); box-shadow: 0 8px 24px rgba(19, 155, 217, 0.12); }
-  .rk-module strong { display: block; font-size: 16px; margin-bottom: 4px; }
-  .rk-module small { color: var(--rk-muted); line-height: 1.45; }
+  .rk-help p { margin: 0; font-size: 14px; font-weight: 600; }
+  .rk-help a { margin-left: auto; }
 
   .rk-card {
     background: var(--rk-card); border: 1px solid var(--rk-line); border-radius: 20px;
-    box-shadow: 0 24px 60px rgba(13, 34, 64, 0.08); padding: 28px clamp(20px, 3vw, 34px) 30px;
+    box-shadow: 0 24px 60px rgba(13, 34, 64, 0.08); padding: 26px clamp(18px, 3vw, 32px) 28px;
   }
 
-  .rk-stepper { display: flex; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; counter-reset: step; }
+  .rk-stepper { display: flex; gap: 8px; margin: 0 0 22px; padding: 0; list-style: none; counter-reset: step; }
   .rk-stepper li {
     flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #9aa8bb;
     counter-increment: step; white-space: nowrap;
@@ -91,18 +102,39 @@
   .rk-stepper li.is-done::before { content: "✓"; border-color: var(--rk-green); background: var(--rk-green); color: #fff; }
 
   .rk-card h2 { font-size: 22px; margin: 0 0 6px; }
-  .rk-sub { color: var(--rk-muted); font-size: 14px; margin: 0 0 22px; line-height: 1.5; }
+  .rk-sub { color: var(--rk-muted); font-size: 14px; margin: 0 0 20px; line-height: 1.55; }
 
   .rk-field { margin-bottom: 16px; }
-  .rk-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .rk-field > label, .rk-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   .rk-field input, .rk-field select {
     width: 100%; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px;
     font-size: 15px; color: var(--rk-ink); background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
   }
   .rk-field input:focus, .rk-field select:focus { border-color: var(--rk-blue); box-shadow: 0 0 0 3px rgba(19, 155, 217, 0.15); }
-  .rk-field .rk-hint { font-size: 12px; color: var(--rk-muted); margin-top: 5px; }
-  .rk-field .rk-hint a { color: var(--rk-blue-dark); }
   .rk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rk-muted-note { font-size: 13px; color: var(--rk-muted); padding: 14px; border: 1px dashed var(--rk-line); border-radius: 10px; margin: 0; }
+  .rk-muted-note[hidden] { display: none; }
+
+  .rk-plans { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .rk-plan { position: relative; display: block; cursor: pointer; }
+  .rk-plan[hidden] { display: none; }
+  .rk-plan input { position: absolute; opacity: 0; pointer-events: none; }
+  .rk-plan-body {
+    display: block; height: 100%; padding: 14px 14px 12px; border: 1.5px solid var(--rk-line); border-radius: 12px; background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .rk-plan:hover .rk-plan-body { border-color: #9fd3ee; }
+  .rk-plan input:checked + .rk-plan-body { border-color: var(--rk-green); box-shadow: 0 0 0 3px rgba(60, 212, 0, 0.16); }
+  .rk-plan input:focus-visible + .rk-plan-body { outline: 2px solid var(--rk-blue); outline-offset: 2px; }
+  .rk-plan-name { font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+  .rk-plan-name::after {
+    content: ""; width: 18px; height: 18px; flex: 0 0 18px; border-radius: 50%; border: 2px solid var(--rk-line);
+  }
+  .rk-plan input:checked + .rk-plan-body .rk-plan-name::after { border: 5px solid var(--rk-green); }
+  .rk-plan-price { display: block; margin: 8px 0 6px; font-size: 24px; font-weight: 800; color: var(--rk-ink); }
+  .rk-plan-price small { font-size: 13px; font-weight: 600; color: var(--rk-muted); }
+  .rk-plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; color: var(--rk-muted); }
+  .rk-plan li::before { content: "• "; color: var(--rk-green-dark); }
 
   .rk-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px;
@@ -114,6 +146,7 @@
   .rk-btn[disabled] { opacity: .65; cursor: wait; }
   .rk-btn.is-block { width: 100%; }
   .rk-btn.is-blue { background: linear-gradient(135deg, var(--rk-blue) 0%, var(--rk-blue-dark) 100%); box-shadow: 0 10px 22px rgba(19, 155, 217, 0.22); }
+  .rk-btn.is-whatsapp { background: var(--rk-whatsapp); box-shadow: none; height: 38px; padding: 0 14px; font-size: 13px; white-space: nowrap; }
   .rk-terms { font-size: 12px; color: var(--rk-muted); text-align: center; margin: 14px 0 0; }
 
   .rk-alert { display: none; padding: 12px 14px; border-radius: 10px; font-size: 14px; line-height: 1.45; margin-bottom: 18px; }
@@ -127,8 +160,9 @@
   .rk-verify-head { display: flex; align-items: center; gap: 12px; }
   .rk-verify-icon {
     width: 40px; height: 40px; flex: 0 0 40px; border-radius: 12px; display: grid; place-items: center;
-    background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark); font-size: 18px;
+    background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark);
   }
+  .rk-verify-icon svg { width: 20px; height: 20px; }
   .rk-verify-head h3 { font-size: 15px; margin: 0; }
   .rk-verify-head p { font-size: 13px; color: var(--rk-muted); margin: 2px 0 0; overflow-wrap: anywhere; }
   .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #fff4e0; color: #9a5b00; white-space: nowrap; }
@@ -150,179 +184,223 @@
 
   [data-step][hidden] { display: none !important; }
 
-  .rk-footer { border-top: 1px solid var(--rk-line); background: #fff; padding: 28px 0 22px; }
-  .rk-footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 28px; align-items: start; }
+  /* Bottom padding keeps the floating WhatsApp button off the copyright line. */
+  .rk-footer { border-top: 1px solid var(--rk-line); background: #fff; padding: 30px 0 92px; }
+  .rk-footer-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 28px; align-items: start; }
   .rk-footer img { height: 34px; width: auto; display: block; margin-bottom: 10px; }
   .rk-footer p { margin: 0; color: var(--rk-muted); font-size: 13px; line-height: 1.6; }
-  .rk-footer h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #8b98ab; margin: 0 0 10px; }
-  .rk-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
-  .rk-footer a { color: var(--rk-ink); text-decoration: none; }
+  .rk-footer h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #8b98ab; margin: 0 0 12px; }
+  .rk-footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; font-size: 14px; }
+  .rk-footer a { color: var(--rk-ink); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
   .rk-footer a:hover { color: var(--rk-blue-dark); }
+  .rk-icon {
+    width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; display: grid; place-items: center;
+    background: rgba(19, 155, 217, 0.10); color: var(--rk-blue-dark);
+  }
+  .rk-icon svg { width: 16px; height: 16px; }
+  .rk-icon.is-whatsapp { background: rgba(37, 211, 102, 0.14); color: #128c4a; }
   .rk-copy { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rk-line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #8b98ab; }
 
-  @media (max-width: 920px) {
-    .rk-grid { grid-template-columns: 1fr; gap: 28px; }
+  .rk-whatsapp-fab {
+    position: fixed; right: 20px; bottom: 20px; z-index: 50; display: inline-flex; align-items: center; gap: 10px;
+    height: 54px; padding: 0 20px 0 16px; border-radius: 999px; background: var(--rk-whatsapp); color: #fff;
+    font-weight: 700; font-size: 15px; text-decoration: none; box-shadow: 0 14px 30px rgba(37, 211, 102, 0.35);
+  }
+  .rk-whatsapp-fab:hover { color: #fff; text-decoration: none; transform: translateY(-1px); }
+  .rk-whatsapp-fab svg { width: 26px; height: 26px; }
+
+  @media (max-width: 960px) {
+    .rk-grid { grid-template-columns: 1fr; gap: 26px; }
     .rk-hero { padding-top: 0; }
     .rk-footer-grid { grid-template-columns: 1fr 1fr; }
   }
-  @media (max-width: 560px) {
-    .rk-logo img { height: 36px; }
-    .rk-features, .rk-steps-preview { display: none; }
-    .rk-lead { font-size: 15px; margin-bottom: 8px; }
-    .rk-signin { font-size: 13px; }
+  @media (max-width: 600px) {
+    .rk-brand img { height: 34px; }
+    .rk-brand-text { display: none; }
+    .rk-signin { display: none; }
+    .rk-features, .rk-help { display: none; }
+    .rk-lead { font-size: 15px; margin-bottom: 4px; }
     .rk-row { grid-template-columns: 1fr; gap: 0; }
     .rk-stepper li span { display: none; }
     .rk-footer-grid { grid-template-columns: 1fr; }
+    .rk-whatsapp-fab { height: 52px; width: 52px; padding: 0; justify-content: center; }
+    .rk-whatsapp-fab span { display: none; }
   }
 </style>
 {% endblock %}
 
+{% macro icon(name) -%}
+{%- if name == "globe" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+{%- elif name == "mail" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+{%- elif name == "phone" -%}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+{%- elif name == "whatsapp" -%}<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01zm-7.01 15.24h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.22-8.23 8.22zm4.52-6.16c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.42h-.48c-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.29z"/></svg>
+{%- endif -%}
+{%- endmacro %}
+
 {% block page_content %}
-<div class="rk-page">
+<div class="rk-page rk-lang-{{ lang }}" lang="{{ lang }}">
   <header class="rk-header">
     <div class="rk-shell">
-      <a class="rk-logo" href="{{ company.website }}" target="_blank" rel="noopener">
+      <a class="rk-brand" href="{{ company.website }}" target="_blank" rel="noopener">
         <img src="{{ company.logo }}" alt="{{ company.name|e }}">
+        <span class="rk-brand-text">
+          <strong>{{ t.product }}</strong>
+          {% if module %}<span>{{ module.name|e }}</span>{% endif %}
+        </span>
       </a>
-      <a class="rk-signin" href="/login">Already have an account? <strong>Sign in</strong></a>
+      <div class="rk-header-actions">
+        <nav class="rk-lang" aria-label="Language">
+          <a href="{{ lang_links.bn }}" data-lang="bn" class="{% if lang == 'bn' %}is-active{% endif %}" lang="bn">বাংলা</a>
+          <a href="{{ lang_links.en }}" data-lang="en" class="{% if lang == 'en' %}is-active{% endif %}" lang="en">English</a>
+        </nav>
+        <a class="rk-signin" href="/login">{{ t.signin_prompt }} <strong>{{ t.signin }}</strong></a>
+      </div>
     </div>
   </header>
 
   <main class="rk-main">
     <div class="rk-shell rk-grid">
       <section class="rk-hero">
-        <span class="rk-eyebrow">{% if module %}{{ module.name|e }}{% else %}Reckon ERP · Cloud business software{% endif %}</span>
+        <span class="rk-eyebrow">{{ t.product }} · {% if module %}{{ module.name|e }}{% else %}{{ t.eyebrow }}{% endif %}</span>
         {% if module %}
-        <h1>Start your <span>{{ module.name|e }}</span> workspace</h1>
-        <p class="rk-lead">{{ (module.description or "Create your company workspace in minutes. Your data stays inside your own company, and access opens after verification and payment.")|e }}</p>
+        <h1>{{ t.hero_module_title.format(module='<span>' ~ (module.name|e) ~ '</span>') }}</h1>
+        <p class="rk-lead">{{ (module.description if module.description and lang == "en" else t.hero_module_lead)|e }}</p>
         {% else %}
-        <h1>Run your business on <span>Reckon ERP</span></h1>
-        <p class="rk-lead">Choose a module, create your company workspace, and verify your email{% if phone_required %} and mobile{% endif %}. Access opens after payment verification.</p>
-        {% endif %}
-
-        {% if show_module_picker %}
-        <div class="rk-modules" aria-label="Choose a module">
-          {% for item in modules %}
-          <a class="rk-module" href="/reckonerp-signup?module={{ item.key }}">
-            <strong>{{ item.name|e }}</strong>
-            <small>{{ (item.description or "View plans and start a workspace.")|e }}</small>
-          </a>
-          {% endfor %}
-        </div>
+        <h1>{{ t.hero_title.replace("ReckonERP SaaS", "<span>ReckonERP SaaS</span>") }}</h1>
+        <p class="rk-lead">{{ t.hero_lead }}</p>
         {% endif %}
 
         <ul class="rk-features">
           {% if module and module.features %}
             {% for feature in module.features %}<li>{{ feature|e }}</li>{% endfor %}
           {% else %}
-          <li>Bangla-first workflows built for Bangladesh businesses</li>
-          <li>Each company's data is kept separate and private</li>
-          <li>Works on desktop and mobile, from anywhere</li>
+          <li>{{ t.feature_bangla }}</li>
+          <li>{{ t.feature_private }}</li>
+          <li>{{ t.feature_anywhere }}</li>
           {% endif %}
-          <li>Verified signup: email link{% if phone_required %} and SMS code{% endif %}</li>
+          <li>{{ t.feature_verified_both if phone_required else t.feature_verified_email }}</li>
         </ul>
 
-        <div class="rk-steps-preview" aria-hidden="true">
-          <span>1 · Company details</span><span>2 · Verify {% if phone_required %}email &amp; mobile{% else %}email{% endif %}</span><span>3 · Workspace setup</span>
+        <div class="rk-help">
+          <span class="rk-icon is-whatsapp">{{ icon("whatsapp") }}</span>
+          <p>{{ t.questions }}</p>
+          <a class="rk-btn is-whatsapp" href="{{ whatsapp_url }}" target="_blank" rel="noopener">{{ t.chat_whatsapp }}</a>
         </div>
       </section>
 
       <section class="rk-card" aria-live="polite">
         <ol class="rk-stepper">
-          <li data-stepper="details"><span>Details</span></li>
-          <li data-stepper="verify"><span>Verify</span></li>
-          <li data-stepper="done"><span>Ready</span></li>
+          <li data-stepper="details"><span>{{ t.step_details }}</span></li>
+          <li data-stepper="verify"><span>{{ t.step_verify }}</span></li>
+          <li data-stepper="done"><span>{{ t.step_ready }}</span></li>
         </ol>
 
-        <div id="rk-alert" class="rk-alert{% if module_unavailable %} is-visible is-error{% endif %}" role="status">{% if module_unavailable %}That module is not available for signup. Please choose one of the modules on this page.{% endif %}</div>
+        <div id="rk-alert" class="rk-alert{% if module_unavailable %} is-visible is-error{% endif %}" role="status">{% if module_unavailable %}{{ t.module_unavailable }}{% endif %}</div>
 
         <div data-step="details"{% if registration %} hidden{% endif %}>
-          <h2>Create your company</h2>
-          <p class="rk-sub">Takes about two minutes. We'll send a verification link to your email{% if phone_required %} and a code to your mobile{% endif %}.</p>
+          <h2>{{ t.form_title }}</h2>
+          <p class="rk-sub">{{ t.form_sub_both if phone_required else t.form_sub_email }}</p>
 
-          {% if plans %}
+          {% if plan_cards %}
           <form id="rk-signup-form" novalidate>
+            {% if show_module_picker %}
             <div class="rk-field">
-              <label for="business_name">Business name</label>
-              <input id="business_name" name="business_name" autocomplete="organization" maxlength="140" placeholder="e.g. Rahman Traders" required>
+              <label for="rk-module">{{ t.module }}</label>
+              <select id="rk-module" name="module" required>
+                {% if modules|length > 1 %}<option value="">{{ t.select_module }}</option>{% endif %}
+                {% for item in modules %}
+                <option value="{{ item.key }}">{{ item.name|e }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% else %}
+            <input type="hidden" name="module" value="{{ selected_module }}">
+            {% endif %}
+
+            <div class="rk-field">
+              <span class="rk-label" id="rk-plan-label">{{ t.plan }}</span>
+              <p class="rk-muted-note" data-plan-note="choose"{% if not show_module_picker or modules|length == 1 %} hidden{% endif %}>{{ t.choose_module_first }}</p>
+              <p class="rk-muted-note" data-plan-note="empty" hidden>{{ t.no_plans_for_module }}</p>
+              <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
+                {% for plan in plan_cards %}
+                <label class="rk-plan" data-plan-module="{{ plan.module }}"{% if show_module_picker and modules|length > 1 %} hidden{% endif %}>
+                  <input type="radio" name="plan" value="{{ plan.name|e }}"{% if plan_cards|length == 1 %} checked{% endif %}>
+                  <span class="rk-plan-body">
+                    <span class="rk-plan-name">{{ plan.plan_name|e }}</span>
+                    <span class="rk-plan-price">{{ plan.symbol|e }}{{ plan.amount }} <small>/ {{ plan.period }}</small></span>
+                    {% if plan.features %}<ul>{% for feature in plan.features[:4] %}<li>{{ feature|e }}</li>{% endfor %}</ul>{% endif %}
+                  </span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="rk-field">
+              <label for="business_name">{{ t.business_name }}</label>
+              <input id="business_name" name="business_name" autocomplete="organization" maxlength="140" placeholder="{{ t.business_placeholder }}" required>
             </div>
             <div class="rk-row">
               <div class="rk-field">
-                <label for="owner_name">Your name</label>
-                <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="Full name" required>
+                <label for="owner_name">{{ t.owner_name }}</label>
+                <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="{{ t.owner_placeholder }}" required>
               </div>
               <div class="rk-field">
-                <label for="owner_phone">Mobile number{% if not phone_required %} (optional){% endif %}</label>
+                <label for="owner_phone">{{ t.mobile }}{% if not phone_required %} ({{ t.optional }}){% endif %}</label>
                 <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="01XXXXXXXXX"{% if phone_required %} required{% endif %}>
               </div>
             </div>
             <div class="rk-field">
-              <label for="owner_email">Work email</label>
+              <label for="owner_email">{{ t.email }}</label>
               <input id="owner_email" name="owner_email" type="email" autocomplete="email" maxlength="140" placeholder="you@company.com" required>
-            </div>
-            <div class="rk-field">
-              <label for="plan">Plan</label>
-              <select id="plan" name="plan" required>
-                {% if plans|length > 1 %}<option value="">Select a plan</option>{% endif %}
-                {% for group in plan_groups %}
-                  {% if plan_groups|length > 1 %}<optgroup label="{{ group.module_name|e }}">{% endif %}
-                  {% for plan in group.plans %}
-                  <option value="{{ plan.name|e }}">{{ plan.plan_name|e }} — {{ plan.currency|e }} {{ plan.price }} / {{ plan.billing_cycle|e }}</option>
-                  {% endfor %}
-                  {% if plan_groups|length > 1 %}</optgroup>{% endif %}
-                {% endfor %}
-              </select>
-              {% if module and modules|length > 1 %}<div class="rk-hint">Plans for {{ module.name|e }}. <a href="/reckonerp-signup">See all modules</a></div>{% endif %}
             </div>
 
             <input type="hidden" name="billing_cycle" value="Monthly">
-            <input type="hidden" name="module" value="{{ selected_module }}">
             <input type="hidden" id="captcha_token" name="captcha_token" value="">
             {% if recaptcha_site_key %}
-            <div class="rk-field"><div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key|e }}"></div></div>
+            <div class="rk-field"><div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key|e }}" data-hl="{{ lang }}"></div></div>
             {% endif %}
             {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
             {% block signup_captcha %}{% endblock %}
 
-            <button class="rk-btn is-block" type="submit" id="rk-submit">Create workspace →</button>
-            <p class="rk-terms">By continuing you agree to be contacted about your account by {{ company.name|e }}</p>
+            <button class="rk-btn is-block" type="submit" id="rk-submit">{{ t.submit }} →</button>
+            <p class="rk-terms">{{ t.terms.format(company=(company.name|e)) }}</p>
           </form>
-          {% elif not module_unavailable %}
-          <div class="rk-alert is-visible is-info">No plans are open for signup right now. Please contact us at <a href="mailto:{{ company.email }}">{{ company.email }}</a>.</div>
+          {% else %}
+          <div class="rk-alert is-visible is-info">{{ t.no_plans }} <a href="mailto:{{ company.email }}">{{ company.email }}</a></div>
           {% endif %}
         </div>
 
         <div data-step="verify" hidden>
-          <h2>Verify your details</h2>
-          <p class="rk-sub">Your workspace is created after {% if phone_required %}both checks are{% else %}this check is{% endif %} complete. Keep this page open; it updates automatically.</p>
+          <h2>{{ t.verify_title }}</h2>
+          <p class="rk-sub">{{ t.verify_sub_both if phone_required else t.verify_sub_email }}</p>
 
           <div class="rk-verify-item" data-verify="email">
             <div class="rk-verify-head">
-              <div class="rk-verify-icon" aria-hidden="true">✉</div>
+              <div class="rk-verify-icon">{{ icon("mail") }}</div>
               <div>
-                <h3>Email</h3>
-                <p data-email-target>Open the verification link we sent to your email.</p>
+                <h3>{{ t.email_check }}</h3>
+                <p data-email-target>{{ t.email_check_hint }}</p>
               </div>
-              <span class="rk-chip" data-chip="email">Pending</span>
+              <span class="rk-chip" data-chip="email">{{ t.js.pending }}</span>
             </div>
             <div class="rk-verify-body">
-              <button type="button" class="rk-link" data-resend="email">Resend email</button>
+              <button type="button" class="rk-link" data-resend="email">{{ t.resend_email }}</button>
             </div>
           </div>
 
           <div class="rk-verify-item" data-verify="phone"{% if not phone_required %} hidden{% endif %}>
             <div class="rk-verify-head">
-              <div class="rk-verify-icon" aria-hidden="true">✆</div>
+              <div class="rk-verify-icon">{{ icon("phone") }}</div>
               <div>
-                <h3>Mobile</h3>
-                <p>Enter the 6-digit code we sent by SMS.</p>
+                <h3>{{ t.mobile_check }}</h3>
+                <p>{{ t.mobile_check_hint }}</p>
               </div>
-              <span class="rk-chip" data-chip="phone">Pending</span>
+              <span class="rk-chip" data-chip="phone">{{ t.js.pending }}</span>
             </div>
             <form class="rk-verify-body" id="rk-otp-form" novalidate>
-              <input class="rk-otp" id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" aria-label="SMS code">
-              <button type="submit" class="rk-btn is-blue">Verify</button>
-              <button type="button" class="rk-link" data-resend="phone">Send a new code</button>
+              <input class="rk-otp" id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" aria-label="{{ t.sms_code }}">
+              <button type="submit" class="rk-btn is-blue">{{ t.verify }}</button>
+              <button type="button" class="rk-link" data-resend="phone">{{ t.resend_code }}</button>
             </form>
           </div>
         </div>
@@ -330,9 +408,9 @@
         <div data-step="done" hidden>
           <div class="rk-done">
             <div class="rk-done-icon" data-done-icon>✓</div>
-            <h2 data-done-title>You're all set</h2>
+            <h2 data-done-title></h2>
             <p data-done-text></p>
-            <a class="rk-btn" href="/login" data-done-action>Go to sign in</a>
+            <a class="rk-btn" href="/login" data-done-action>{{ t.go_signin }}</a>
           </div>
         </div>
       </section>
@@ -344,46 +422,62 @@
       <div class="rk-footer-grid">
         <div>
           <img src="{{ company.logo }}" alt="{{ company.name|e }}">
-          <p>{{ company.name|e }} builds cloud ERP for growing businesses in Bangladesh.</p>
+          <p>{{ t.footer_about.format(company=(company.name|e)) }}</p>
         </div>
         <div>
-          <h4>Contact</h4>
+          <h4>{{ t.contact }}</h4>
           <ul>
-            <li><a href="mailto:{{ company.email }}">{{ company.email }}</a></li>
-            <li><a href="tel:{{ company.phone|replace('-', '') }}">{{ company.phone }}</a></li>
+            <li><a href="{{ company.website }}" target="_blank" rel="noopener"><span class="rk-icon">{{ icon("globe") }}</span>www.reckon.tech</a></li>
+            <li><a href="mailto:{{ company.email }}"><span class="rk-icon">{{ icon("mail") }}</span>{{ company.email }}</a></li>
+            <li><a href="tel:{{ company.phone|replace('-', '') }}"><span class="rk-icon">{{ icon("phone") }}</span>{{ company.phone }}</a></li>
+            <li><a href="{{ whatsapp_url }}" target="_blank" rel="noopener"><span class="rk-icon is-whatsapp">{{ icon("whatsapp") }}</span>WhatsApp</a></li>
           </ul>
         </div>
         <div>
-          <h4>Company</h4>
+          <h4>{{ t.company_heading }}</h4>
           <ul>
-            <li><a href="{{ company.website }}" target="_blank" rel="noopener">www.reckon.tech</a></li>
-            <li><a href="/login">Sign in</a></li>
+            <li><a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.name|e }}</a></li>
+            <li><a href="/login">{{ t.signin }}</a></li>
           </ul>
         </div>
       </div>
       <div class="rk-copy">
-        <span>© {{ current_year }} {{ company.name|e }} All rights reserved.</span>
-        <span>Powered by Reckon ERP</span>
+        <span>© {{ current_year }} {{ company.name|e }} {{ t.rights }}</span>
+        <span>{{ t.powered }}</span>
       </div>
     </div>
   </footer>
+
+  <a class="rk-whatsapp-fab" href="{{ whatsapp_url }}" target="_blank" rel="noopener" aria-label="{{ t.chat_whatsapp }}">
+    {{ icon("whatsapp") }}<span>{{ t.chat_whatsapp }}</span>
+  </a>
 </div>
 
 {% if recaptcha_site_key %}
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?hl={{ lang }}" async defer></script>
 {% endif %}
 <script>
   (function () {
+    const T = {{ js_strings|tojson }};
     const state = {
       registration: "{{ registration }}",
       module: "{{ selected_module }}",
       supportEmail: "{{ company.email }}",
+      lang: "{{ lang }}",
       email: "",
       timer: null,
     };
     const alertBox = document.getElementById("rk-alert");
     const form = document.getElementById("rk-signup-form");
     const otpForm = document.getElementById("rk-otp-form");
+    const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, key) => (values[key] == null ? "" : values[key]));
+
+    document.body.classList.add("rk-lang-" + state.lang);
+    document.querySelectorAll("[data-lang]").forEach(function (link) {
+      link.addEventListener("click", function () {
+        document.cookie = "{{ lang_cookie }}=" + link.getAttribute("data-lang") + ";path=/;max-age=31536000;SameSite=Lax";
+      });
+    });
 
     function showAlert(text, type) {
       alertBox.textContent = text || "";
@@ -423,9 +517,32 @@
       const payload = await response.json().catch(function () { return {}; });
       const data = payload.message || payload;
       if (!response.ok || data.ok === false || payload.exc || payload.exc_type) {
-        throw new Error(errorText(payload, "Something went wrong. Please try again."));
+        throw new Error(errorText(payload, T.generic_error));
       }
       return data;
+    }
+
+    // Module selector: show only the chosen module's plan cards.
+    const moduleSelect = document.getElementById("rk-module");
+    function filterPlans() {
+      if (!moduleSelect) return;
+      const chosen = moduleSelect.value;
+      let visible = 0;
+      document.querySelectorAll("[data-plan-module]").forEach(function (card) {
+        const show = Boolean(chosen) && card.getAttribute("data-plan-module") === chosen;
+        card.hidden = !show;
+        if (show) visible += 1;
+        if (!show) card.querySelector("input").checked = false;
+      });
+      const shown = Array.from(document.querySelectorAll("[data-plan-module]")).filter((card) => !card.hidden);
+      if (shown.length === 1) shown[0].querySelector("input").checked = true;
+      document.querySelector('[data-plan-note="choose"]').hidden = Boolean(chosen);
+      document.querySelector('[data-plan-note="empty"]').hidden = !chosen || visible > 0;
+      state.module = chosen;
+    }
+    if (moduleSelect) {
+      moduleSelect.addEventListener("change", filterPlans);
+      filterPlans();
     }
 
     function setStep(step) {
@@ -456,7 +573,7 @@
       if (!item || !chip) return;
       item.classList.toggle("is-complete", done);
       chip.classList.toggle("is-done", done);
-      chip.textContent = done ? "Verified" : "Pending";
+      chip.textContent = done ? T.verified : T.pending;
     }
 
     function showDone(stage) {
@@ -466,31 +583,31 @@
       const action = document.querySelector("[data-done-action]");
       icon.className = "rk-done-icon";
       action.hidden = false;
-      action.textContent = "Go to sign in";
+      action.textContent = T.go_signin;
       action.setAttribute("href", "/login");
       if (stage === "provisioning") {
         icon.classList.add("is-wait");
         icon.textContent = "⏳";
-        title.textContent = "Preparing your workspace";
-        text.textContent = "Verification is complete. We are creating your company now; this usually takes a minute.";
+        title.textContent = T.provisioning_title;
+        text.textContent = T.provisioning_text;
         action.hidden = true;
       } else if (stage === "ready") {
         icon.textContent = "✓";
-        title.textContent = "Your workspace is created";
-        text.textContent = "We have emailed you a link to set your password. Full access opens as soon as our team verifies your payment.";
+        title.textContent = T.ready_title;
+        text.textContent = T.ready_text;
       } else if (stage === "failed") {
         icon.classList.add("is-error");
         icon.textContent = "!";
-        title.textContent = "We could not finish the setup";
-        text.textContent = "Our team has been notified and will contact you shortly. You can also reach us at " + state.supportEmail + ".";
-        action.textContent = "Contact support";
+        title.textContent = T.failed_title;
+        text.textContent = fill(T.failed_text, { email: state.supportEmail });
+        action.textContent = T.contact_support;
         action.setAttribute("href", "mailto:" + state.supportEmail);
       } else {
         icon.classList.add("is-error");
         icon.textContent = "!";
-        title.textContent = "This signup has expired";
-        text.textContent = "Verification links are valid for 48 hours. Please start again.";
-        action.textContent = "Start again";
+        title.textContent = T.expired_title;
+        text.textContent = T.expired_text;
+        action.textContent = T.start_again;
         action.setAttribute("href", "/reckonerp-signup" + (state.module ? "?module=" + encodeURIComponent(state.module) : ""));
       }
       setStep("done");
@@ -542,12 +659,16 @@
     if (form) {
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
+        if (!form.querySelector('input[name="plan"]:checked')) {
+          showAlert(T.choose_plan, "error");
+          return;
+        }
         if (!form.reportValidity()) return;
         const captcha = document.getElementById("captcha_token");
         if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
           captcha.value = window.grecaptcha.getResponse();
           if (!captcha.value) {
-            showAlert("Please confirm you are not a robot.", "error");
+            showAlert(T.robot, "error");
             return;
           }
         }
@@ -558,8 +679,7 @@
           const data = await call("reckon_saas_platform.saas.public_signup", new FormData(form));
           state.registration = data.registration;
           state.email = form.owner_email.value.trim();
-          document.querySelector("[data-email-target]").textContent =
-            "Open the verification link we sent to " + state.email + ".";
+          document.querySelector("[data-email-target]").textContent = fill(T.email_sent_to, { email: state.email });
           rememberRegistration();
           showAlert(data.message, "success");
           applyStatus({
@@ -585,7 +705,7 @@
       const otp = document.getElementById("otp");
       const code = otp.value.trim();
       if (!/^[0-9]{6}$/.test(code)) {
-        showAlert("Enter the 6-digit code from the SMS.", "error");
+        showAlert(T.otp_format, "error");
         return;
       }
       const button = otpForm.querySelector("button[type=submit]");
@@ -624,7 +744,7 @@
     });
 
     {% if verified %}
-    showAlert("{% if phone_pending %}Email verified. Enter the SMS code to finish.{% else %}Email verified. Thank you!{% endif %}", "success");
+    showAlert({{ "T.email_verified_phone" if phone_pending else "T.email_verified" }}, "success");
     {% endif %}
     if (state.registration) {
       setStep("verify");

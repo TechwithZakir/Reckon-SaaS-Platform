@@ -36,5 +36,7 @@ VENDOR_COMPANY = {
     "website": "https://www.reckon.tech/",
     "email": "hello@reckon.tech",
     "phone": "+8801325-009955",
+    # WhatsApp number in international format, digits only (wa.me links).
+    "whatsapp": "8801325009955",
     "logo": "/assets/reckon_saas_platform/images/reckon-tech-logo.png",
 }

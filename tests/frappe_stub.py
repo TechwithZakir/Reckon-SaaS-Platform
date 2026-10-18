@@ -136,6 +136,7 @@ def build_frappe() -> ModuleType:
     ):
         setattr(utils, name, Mock(name=name))
     utils.cint = lambda value: int(value or 0)
+    utils.flt = lambda value: float(value or 0)
     utils.strip_html = lambda value: value
     utils.escape_html = lambda value: value
     utils.validate_email_address = lambda value, throw=False: value if "@" in value else ""
