@@ -2,9 +2,12 @@
 
 Every Desk (``/app``, ``/desk``) and API (``/api``, ``?cmd=``) request from a user
 with an active Tenant User Assignment must belong to a company whose seed job is
-complete and whose subscription is active. Login, logout, the subscription
-status API and static assets stay reachable so a blocked tenant can still sign
-in, see why, and sign out. Vendor administrators and Guests are not gated here.
+complete and whose subscription gives access: inside its trial, paid period or
+grace period (see ``saas.subscription_billing_state``). A tenant with dues after
+the trial and grace period is sent to ``/reckonerp-subscription``. Login, logout,
+the subscription status and payment-reference APIs and static assets stay
+reachable so a blocked tenant can still sign in, pay, and sign out. Vendor
+administrators and Guests are not gated here.
 """
 
 from __future__ import annotations
@@ -31,6 +34,8 @@ EXEMPT_METHODS = frozenset(
         "frappe.auth.get_logged_user",
         "frappe.www.login.login_via_token",
         "reckon_saas_platform.saas.get_subscription_summary",
+        # A tenant with dues must still be able to report a payment.
+        "reckon_saas_platform.saas.submit_payment_reference",
         "reckon_saas_platform.saas.public_signup",
         "reckon_saas_platform.saas.verify_registration_email",
         "reckon_saas_platform.saas.verify_registration_phone",

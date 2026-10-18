@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "document_type": "Document",
  "engine": "InnoDB",
- "field_order": ["registration", "company", "company_admin", "plan", "saas_module", "plan_version", "billing_cycle", "status", "price", "currency", "start_date", "end_date", "grace_until"],
+ "field_order": ["registration", "company", "company_admin", "plan", "saas_module", "plan_version", "billing_cycle", "status", "price", "currency", "start_date", "end_date", "grace_until", "trial_end_date", "grace_days"],
  "fields": [
   {"fieldname": "registration", "fieldtype": "Link", "label": "Registration", "options": "SaaS Registration"},
   {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "reqd": 1, "in_list_view": 1},
@@ -19,10 +19,12 @@
   {"fieldname": "currency", "fieldtype": "Link", "label": "Currency", "options": "Currency", "default": "BDT"},
   {"fieldname": "start_date", "fieldtype": "Date", "label": "Start Date"},
   {"fieldname": "end_date", "fieldtype": "Date", "label": "End Date"},
-  {"fieldname": "grace_until", "fieldtype": "Date", "label": "Grace Until"}
+  {"fieldname": "grace_until", "fieldtype": "Date", "label": "Grace Until", "description": "Leave empty to use Grace Days. A later date set here extends access for this subscription."},
+  {"fieldname": "trial_end_date", "fieldtype": "Date", "label": "Trial Ends On", "description": "Last day of the free trial, set from the plan's Trial Days at signup."},
+  {"fieldname": "grace_days", "fieldtype": "Int", "label": "Grace Days", "default": "0", "non_negative": 1, "description": "Days of access after the trial or paid period ends while a payment is due. Copied from the plan at signup."}
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-10-18 13:00:00.000000",
+ "modified": "2026-10-18 18:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Subscription",
  "naming_rule": "Set by controller",

@@ -19,9 +19,21 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
   function statusColor(status) {
     if (["Active", "Complete", "Verified", "Trial"].includes(status)) return "green";
     if (["Failed", "Expired", "Suspended", "Cancelled", "Rejected"].includes(status)) return "red";
-    if (["Grace", "Due", "Pending Payment", "Pending Verification", "Provisioning", "Running"].includes(status))
+    if (["Grace", "Due", "Dues", "Pending Payment", "Pending Verification", "Provisioning", "Running"].includes(status))
       return "orange";
     return "gray";
+  }
+
+  // Module label for a row; falls back to the key for rows of a removed module.
+  const moduleCell = (row) =>
+    row.saas_module ? link("SaaS Module", row.saas_module, row.module_name || row.saas_module) : "";
+
+  function billing(b) {
+    if (!b) return "";
+    if (b.state === "trial") return esc(__("Trial until {0}", [b.trial_end_date]));
+    if (b.state === "active") return b.paid_until ? esc(__("Paid until {0}", [b.paid_until])) : esc(__("Active"));
+    if (b.state === "grace") return `${pill(__("Dues"))} ${esc(__("grace until {0}", [b.grace_end]))}`;
+    return b.dues ? `${pill(__("Dues"))} ${esc(__("locked"))}` : esc(__("Locked"));
   }
 
   function card(label, value, doctype, filters) {
@@ -65,11 +77,22 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
         __("No modules registered yet. Run bench migrate after installing a product app.")
       )}
       ${table(
+        __("Plans"),
+        [__("Plan"), __("Module"), __("Price"), __("Trial days"), __("Grace days"), __("Enabled")],
+        (data.plans || []).map(
+          (p) => `<tr><td>${link("SaaS Plan", p.name, p.plan_name)}</td><td>${moduleCell(p)}</td>
+            <td>${esc(p.currency)} ${esc(p.price)} / ${esc(__(p.billing_cycle || "Monthly"))}</td>
+            <td>${esc(p.trial_days || 0)}</td><td>${esc(p.grace_days || 0)}</td>
+            <td>${p.enabled ? esc(__("Yes")) : esc(__("No"))}</td></tr>`
+        ),
+        __("No plans yet.")
+      )}
+      ${table(
         __("Payments to verify"),
-        [__("Payment"), __("Company"), __("Amount"), __("Reference"), __("Action")],
+        [__("Payment"), __("Company"), __("Module"), __("Amount"), __("Reference"), __("Action")],
         (data.pending_payments || []).map(
           (p) => `<tr><td>${link("SaaS Payment", p.name)}</td><td>${esc(p.company)}</td>
-            <td>${esc(p.currency)} ${esc(p.amount)}</td>
+            <td>${moduleCell(p)}</td><td>${esc(p.currency)} ${esc(p.amount)}</td>
             <td><input class="form-control input-xs" data-reference="${esc(p.name)}" value="${esc(p.gateway_reference)}" placeholder="${esc(__("Reference"))}"></td>
             <td><button class="btn btn-xs btn-primary" data-verify="${esc(p.name)}">${esc(__("Verify"))}</button></td></tr>`
         ),
@@ -80,7 +103,7 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
         [__("Registration"), __("Business"), __("Module"), __("Error"), __("Action")],
         failed.map(
           (r) => `<tr><td>${link("SaaS Registration", r.name)}</td><td>${esc(r.business_name)}</td>
-            <td>${esc(r.saas_module)}</td><td class="rs-error" title="${esc(r.error)}">${esc(r.error)}</td>
+            <td>${moduleCell(r)}</td><td class="rs-error" title="${esc(r.error)}">${esc(r.error)}</td>
             <td><button class="btn btn-xs btn-default" data-retry-registration="${esc(r.name)}">${esc(__("Retry Provisioning"))}</button></td></tr>`
         ),
         __("No failed registrations.")
@@ -91,7 +114,7 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
         (data.registrations || []).map(
           (r) => `<tr><td>${link("SaaS Registration", r.name)}</td><td>${esc(r.business_name)}</td>
             <td>${esc(r.owner_email)}${r.email_verified ? " ✓" : ""}${r.owner_phone ? `<br><small class="text-muted">${esc(r.owner_phone)}${r.phone_verified ? " ✓" : ""}</small>` : ""}</td>
-            <td>${esc(r.saas_module)}</td><td>${link("SaaS Plan", r.plan)}</td><td>${pill(r.status)}</td></tr>`
+            <td>${moduleCell(r)}</td><td>${link("SaaS Plan", r.plan)}</td><td>${pill(r.status)}</td></tr>`
         ),
         __("No registrations yet.")
       )}
@@ -107,11 +130,11 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
       )}
       ${table(
         __("Subscriptions"),
-        [__("Subscription"), __("Company"), __("Module"), __("Plan"), __("Status"), __("Ends")],
+        [__("Subscription"), __("Company"), __("Module"), __("Plan"), __("Status"), __("Billing")],
         (data.subscriptions || []).map(
           (s) => `<tr><td>${link("SaaS Subscription", s.name)}</td><td>${esc(s.company)}</td>
-            <td>${esc(s.saas_module)}</td><td>${link("SaaS Plan", s.plan)}</td><td>${pill(s.status)}</td>
-            <td>${esc(s.end_date || "")}</td></tr>`
+            <td>${moduleCell(s)}</td><td>${link("SaaS Plan", s.plan)}</td><td>${pill(s.status)}</td>
+            <td>${billing(s.billing)}</td></tr>`
         ),
         __("No subscriptions yet.")
       )}

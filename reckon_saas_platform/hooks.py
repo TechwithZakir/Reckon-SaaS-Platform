@@ -33,6 +33,12 @@ after_app_install = "reckon_saas_platform.install.after_app_install"
 before_request = ["reckon_saas_platform.saas_gate.enforce_operational_access"]
 after_request = ["reckon_saas_platform.saas_gate.redirect_blocked_response"]
 
+# Keep subscription statuses in step with trial, paid-period and grace dates.
+# Access itself is decided from the dates, so the gate never waits for this job.
+scheduler_events = {
+    "daily": ["reckon_saas_platform.saas.refresh_subscription_statuses"],
+}
+
 doc_events = {
     "User": {
         "validate": "reckon_saas_platform.tenant_security.validate_user_tenant_roles",

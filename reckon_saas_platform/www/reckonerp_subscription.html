@@ -4,39 +4,112 @@
 
 {% block page_content %}
 <link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
+<style>
+  .rs-portal__form { display: grid; gap: 8px; margin-top: 12px; }
+  .rs-portal__form select, .rs-portal__form input { width: 100%; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 8px; font: inherit; }
+  .rs-portal__message { margin-top: 8px; font-size: 13px; }
+  .rs-portal__message.is-error { color: #b42318; }
+  .rs-portal__message.is-success { color: #067647; }
+</style>
 <main class="rs-portal">
   <div class="rs-portal__inner">
     <header class="rs-portal__topbar">
-      <div class="rs-portal__brand"><span class="rs-portal__mark" aria-hidden="true"></span><span>ReckonERP</span><span class="rs-portal__product">Distribution SaaS</span></div>
+      <div class="rs-portal__brand"><span class="rs-portal__mark" aria-hidden="true"></span><span>ReckonERP</span>{% if product %}<span class="rs-portal__product">{{ product|e }}</span>{% endif %}</div>
       <a class="rs-portal__button" href="/logout">Log out</a>
     </header>
     <section class="rs-portal__hero">
-      <div><p class="rs-portal__eyebrow">Tenant account</p><h1>Subscription &amp; activation</h1><p>Track your company plan, payment verification, and provisioning status in one place.</p></div>
-      {% if summary.operational_access %}<a class="rs-portal__button rs-portal__button--primary" href="/app/distribution">Open Distribution</a>{% endif %}
+      <div>
+        <p class="rs-portal__eyebrow">Tenant account</p>
+        <h1>Subscription &amp; activation</h1>
+        <p>{% if summary.has_dues %}A payment is due. Pay and add the transaction reference below; we unlock your workspace once it is verified.{% else %}Track your plan, payment verification and provisioning status in one place.{% endif %}</p>
+      </div>
     </section>
     <section class="rs-portal__grid">
       <article class="rs-portal__card">
-        <div class="rs-portal__label">Company</div><div class="rs-portal__value">{{ summary.company or "Not assigned" }}</div>
-        <div class="rs-portal__list"><div class="rs-portal__row"><span>Subscription</span><strong>{{ summary.subscription or "Pending" }}</strong></div><div class="rs-portal__row"><span>Plan</span><strong>{{ summary.plan or "Awaiting selection" }}</strong></div></div>
-      </article>
-      <article class="rs-portal__card">
-        <div class="rs-portal__label">Access status</div><div class="rs-portal__value"><span class="rs-portal__status{% if not summary.operational_access %} rs-portal__status--warning{% endif %}">{{ summary.status }}</span></div>
+        <div class="rs-portal__label">Company</div><div class="rs-portal__value">{{ (summary.company or "Not assigned")|e }}</div>
         <div class="rs-portal__list"><div class="rs-portal__row"><span>Operational access</span><strong>{{ "Enabled" if summary.operational_access else "Locked" }}</strong></div></div>
       </article>
+
+      {% for sub in subscriptions %}
       <article class="rs-portal__card">
-        <div class="rs-portal__label">Payment</div><div class="rs-portal__value">{% if summary.payment %}{{ summary.payment.currency }} {{ summary.payment.amount }}{% else %}Pending{% endif %}</div>
-        <div class="rs-portal__list"><div class="rs-portal__row"><span>Verification</span><strong>{{ summary.payment.status if summary.payment else "Not submitted" }}</strong></div><div class="rs-portal__row"><span>Reference</span><strong>{{ summary.payment.gateway_reference if summary.payment and summary.payment.gateway_reference else "Add through support" }}</strong></div></div>
+        <div class="rs-portal__label">{{ sub.module_name|e }}</div>
+        <div class="rs-portal__value"><span class="rs-portal__status{% if not sub.access or sub.dues %} rs-portal__status--warning{% endif %}">{{ sub.state_label }}</span></div>
+        <div class="rs-portal__list">
+          <div class="rs-portal__row"><span>Plan</span><strong>{{ sub.plan|e }}</strong></div>
+          <div class="rs-portal__row"><span>Price</span><strong>{{ sub.currency|e }} {{ sub.price }} / {{ sub.billing_cycle|e }}</strong></div>
+          <div class="rs-portal__row"><span>Billing</span><strong>{{ sub.detail|e }}</strong></div>
+          {% if sub.payment %}<div class="rs-portal__row"><span>Last payment</span><strong>{{ sub.payment.status|e }}{% if sub.payment.gateway_reference %} · {{ sub.payment.gateway_reference|e }}{% endif %}</strong></div>{% endif %}
+        </div>
+        {% if sub.access and summary.operational_access and sub.landing_route %}
+        <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
+        {% endif %}
+        {% if sub.can_pay %}
+        <form class="rs-portal__form" data-pay-subscription="{{ sub.name|e }}">
+          <label class="rs-portal__label" for="provider-{{ loop.index }}">{% if sub.payment_pending %}Update payment reference{% else %}Report a payment{% endif %}</label>
+          <select id="provider-{{ loop.index }}" name="provider">
+            {% for provider in payment_providers %}<option value="{{ provider }}"{% if sub.payment.gateway_provider == provider %} selected{% endif %}>{{ provider }}</option>{% endfor %}
+          </select>
+          <input name="reference" maxlength="140" required placeholder="Transaction ID / reference" value="{{ (sub.payment.gateway_reference or '')|e if sub.payment_pending else '' }}">
+          <button class="rs-portal__button rs-portal__button--primary" type="submit">Submit for verification</button>
+          <div class="rs-portal__message" role="status"></div>
+        </form>
+        {% endif %}
       </article>
+      {% else %}
+      <article class="rs-portal__card">
+        <div class="rs-portal__label">Subscription</div><div class="rs-portal__value">Missing</div>
+        <p class="rs-portal__notice">No subscription is linked to your company. Contact support.</p>
+      </article>
+      {% endfor %}
+
       <article class="rs-portal__card rs-portal__card--wide">
         <p class="rs-portal__eyebrow">Provisioning</p><h2>Company setup progress</h2>
-        {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ summary.provisioning.current_step or "Queued" }}</strong></div></div>{% else %}<p>Provisioning will begin after payment verification.</p>{% endif %}
-      </article>
-      <article class="rs-portal__card">
-        <p class="rs-portal__eyebrow">Next step</p><h2>{% if summary.operational_access %}Open your workspace{% else %}Complete activation{% endif %}</h2>
-        {% if summary.operational_access %}<p>Your company is ready for distribution operations.</p><a class="rs-portal__button rs-portal__button--primary" href="/app/distribution">Go to workspace</a>{% else %}<p class="rs-portal__notice">Your workspace stays protected until payment and provisioning are verified.</p>{% endif %}
+        {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status|e }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ (summary.provisioning.current_step or "Queued")|e }}</strong></div></div>{% else %}<p>Provisioning starts after verification.</p>{% endif %}
       </article>
     </section>
-    <footer class="rs-portal__footer">Need help? Contact your ReckonERP administrator.</footer>
+    <footer class="rs-portal__footer">Need help? Contact {{ company_info.name|e }} at <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a> or {{ company_info.phone }}.</footer>
   </div>
 </main>
+<script>
+  (function () {
+    function csrfToken() {
+      const token = (window.frappe && window.frappe.csrf_token) || "";
+      return token === "None" ? "" : token;
+    }
+    document.querySelectorAll("[data-pay-subscription]").forEach(function (form) {
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const message = form.querySelector(".rs-portal__message");
+        const button = form.querySelector("button[type=submit]");
+        const body = new FormData(form);
+        body.append("subscription", form.getAttribute("data-pay-subscription"));
+        button.disabled = true;
+        message.textContent = "";
+        try {
+          const response = await fetch("/api/method/reckon_saas_platform.saas.submit_payment_reference", {
+            method: "POST",
+            body: body,
+            credentials: "same-origin",
+            headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" },
+          });
+          const payload = await response.json().catch(function () { return {}; });
+          if (!response.ok || payload.exc_type) {
+            let text = "Could not submit the payment. Please try again.";
+            try {
+              text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" ");
+            } catch (error) { /* keep the default text */ }
+            throw new Error(text);
+          }
+          message.className = "rs-portal__message is-success";
+          message.textContent = (payload.message && payload.message.message) || "Submitted.";
+        } catch (error) {
+          message.className = "rs-portal__message is-error";
+          message.textContent = error.message;
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+  })();
+</script>
 {% endblock %}
