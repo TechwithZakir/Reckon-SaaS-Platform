@@ -1,0 +1,162 @@
+{
+ "doctype": "Workspace Sidebar",
+ "name": "SaaS Platform",
+ "app": "reckon_saas_platform",
+ "module": "SaaS Platform",
+ "title": "SaaS Platform",
+ "header_icon": "layout-dashboard",
+ "standard": 1,
+ "items": [
+  {
+   "label": "Dashboard",
+   "link_to": "saas-dashboard",
+   "link_type": "Page",
+   "type": "Link",
+   "icon": "layout-dashboard",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Catalogue",
+   "type": "Section Break",
+   "icon": "boxes",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "Modules",
+   "link_to": "SaaS Module",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "boxes",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Plans",
+   "link_to": "SaaS Plan",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "tags",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Signups & Billing",
+   "type": "Section Break",
+   "icon": "credit-card",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "Registrations",
+   "link_to": "SaaS Registration",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "user-plus",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Subscriptions",
+   "link_to": "SaaS Subscription",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "repeat",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Payments",
+   "link_to": "SaaS Payment",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "credit-card",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Tenants",
+   "type": "Section Break",
+   "icon": "building-2",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "Tenant Companies",
+   "link_to": "Company",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "building-2",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Tenant User Assignments",
+   "link_to": "Tenant User Assignment",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "users",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Provisioning Jobs",
+   "link_to": "Tenant Provisioning Job",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "server-cog",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Settings",
+   "type": "Section Break",
+   "icon": "settings",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "Signup Settings",
+   "link_to": "SaaS Platform Settings",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "settings",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  }
+ ],
+ "modified": "2026-01-01 00:00:00.000000"
+}

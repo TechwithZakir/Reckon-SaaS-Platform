@@ -1,0 +1,105 @@
+{
+ "doctype": "Workspace",
+ "name": "Reckon SaaS Admin",
+ "label": "Reckon SaaS Admin",
+ "title": "Reckon SaaS Admin",
+ "module": "SaaS Platform",
+ "category": "Modules",
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "icon": "settings",
+ "roles": [
+  {
+   "role": "Reckon Vendor Superuser"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"Reckon SaaS Admin\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Modules, plans, registrations, subscriptions, payments and tenant provisioning.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Modules\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plans\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Registrations\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Subscriptions\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payments\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Provisioning Jobs\", \"col\": 3}}, {\"id\": \"shortcut-7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant User Assignments\", \"col\": 3}}, {\"id\": \"shortcut-8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Companies\", \"col\": 3}}, {\"id\": \"shortcut-9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Signup Settings\", \"col\": 3}}, {\"id\": \"shortcut-10\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Vendor SaaS Admin\", \"col\": 3}}, {\"id\": \"shortcut-11\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Public Signup\", \"col\": 3}}, {\"id\": \"shortcut-12\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Subscription\", \"col\": 3}}]",
+ "shortcuts": [
+  {
+   "label": "Dashboard",
+   "type": "Page",
+   "link_to": "saas-dashboard",
+   "color": "Green"
+  },
+  {
+   "label": "Modules",
+   "type": "DocType",
+   "link_to": "SaaS Module",
+   "doc_view": "List"
+  },
+  {
+   "label": "Plans",
+   "type": "DocType",
+   "link_to": "SaaS Plan",
+   "doc_view": "List"
+  },
+  {
+   "label": "Registrations",
+   "type": "DocType",
+   "link_to": "SaaS Registration",
+   "doc_view": "List"
+  },
+  {
+   "label": "Subscriptions",
+   "type": "DocType",
+   "link_to": "SaaS Subscription",
+   "doc_view": "List"
+  },
+  {
+   "label": "Payments",
+   "type": "DocType",
+   "link_to": "SaaS Payment",
+   "doc_view": "List"
+  },
+  {
+   "label": "Provisioning Jobs",
+   "type": "DocType",
+   "link_to": "Tenant Provisioning Job",
+   "doc_view": "List"
+  },
+  {
+   "label": "Tenant User Assignments",
+   "type": "DocType",
+   "link_to": "Tenant User Assignment",
+   "doc_view": "List"
+  },
+  {
+   "label": "Tenant Companies",
+   "type": "DocType",
+   "link_to": "Company",
+   "doc_view": "List"
+  },
+  {
+   "label": "Signup Settings",
+   "type": "DocType",
+   "link_to": "SaaS Platform Settings",
+   "doc_view": "List"
+  },
+  {
+   "label": "Vendor SaaS Admin",
+   "type": "URL",
+   "url": "/reckon-saas-admin",
+   "color": "Blue"
+  },
+  {
+   "label": "Public Signup",
+   "type": "URL",
+   "url": "/reckonerp-signup",
+   "color": "Blue"
+  },
+  {
+   "label": "Tenant Subscription",
+   "type": "URL",
+   "url": "/reckonerp-subscription",
+   "color": "Blue"
+  }
+ ],
+ "links": [],
+ "charts": [],
+ "number_cards": [],
+ "modified": "2026-01-01 00:00:00.000000"
+}
