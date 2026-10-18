@@ -301,7 +301,19 @@
     max-width: 680px;
   }
 
-  .rs-signup-form { width: min(720px, 100%); }
+  .rs-signup-form, .rs-otp-form { width: min(720px, 100%); }
+  .rs-signup-form[hidden], .rs-otp-form[hidden] { display: none; }
+  .rs-captcha { min-height: 78px; }
+  .rs-link-button {
+    margin-left: 16px;
+    border: 0;
+    background: transparent;
+    color: #246ced;
+    font-size: 15px;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .rs-link-button[disabled] { color: #8a9ab7; cursor: wait; }
   .rs-field { margin-bottom: 26px; }
   .rs-field label {
     display: block;
@@ -453,16 +465,22 @@
 
     <section class="rs-form-wrap">
       <h2 class="rs-form-title">Create your distribution company</h2>
-      <p class="rs-form-subtitle">Submit the business details. Access opens after vendor payment verification and tenant provisioning.</p>
+      <p class="rs-form-subtitle">Submit the business details, then verify your {% if phone_required %}mobile number and {% endif %}email. Access opens after vendor payment verification and tenant provisioning.</p>
 
+      {% if verified and phone_pending %}
+      <div id="signup_message" class="rs-message is-visible is-success" role="status" aria-live="polite">Email verified. Enter the code we sent to your mobile to finish.</div>
+      {% elif verified %}
+      <div id="signup_message" class="rs-message is-visible is-success" role="status" aria-live="polite">Email verified. Your workspace is being prepared; you will be able to sign in after payment verification.</div>
+      {% else %}
       <div id="signup_message" class="rs-message" role="status" aria-live="polite"></div>
+      {% endif %}
 
-      <form class="rs-signup-form" method="post" action="/api/method/reckon_saas_platform.saas.public_signup">
+      <form class="rs-signup-form" method="post" action="/api/method/reckon_saas_platform.saas.public_signup"{% if phone_pending %} hidden{% endif %}>
         <div class="rs-field">
           <label for="business_name">Business Name</label>
           <div class="rs-input-shell">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7v18"/><path d="M14 8h3a2 2 0 0 1 2 2v11"/><path d="M9 7h1M9 11h1M9 15h1"/></svg>
-            <input id="business_name" name="business_name" placeholder="Enter your business name" required>
+            <input id="business_name" name="business_name" placeholder="Enter your business name" maxlength="140" required>
           </div>
         </div>
 
@@ -470,7 +488,7 @@
           <label for="owner_name">Owner Name</label>
           <div class="rs-input-shell">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
-            <input id="owner_name" name="owner_name" placeholder="Enter owner name" required>
+            <input id="owner_name" name="owner_name" placeholder="Enter owner name" maxlength="140" required>
           </div>
         </div>
 
@@ -478,7 +496,15 @@
           <label for="owner_email">Owner Email</label>
           <div class="rs-input-shell">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
-            <input id="owner_email" name="owner_email" type="email" placeholder="Enter owner email" required>
+            <input id="owner_email" name="owner_email" type="email" placeholder="Enter owner email" maxlength="140" required>
+          </div>
+        </div>
+
+        <div class="rs-field">
+          <label for="owner_phone">Owner Mobile</label>
+          <div class="rs-input-shell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+            <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="16"{% if phone_required %} required{% endif %}>
           </div>
         </div>
 
@@ -496,7 +522,27 @@
         </div>
 
         <input type="hidden" name="billing_cycle" value="Monthly">
+        <input type="hidden" id="captcha_token" name="captcha_token" value="">
+        {% if recaptcha_site_key %}
+        <div class="rs-field rs-captcha">
+          <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+        </div>
+        {% endif %}
+        {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
+        {% block signup_captcha %}{% endblock %}
         <button class="rs-submit" type="submit">Submit Signup <span>→</span></button>
+      </form>
+
+      <form class="rs-otp-form" data-registration="{{ registration or '' }}"{% if not phone_pending %} hidden{% endif %}>
+        <div class="rs-field">
+          <label for="otp">SMS Verification Code</label>
+          <div class="rs-input-shell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit code" required>
+          </div>
+        </div>
+        <button class="rs-submit" type="submit">Verify Mobile <span>→</span></button>
+        <button class="rs-link-button rs-resend" type="button">Send a new code</button>
       </form>
     </section>
   </section>
@@ -504,9 +550,13 @@
   <footer class="rs-powered">Powered by ERPNext</footer>
 </main>
 
+{% if recaptcha_site_key %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endif %}
 <script>
   (function () {
     const form = document.querySelector(".rs-signup-form");
+    const otpForm = document.querySelector(".rs-otp-form");
     const message = document.getElementById("signup_message");
     const button = form && form.querySelector(".rs-submit");
 
@@ -515,33 +565,107 @@
       message.className = "rs-message is-visible " + (type === "success" ? "is-success" : "is-error");
     }
 
+    function errorText(payload, fallback) {
+      if (payload && payload._server_messages) {
+        try {
+          return JSON.parse(payload._server_messages)
+            .map(function (item) { return JSON.parse(item).message || item; })
+            .join(" ");
+        } catch (error) { /* fall through */ }
+      }
+      const data = payload && (payload.message || payload);
+      return (data && typeof data.message === "string" && data.message) || fallback;
+    }
+
+    async function post(method, body) {
+      const response = await fetch("/api/method/" + method, {
+        method: "POST",
+        body: body,
+        credentials: "same-origin",
+        headers: { "X-Frappe-CSRF-Token": window.csrf_token || "" },
+      });
+      const payload = await response.json().catch(function () { return {}; });
+      const data = payload.message || payload;
+      if (!response.ok || data.ok === false || payload.exc || payload.exc_type) {
+        throw new Error(errorText(payload, "Request failed. Please check the details and try again."));
+      }
+      return data;
+    }
+
+    function resetCaptcha() {
+      if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
+        window.grecaptcha.reset();
+      }
+    }
+
+    function showOtpStep(registration) {
+      otpForm.dataset.registration = registration;
+      form.hidden = true;
+      otpForm.hidden = false;
+      otpForm.querySelector("#otp").focus();
+    }
+
     if (!form || !message || !button) return;
 
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
+      const captcha = document.getElementById("captcha_token");
+      if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
+        captcha.value = window.grecaptcha.getResponse();
+        if (!captcha.value) {
+          showMessage("Please confirm you are not a robot.", "error");
+          return;
+        }
+      }
       button.disabled = true;
 
       try {
-        const response = await fetch(form.action, {
-          method: "POST",
-          body: new FormData(form),
-          credentials: "same-origin",
-          headers: { "X-Frappe-CSRF-Token": window.csrf_token || "" },
-        });
-        const payload = await response.json();
-        const data = payload.message || payload;
-
-        if (!response.ok || data.ok === false || payload.exc) {
-          showMessage(data.message || payload._server_messages || "Signup failed. Please check the details and try again.", "error");
-          return;
-        }
-
-        showMessage(data.message || "Signup submitted. Please wait for payment verification.", "success");
+        const data = await post("reckon_saas_platform.saas.public_signup", new FormData(form));
+        showMessage(data.message || "Signup received. Check your email for the verification link.", "success");
         form.reset();
+        if (data.phone_verification_required) {
+          showOtpStep(data.registration);
+        }
       } catch (error) {
-        showMessage("Signup failed. Please try again or contact support.", "error");
+        showMessage(error.message || "Signup failed. Please try again or contact support.", "error");
       } finally {
+        resetCaptcha();
         button.disabled = false;
+      }
+    });
+
+    if (!otpForm) return;
+
+    otpForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const submit = otpForm.querySelector(".rs-submit");
+      const body = new FormData();
+      body.append("registration", otpForm.dataset.registration || "");
+      body.append("otp", otpForm.querySelector("#otp").value.trim());
+      submit.disabled = true;
+      try {
+        const data = await post("reckon_saas_platform.saas.verify_registration_phone", body);
+        showMessage(data.message, "success");
+        otpForm.hidden = true;
+      } catch (error) {
+        showMessage(error.message, "error");
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    otpForm.querySelector(".rs-resend").addEventListener("click", async function (event) {
+      const resend = event.currentTarget;
+      const body = new FormData();
+      body.append("registration", otpForm.dataset.registration || "");
+      resend.disabled = true;
+      try {
+        const data = await post("reckon_saas_platform.saas.resend_registration_otp", body);
+        showMessage(data.message, "success");
+      } catch (error) {
+        showMessage(error.message, "error");
+      } finally {
+        window.setTimeout(function () { resend.disabled = false; }, 30000);
       }
     });
   })();

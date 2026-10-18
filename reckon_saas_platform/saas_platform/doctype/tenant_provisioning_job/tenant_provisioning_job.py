@@ -17,3 +17,15 @@ class TenantProvisioningJob(Document):
         )
         if existing:
             frappe.throw("Provisioning job already exists for this company and seed version.")
+
+    def on_update(self) -> None:
+        _invalidate_gate(self.company)
+
+    def on_trash(self) -> None:
+        _invalidate_gate(self.company)
+
+
+def _invalidate_gate(company: str | None) -> None:
+    from reckon_saas_platform.saas import invalidate_operational_access_cache
+
+    invalidate_operational_access_cache(company)

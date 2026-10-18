@@ -26,6 +26,21 @@ required_apps = ["frappe", "erpnext"]
 after_install = "reckon_saas_platform.install.after_install"
 after_migrate = "reckon_saas_platform.install.after_migrate"
 
+# Tenant users may use Desk and the API only while their company is provisioned
+# and subscribed. See reckon_saas_platform.saas_gate.
+before_request = ["reckon_saas_platform.saas_gate.enforce_operational_access"]
+after_request = ["reckon_saas_platform.saas_gate.redirect_blocked_response"]
+
+doc_events = {
+    "User": {
+        "validate": "reckon_saas_platform.tenant_security.validate_user_tenant_roles",
+    },
+}
+
+# Google reCAPTCHA and BulkSMSBD are configured in SaaS Platform Settings. Other
+# apps may add captcha verifiers here, e.g.:
+# reckon_saas_signup_captcha_verifier = ["my_app.captcha.verify"]
+
 website_route_rules = [
     {"from_route": "/reckonerp-signup", "to_route": "reckonerp_signup"},
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
@@ -44,6 +59,7 @@ permission_query_conditions = {
 has_permission = {
     "SaaS Payment": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Plan": "reckon_saas_platform.saas_security.has_vendor_only_permission",
+    "SaaS Platform Settings": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Registration": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Subscription": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.has_vendor_only_permission",

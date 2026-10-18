@@ -292,6 +292,7 @@
             <th>Plan</th>
             <th>Status</th>
             <th>Linked Records</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -299,17 +300,28 @@
           <tr>
             <td><a href="/app/saas-registration/{{ registration.name }}">{{ registration.name }}</a></td>
             <td>{{ registration.business_name }}</td>
-            <td>{{ registration.owner_email }}</td>
+            <td>
+              {{ registration.owner_email }}{% if registration.email_verified %} ✓{% endif %}
+              {% if registration.owner_phone %}<br><span class="rs-muted">{{ registration.owner_phone }}{% if registration.phone_verified %} ✓{% elif registration.phone_verification_required %} (unverified){% endif %}</span>{% endif %}
+            </td>
             <td>{{ registration.plan }}</td>
-            <td><span class="rs-pill">{{ registration.status }}</span></td>
+            <td>
+              <span class="rs-pill">{{ registration.status }}</span>
+              {% if registration.status == "Failed" and registration.error %}<br><span class="rs-muted" title="{{ registration.error }}">{{ registration.error | truncate(90) }}</span>{% endif %}
+            </td>
             <td>
               {% if registration.company %}<a href="/app/company/{{ registration.company }}">{{ registration.company }}</a>{% endif %}
               {% if registration.payment %} · <a href="/app/saas-payment/{{ registration.payment }}">Payment</a>{% endif %}
               {% if registration.provisioning_job %} · <a href="/app/tenant-provisioning-job/{{ registration.provisioning_job }}">Seed</a>{% endif %}
             </td>
+            <td>
+              {% if registration.status == "Failed" %}
+              <button class="rs-button" data-rs-action="retry-registration" data-registration="{{ registration.name }}">Retry Provisioning</button>
+              {% endif %}
+            </td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="rs-muted">No registrations yet.</td></tr>
+          <tr><td colspan="7" class="rs-muted">No registrations yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -403,8 +415,25 @@
           company: button.dataset.company,
         })
           .then(function () {
-            showMessage("Provisioning job completed. Refreshing dashboard...", "success");
+            showMessage("Seed job run finished. Refreshing dashboard...", "success");
             window.setTimeout(function () { window.location.reload(); }, 700);
+          })
+          .catch(function (error) {
+            button.disabled = false;
+            showMessage(error.message, "error");
+          });
+      });
+    });
+
+    document.querySelectorAll("[data-rs-action='retry-registration']").forEach(function (button) {
+      button.addEventListener("click", function () {
+        button.disabled = true;
+        call("reckon_saas_platform.saas.retry_registration_provisioning", {
+          registration: button.dataset.registration,
+        })
+          .then(function () {
+            showMessage("Provisioning queued for " + button.dataset.registration + ". Refreshing dashboard...", "success");
+            window.setTimeout(function () { window.location.reload(); }, 1500);
           })
           .catch(function (error) {
             button.disabled = false;
