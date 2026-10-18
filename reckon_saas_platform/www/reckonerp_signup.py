@@ -6,6 +6,7 @@ import frappe
 def get_context(context):
     context.no_cache = 1
     context.title = "Reckon ERP Signup"
+    context.verified = frappe.form_dict.get("verified") == "1"
     context.plans = frappe.get_all(
         "SaaS Plan",
         filters={"enabled": 1},

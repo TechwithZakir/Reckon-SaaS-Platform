@@ -31,6 +31,13 @@ def after_install() -> None:
 def after_migrate() -> None:
     setup_roles()
     setup_workspace()
+    audit_tenant_roles()
+
+
+def audit_tenant_roles() -> None:
+    from reckon_saas_platform.tenant_security import audit_tenant_role_violations
+
+    audit_tenant_role_violations()
 
 
 def setup_roles() -> None:

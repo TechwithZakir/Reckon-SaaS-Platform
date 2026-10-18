@@ -16,3 +16,15 @@ class SaaSSubscription(Document):
                 frappe.throw("Subscription price is preserved for the billing period.")
             if previous_plan_version and previous_plan_version != self.plan_version:
                 frappe.throw("Subscription plan version is preserved for the billing period.")
+
+    def on_update(self) -> None:
+        _invalidate_gate(self.company)
+
+    def on_trash(self) -> None:
+        _invalidate_gate(self.company)
+
+
+def _invalidate_gate(company: str | None) -> None:
+    from reckon_saas_platform.saas import invalidate_operational_access_cache
+
+    invalidate_operational_access_cache(company)

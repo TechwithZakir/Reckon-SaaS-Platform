@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import getdate, nowdate
 
-from reckon_saas_platform.constants import TENANT_BYPASS_ROLES
+from reckon_saas_platform.constants import TENANT_BYPASS_ROLES, TENANT_FORBIDDEN_ROLES
 
 
 class TenantResolutionError(frappe.PermissionError):
@@ -30,7 +30,104 @@ def user_can_bypass_tenant(user: str | None = None) -> bool:
         return True
 
     roles = set(frappe.get_roles(user))
-    return bool(roles.intersection(TENANT_BYPASS_ROLES))
+    if not roles.intersection(TENANT_BYPASS_ROLES):
+        return False
+    # A tenant login never bypasses isolation, even if it was somehow granted a
+    # platform role. Validation prevents that state; this is the backstop.
+    return not has_active_tenant_assignment(user)
+
+
+def has_active_tenant_assignment(user: str | None) -> bool:
+    if not user or user in {"Guest", "Administrator"}:
+        return False
+    return bool(frappe.db.exists("Tenant User Assignment", {"user": user, "active": 1}))
+
+
+def validate_user_tenant_roles(doc, method=None) -> None:
+    """User ``validate`` hook: a tenant login cannot hold platform roles."""
+    if doc.name in {"Guest", "Administrator"} or doc.is_new():
+        return
+    roles = {row.role for row in doc.get("roles") or []}
+    forbidden = roles.intersection(TENANT_FORBIDDEN_ROLES)
+    if forbidden and has_active_tenant_assignment(doc.name):
+        frappe.throw(
+            _("User {0} has an active tenant assignment and cannot hold {1}.").format(
+                doc.name, ", ".join(sorted(forbidden))
+            ),
+            frappe.PermissionError,
+        )
+
+
+def assert_user_has_no_platform_roles(user: str) -> None:
+    """Tenant User Assignment validation counterpart of :func:`validate_user_tenant_roles`."""
+    if user == "Administrator":
+        frappe.throw(_("Administrator cannot be assigned to a tenant."), frappe.PermissionError)
+    forbidden = set(frappe.get_roles(user)).intersection(TENANT_FORBIDDEN_ROLES)
+    if forbidden:
+        frappe.throw(
+            _("User {0} holds {1} and cannot be assigned to a tenant company.").format(
+                user, ", ".join(sorted(forbidden))
+            ),
+            frappe.PermissionError,
+        )
+
+
+def get_tenant_role_violations() -> list[dict]:
+    """Users with an active tenant assignment who also hold a platform role."""
+    if not frappe.db.exists("DocType", "Tenant User Assignment"):
+        return []
+    assignments = frappe.get_all(
+        "Tenant User Assignment",
+        filters={"active": 1},
+        fields=["name", "user", "company"],
+        order_by="user asc",
+    )
+    users = sorted({row.user for row in assignments if row.user})
+    if not users:
+        return []
+    held = frappe.get_all(
+        "Has Role",
+        filters={
+            "parenttype": "User",
+            "parent": ["in", users],
+            "role": ["in", sorted(TENANT_FORBIDDEN_ROLES)],
+        },
+        fields=["parent", "role"],
+    )
+    roles_by_user: dict[str, set[str]] = {}
+    for row in held:
+        roles_by_user.setdefault(row.parent, set()).add(row.role)
+
+    violations = []
+    for row in assignments:
+        if row.user in roles_by_user:
+            violations.append(
+                {
+                    "user": row.user,
+                    "company": row.company,
+                    "assignment": row.name,
+                    "roles": sorted(roles_by_user[row.user]),
+                }
+            )
+    return violations
+
+
+def audit_tenant_role_violations() -> list[dict]:
+    """``after_migrate`` audit. Lists violations; it does not change any user."""
+    violations = get_tenant_role_violations()
+    if not violations:
+        return violations
+    lines = [
+        f"{row['user']} ({row['company']}, {row['assignment']}): {', '.join(row['roles'])}"
+        for row in violations
+    ]
+    message = (
+        "Tenant users holding platform roles. Remove the role or deactivate the "
+        "Tenant User Assignment:\n" + "\n".join(lines)
+    )
+    print(message)
+    frappe.log_error(title="Tenant users hold platform roles", message=message)
+    return violations
 
 
 def get_user_companies(user: str | None = None, active_only: bool = True) -> list[str]:

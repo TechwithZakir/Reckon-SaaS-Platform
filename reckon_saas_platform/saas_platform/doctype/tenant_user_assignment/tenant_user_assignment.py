@@ -13,6 +13,7 @@ class TenantUserAssignment(Document):
         self._set_defaults()
         self._validate_company_is_immutable()
         self._validate_unique_active_default()
+        self._validate_user_has_no_platform_roles()
 
     def _set_defaults(self) -> None:
         if not self.active:
@@ -43,3 +44,11 @@ class TenantUserAssignment(Document):
         )
         if existing:
             frappe.throw(_("Only one active default tenant assignment is allowed per user."))
+
+    def _validate_user_has_no_platform_roles(self) -> None:
+        if not self.active or not self.user:
+            return
+
+        from reckon_saas_platform.tenant_security import assert_user_has_no_platform_roles
+
+        assert_user_has_no_platform_roles(self.user)

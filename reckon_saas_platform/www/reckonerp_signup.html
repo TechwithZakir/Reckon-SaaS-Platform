@@ -453,9 +453,13 @@
 
     <section class="rs-form-wrap">
       <h2 class="rs-form-title">Create your distribution company</h2>
-      <p class="rs-form-subtitle">Submit the business details. Access opens after vendor payment verification and tenant provisioning.</p>
+      <p class="rs-form-subtitle">Submit the business details and verify your email. Access opens after vendor payment verification and tenant provisioning.</p>
 
+      {% if verified %}
+      <div id="signup_message" class="rs-message is-visible is-success" role="status" aria-live="polite">Email verified. Your workspace is being prepared; you will be able to sign in after payment verification.</div>
+      {% else %}
       <div id="signup_message" class="rs-message" role="status" aria-live="polite"></div>
+      {% endif %}
 
       <form class="rs-signup-form" method="post" action="/api/method/reckon_saas_platform.saas.public_signup">
         <div class="rs-field">
@@ -496,6 +500,9 @@
         </div>
 
         <input type="hidden" name="billing_cycle" value="Monthly">
+        <input type="hidden" id="captcha_token" name="captcha_token" value="">
+        {# Sites with a captcha verifier hook render their widget here and fill #captcha_token. #}
+        {% block signup_captcha %}{% endblock %}
         <button class="rs-submit" type="submit">Submit Signup <span>→</span></button>
       </form>
     </section>
@@ -536,7 +543,7 @@
           return;
         }
 
-        showMessage(data.message || "Signup submitted. Please wait for payment verification.", "success");
+        showMessage(data.message || "Signup received. Check your email for the verification link.", "success");
         form.reset();
       } catch (error) {
         showMessage("Signup failed. Please try again or contact support.", "error");
