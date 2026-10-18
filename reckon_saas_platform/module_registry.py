@@ -23,6 +23,13 @@ def get_default_module() -> frappe._dict | None:
     return modules[0] if modules else None
 
 
+def get_module_definition(module_key: str | None) -> frappe._dict | None:
+    for module in get_saas_modules():
+        if module.get("key") == module_key:
+            return module
+    return None
+
+
 def get_default_module_key() -> str | None:
     module = get_default_module()
     return module.get("key") if module else None

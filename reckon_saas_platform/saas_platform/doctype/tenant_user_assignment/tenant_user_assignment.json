@@ -46,7 +46,8 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Role Profile",
-   "options": "\nCompany Admin\nCompany Manager\nMaster Data Manager\nSR\nDSR\nVendor Superuser"
+   "options": "\nCompany Admin\nCompany Manager\nMaster Data Manager\nSR\nDSR\nVendor Superuser\nAccountant\nSales User\nPurchase User\nStock User",
+   "description": "Company Admin and Company Manager apply to every module. Accountant, Sales User, Purchase User and Stock User are Accounts module profiles; SR, DSR and Master Data Manager are Distribution profiles."
   },
   {
    "default": "1",
@@ -94,7 +95,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-10-06 00:00:00.000000",
+ "modified": "2026-10-18 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "SaaS Platform",
  "name": "Tenant User Assignment",

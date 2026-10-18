@@ -31,7 +31,12 @@ from reckon_saas_platform.constants import (
     SIGNUP_RATE_LIMIT_PER_HOUR,
     VERIFY_RATE_LIMIT_PER_HOUR,
 )
-from reckon_saas_platform.module_registry import get_landing_workspace, get_seed_handlers
+from reckon_saas_platform.module_registry import (
+    get_default_module,
+    get_landing_workspace,
+    get_module_definition,
+    get_seed_handlers,
+)
 from reckon_saas_platform.recaptcha import is_recaptcha_configured, verify_recaptcha
 from reckon_saas_platform.saas_security import is_vendor_user
 from reckon_saas_platform.sms import (
@@ -794,9 +799,13 @@ def _provision_registration(registration: str):
         )
         plan_doc = frappe.get_doc("SaaS Plan", doc.plan)
         company = _create_tenant_company(doc.business_name)
-        admin_user = _create_tenant_admin_user(doc.owner_email, doc.owner_name, doc.owner_phone)
-        _assign_company_admin(admin_user.name, company.name)
+        admin_user = _create_tenant_admin_user(
+            doc.owner_email, doc.owner_name, doc.owner_phone, doc.get("saas_module")
+        )
+        # Subscription before the owner's assignment: module apps decide on
+        # assignment save which module the company belongs to.
         subscription = _create_registration_subscription(doc, plan_doc, company.name, admin_user.name)
+        _assign_company_admin(admin_user.name, company.name)
         payment = frappe.get_doc(
             {
                 "doctype": "SaaS Payment",
@@ -1021,12 +1030,59 @@ def has_operational_access(company: str) -> bool:
 def invalidate_operational_access_cache(company: str | None) -> None:
     if not company:
         return
-    key = _operational_access_cache_key(company)
-    frappe.cache.delete_value(key)
+    keys = (_operational_access_cache_key(company), _company_modules_cache_key(company))
+    for key in keys:
+        frappe.cache.delete_value(key)
     # A request may re-cache the old value before this transaction commits.
     after_commit = getattr(frappe.db, "after_commit", None)
     if after_commit is not None:
-        after_commit.add(lambda: frappe.cache.delete_value(key))
+        after_commit.add(lambda: [frappe.cache.delete_value(key) for key in keys])
+
+
+def get_company_module_keys(company: str | None) -> list[str]:
+    """Modules the company has a subscription for (any status), cached per company.
+
+    Module apps use this to decide whether a tenant user belongs to them, so two
+    modules can share one site without their Desk guards fighting.
+    """
+    if not company:
+        return []
+    key = _company_modules_cache_key(company)
+    cached = frappe.cache.get_value(key)
+    if cached is not None:
+        return list(cached)
+    modules = sorted(
+        set(
+            frappe.get_all(
+                "SaaS Subscription",
+                filters={"company": company, "saas_module": ["is", "set"]},
+                pluck="saas_module",
+                ignore_permissions=True,
+            )
+        )
+    )
+    frappe.cache.set_value(key, modules, expires_in_sec=OPERATIONAL_ACCESS_CACHE_TTL_SECONDS)
+    return modules
+
+
+def get_user_module_keys(user: str | None = None) -> list[str]:
+    """Union of the modules subscribed by the user's active tenant companies."""
+    modules: set[str] = set()
+    for company in get_user_companies(user or frappe.session.user):
+        modules.update(get_company_module_keys(company))
+    return sorted(modules)
+
+
+def get_module_admin_role(saas_module: str | None) -> str | None:
+    module = get_module_definition(saas_module) if saas_module else None
+    if module and module.get("admin_role"):
+        return module["admin_role"]
+    default = get_default_module()
+    return (default or {}).get("admin_role") or "Reckon Distribution Admin"
+
+
+def _company_modules_cache_key(company: str) -> str:
+    return f"reckon_saas_company_modules::{company}"
 
 
 def _operational_access_cache_key(company: str) -> str:
@@ -1147,10 +1203,15 @@ def _create_tenant_company(company_name: str):
     ).insert(ignore_permissions=True)
 
 
-def _create_tenant_admin_user(email: str, full_name: str, mobile_no: str | None = None):
+def _create_tenant_admin_user(
+    email: str, full_name: str, mobile_no: str | None = None, saas_module: str | None = None
+):
+    """The owner's login. Its first role is the module's ``admin_role``; the
+    module app adds the rest when the Tenant User Assignment is saved."""
     roles = []
-    if frappe.db.exists("Role", "Reckon Distribution Admin"):
-        roles.append({"role": "Reckon Distribution Admin"})
+    admin_role = get_module_admin_role(saas_module)
+    if admin_role and frappe.db.exists("Role", admin_role):
+        roles.append({"role": admin_role})
 
     user = frappe.get_doc(
         {
