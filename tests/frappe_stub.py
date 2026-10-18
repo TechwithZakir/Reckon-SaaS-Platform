@@ -33,6 +33,37 @@ class FakeCache:
         self.store.pop(key, None)
 
 
+class FakeSettings(_Dict):
+    """SaaS Platform Settings with phone verification and captcha switched off."""
+
+    def __init__(self, **values):
+        super().__init__(
+            require_phone_verification=0,
+            require_captcha=0,
+            bulksmsbd_sender_id="",
+            recaptcha_site_key="",
+            otp_validity_minutes=10,
+            otp_max_attempts=5,
+            otp_resend_cooldown_seconds=60,
+            passwords={},
+        )
+        self.update(values)
+
+    def get_password(self, fieldname, raise_exception=True):
+        return self["passwords"].get(fieldname)
+
+
+def build_requests() -> ModuleType:
+    requests = ModuleType("requests")
+
+    class RequestException(Exception):
+        pass
+
+    requests.RequestException = RequestException
+    requests.post = Mock()
+    return requests
+
+
 def build_frappe() -> ModuleType:
     frappe = ModuleType("frappe")
 
@@ -68,6 +99,8 @@ def build_frappe() -> ModuleType:
     frappe.set_user = Mock()
     frappe.clear_cache = Mock()
     frappe.generate_hash = Mock(return_value="token")
+    frappe.settings = FakeSettings()
+    frappe.get_cached_doc = Mock(side_effect=lambda doctype: frappe.settings)
     frappe.conf = _Dict()
     frappe.flags = _Dict()
     frappe.session = _Dict(user="Administrator")
@@ -111,7 +144,9 @@ def build_frappe() -> ModuleType:
 def platform_modules(*names: str):
     """Import ``reckon_saas_platform`` modules against a fresh frappe stub."""
     frappe = build_frappe()
+    frappe.requests = build_requests()
     stubs = {
+        "requests": frappe.requests,
         "frappe": frappe,
         "frappe.utils": frappe.utils,
         "frappe.rate_limiter": frappe.rate_limiter,

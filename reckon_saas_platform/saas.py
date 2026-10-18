@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import re
+import secrets
+from urllib.parse import urlencode
 
 import frappe
 from frappe import _
@@ -21,13 +24,20 @@ from frappe.utils import (
 from reckon_saas_platform.constants import (
     CURRENT_SEED_VERSION,
     OPERATIONAL_ACCESS_CACHE_TTL_SECONDS,
+    OTP_MAX_RESENDS,
     REGISTRATION_VERIFICATION_TTL_HOURS,
     SAAS_ACTIVE_STATUSES,
     SIGNUP_RATE_LIMIT_PER_HOUR,
     VERIFY_RATE_LIMIT_PER_HOUR,
 )
 from reckon_saas_platform.module_registry import get_landing_workspace, get_seed_handlers
+from reckon_saas_platform.recaptcha import is_recaptcha_configured, verify_recaptcha
 from reckon_saas_platform.saas_security import is_vendor_user
+from reckon_saas_platform.sms import (
+    is_sms_configured,
+    normalize_bd_mobile,
+    send_sms,
+)
 from reckon_saas_platform.tenant_security import get_user_companies, resolve_tenant
 
 BILLING_CYCLES = frozenset({"Monthly", "Quarterly", "Yearly"})
@@ -35,6 +45,7 @@ MAX_SIGNUP_FIELD_LENGTH = 140
 # Control characters and markup never belong in a Company name or User name.
 _UNSAFE_NAME_CHARACTERS = re.compile(r"[\x00-\x1f\x7f<>]")
 OPERATIONAL_ACCESS_CACHE_PREFIX = "reckon_saas_operational_access"
+SETTINGS_DOCTYPE = "SaaS Platform Settings"
 
 
 class SubscriptionGateError(frappe.PermissionError):
@@ -47,6 +58,20 @@ class SignupValidationError(frappe.ValidationError):
 
 class SignupConflictError(frappe.ValidationError):
     http_status_code = 409
+
+
+class SignupUnavailableError(SignupValidationError):
+    """Signup is switched on but a required verifier (SMS, captcha) is not configured."""
+
+    http_status_code = 503
+
+
+class InvalidOTPError(SignupValidationError):
+    pass
+
+
+class OTPThrottledError(frappe.ValidationError):
+    http_status_code = 429
 
 
 class PaymentGatewayAdapter:
@@ -62,6 +87,10 @@ def _verify_rate_limit() -> int:
     return cint(frappe.conf.get("reckon_saas_verify_rate_limit")) or VERIFY_RATE_LIMIT_PER_HOUR
 
 
+def get_signup_settings():
+    return frappe.get_cached_doc(SETTINGS_DOCTYPE)
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=_signup_rate_limit, seconds=60 * 60)
 def public_signup(
@@ -71,6 +100,7 @@ def public_signup(
     plan: str,
     billing_cycle: str = "Monthly",
     captcha_token: str | None = None,
+    owner_phone: str | None = None,
 ):
     verify_signup_captcha(captcha_token)
     registration = create_registration(
@@ -79,51 +109,93 @@ def public_signup(
         owner_name=owner_name,
         plan=plan,
         billing_cycle=billing_cycle,
+        owner_phone=owner_phone,
     )
     send_registration_verification(registration)
+    phone_required = bool(registration.phone_verification_required)
     return {
         "ok": True,
         "registration": registration.name,
+        "phone_verification_required": phone_required,
         "message": _(
-            "Signup received. Check your email and open the verification link to continue."
-        ),
+            "Signup received. Enter the code we sent by SMS, then open the verification link in your email."
+        )
+        if phone_required
+        else _("Signup received. Check your email and open the verification link to continue."),
     }
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 @rate_limit(limit=_verify_rate_limit, seconds=60 * 60)
 def verify_registration_email(key: str):
-    confirm_registration_email(key)
+    registration = confirm_registration_email(key)
     # GET requests are not committed by Frappe; the verification link is a GET.
     frappe.db.commit()
+    phone_pending = bool(registration.phone_verification_required and not registration.phone_verified)
     request = getattr(frappe.local, "request", None)
     if request is not None and request.method == "GET":
         from werkzeug.utils import redirect
 
-        return redirect("/reckonerp-signup?verified=1")
+        query = {"verified": "1"}
+        if phone_pending:
+            query.update({"phone_pending": "1", "registration": registration.name})
+        return redirect(f"/reckonerp-signup?{urlencode(query)}")
     return {
         "ok": True,
-        "message": _("Email verified. Your workspace is being prepared."),
+        "phone_verification_pending": phone_pending,
+        "message": _("Email verified. Enter the SMS code to finish verification.")
+        if phone_pending
+        else _("Email verified. Your workspace is being prepared."),
     }
 
 
-def verify_signup_captcha(token: str | None) -> None:
-    """Run the site's captcha verifiers.
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=_verify_rate_limit, seconds=60 * 60)
+def verify_registration_phone(registration: str, otp: str):
+    try:
+        doc = confirm_registration_phone(registration, otp)
+    except InvalidOTPError:
+        # Keep the failed-attempt count even though this request fails.
+        frappe.db.commit()
+        raise
+    email_pending = not doc.email_verified
+    return {
+        "ok": True,
+        "email_verification_pending": email_pending,
+        "message": _("Phone verified. Open the verification link in your email to continue.")
+        if email_pending
+        else _("Phone verified. Your workspace is being prepared."),
+    }
 
-    Apps or sites register verifiers with the ``reckon_saas_signup_captcha_verifier``
-    hook; each is called as ``verifier(token=..., ip=...)`` and must return truthy.
-    Setting ``reckon_saas_require_captcha`` in site config refuses signups when no
-    verifier is installed, so production cannot silently run without one.
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=_verify_rate_limit, seconds=60 * 60)
+def resend_registration_otp(registration: str):
+    resend_registration_phone_otp(registration)
+    return {"ok": True, "message": _("A new code has been sent by SMS.")}
+
+
+def verify_signup_captcha(token: str | None) -> None:
+    """Run the signup captcha verifiers.
+
+    Google reCAPTCHA runs when its keys are set in SaaS Platform Settings. Apps
+    can add verifiers with the ``reckon_saas_signup_captcha_verifier`` hook; each
+    is called as ``verifier(token=..., ip=...)`` and must return truthy. When
+    captcha is required (settings or ``reckon_saas_require_captcha`` in site
+    config) and no verifier is available, signups are refused.
     """
-    verifiers = frappe.get_hooks("reckon_saas_signup_captcha_verifier") or []
+    verifiers = []
+    if is_recaptcha_configured():
+        verifiers.append(verify_recaptcha)
+    verifiers.extend(frappe.get_attr(path) for path in frappe.get_hooks("reckon_saas_signup_captcha_verifier") or [])
     if not verifiers:
-        if cint(frappe.conf.get("reckon_saas_require_captcha")):
-            frappe.throw(_("Signup is temporarily unavailable."), SignupValidationError)
+        if cint(get_signup_settings().require_captcha) or cint(frappe.conf.get("reckon_saas_require_captcha")):
+            frappe.throw(_("Signup is temporarily unavailable."), SignupUnavailableError)
         return
 
     ip = getattr(frappe.local, "request_ip", None)
     for verifier in verifiers:
-        if not frappe.get_attr(verifier)(token=token, ip=ip):
+        if not verifier(token=token, ip=ip):
             frappe.throw(_("Captcha verification failed. Please try again."), SignupValidationError)
 
 
@@ -215,13 +287,15 @@ def create_registration(
     owner_name: str,
     plan: str,
     billing_cycle: str = "Monthly",
+    owner_phone: str | None = None,
 ):
     """Record a signup request without touching Company or User.
 
     The registration stays ``Pending Verification`` until the owner proves control
-    of the email address. Only then does :func:`provision_registration` create the
-    tenant, and it refuses to reuse any Company or User that already exists.
-    The one-time verification token is exposed on ``registration.flags`` only.
+    of the email address and, when SaaS Platform Settings require it, of the
+    mobile number (SMS one-time code). Only then does :func:`provision_registration`
+    create the tenant, and it refuses to reuse any Company or User that exists.
+    The email token and SMS code are exposed on ``registration.flags`` only.
     """
     business_name = _clean_name(business_name, _("Business Name"))
     owner_name = _clean_name(owner_name, _("Owner Name"))
@@ -229,33 +303,64 @@ def create_registration(
     plan = (plan or "").strip() if isinstance(plan, str) else ""
     billing_cycle = (billing_cycle or "Monthly").strip() if isinstance(billing_cycle, str) else ""
 
+    phone_required = bool(cint(get_signup_settings().require_phone_verification))
+    phone = None
+    if owner_phone not in (None, ""):
+        phone = normalize_bd_mobile(owner_phone)
+        if not phone:
+            frappe.throw(_("Please enter a valid Bangladesh mobile number."), SignupValidationError)
+    if phone_required:
+        if not phone:
+            frappe.throw(_("Owner Mobile is required."), SignupValidationError)
+        if not is_sms_configured():
+            frappe.throw(_("Signup is temporarily unavailable."), SignupUnavailableError)
+
     if billing_cycle not in BILLING_CYCLES:
         frappe.throw(_("Please select a valid billing cycle."), SignupValidationError)
     if not plan or not frappe.db.get_value("SaaS Plan", plan, "enabled"):
         frappe.throw(_("Please select a valid SaaS plan."), SignupValidationError)
 
-    _assert_signup_identity_available(business_name, owner_email)
+    _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
     token = frappe.generate_hash(length=32)
-    registration = frappe.get_doc(
-        {
-            "doctype": "SaaS Registration",
-            "business_name": business_name,
-            "owner_email": owner_email,
-            "owner_name": owner_name,
-            "plan": plan,
-            "billing_cycle": billing_cycle,
-            "status": "Pending Verification",
-            "email_verified": 0,
-            "email_verification_hash": _hash_token(token),
-            "verification_sent_on": now_datetime(),
-        }
-    ).insert(ignore_permissions=True)
+    values = {
+        "doctype": "SaaS Registration",
+        "business_name": business_name,
+        "owner_email": owner_email,
+        "owner_name": owner_name,
+        "owner_phone": phone,
+        "plan": plan,
+        "billing_cycle": billing_cycle,
+        "status": "Pending Verification",
+        "email_verified": 0,
+        "email_verification_hash": _hash_token(token),
+        "verification_sent_on": now_datetime(),
+        "phone_verification_required": 1 if phone_required else 0,
+        "phone_verified": 0,
+    }
+    otp = None
+    if phone_required:
+        otp = _new_otp()
+        values.update(
+            {
+                "phone_otp_hash": _hash_otp(otp),
+                "phone_otp_sent_on": now_datetime(),
+                "phone_otp_attempts": 0,
+                "phone_otp_resends": 0,
+            }
+        )
+    registration = frappe.get_doc(values).insert(ignore_permissions=True)
     registration.flags.verification_token = token
+    registration.flags.phone_otp = otp
     return registration
 
 
 def send_registration_verification(registration) -> None:
+    """Send the email link and, when required, the SMS code for a new registration."""
+    otp = registration.flags.get("phone_otp")
+    if otp:
+        _send_otp_sms(registration.owner_phone, otp)
+
     token = registration.flags.get("verification_token")
     if not token:
         return
@@ -278,7 +383,7 @@ def send_registration_verification(registration) -> None:
 
 
 def confirm_registration_email(key: str):
-    """Mark the registration verified and hand Company creation to a background job."""
+    """Mark the email verified; start provisioning once every check has passed."""
     if not key or not isinstance(key, str):
         frappe.throw(_("The verification link is invalid or has expired."), SignupValidationError)
 
@@ -300,12 +405,119 @@ def confirm_registration_email(key: str):
             "email_verified": 1,
             "verified_on": now_datetime(),
             "email_verification_hash": None,
-            "status": "Provisioning",
             "error": "",
         }
     )
-    enqueue_registration_provisioning(registration.name)
+    _start_provisioning_if_verified(registration)
     return registration
+
+
+def confirm_registration_phone(registration: str, otp: str):
+    """Check the SMS code. A wrong code counts against the attempt limit."""
+    doc = _get_pending_phone_registration(registration)
+    settings = get_signup_settings()
+    max_attempts = cint(settings.otp_max_attempts) or 5
+    if cint(doc.phone_otp_attempts) >= max_attempts:
+        frappe.throw(_("Too many incorrect codes. Request a new code."), OTPThrottledError)
+    validity = cint(settings.otp_validity_minutes) or 10
+    sent_on = doc.phone_otp_sent_on and get_datetime(doc.phone_otp_sent_on)
+    if not sent_on or add_to_date(sent_on, minutes=validity) < now_datetime():
+        frappe.throw(_("The code has expired. Request a new code."), SignupValidationError)
+
+    if not isinstance(otp, str) or not _otp_matches(otp.strip(), doc.phone_otp_hash):
+        doc.db_set("phone_otp_attempts", cint(doc.phone_otp_attempts) + 1)
+        frappe.throw(_("The code is not correct."), InvalidOTPError)
+
+    doc.db_set(
+        {
+            "phone_verified": 1,
+            "phone_verified_on": now_datetime(),
+            "phone_otp_hash": None,
+            "phone_otp_attempts": 0,
+        }
+    )
+    _start_provisioning_if_verified(doc)
+    return doc
+
+
+def resend_registration_phone_otp(registration: str):
+    doc = _get_pending_phone_registration(registration)
+    settings = get_signup_settings()
+    cooldown = cint(settings.otp_resend_cooldown_seconds)
+    sent_on = doc.phone_otp_sent_on and get_datetime(doc.phone_otp_sent_on)
+    if sent_on and add_to_date(sent_on, seconds=cooldown) > now_datetime():
+        frappe.throw(_("Please wait before requesting another code."), OTPThrottledError)
+    if cint(doc.phone_otp_resends) >= OTP_MAX_RESENDS:
+        frappe.throw(_("Too many codes requested. Please sign up again later."), OTPThrottledError)
+
+    otp = _new_otp()
+    doc.db_set(
+        {
+            "phone_otp_hash": _hash_otp(otp),
+            "phone_otp_sent_on": now_datetime(),
+            "phone_otp_attempts": 0,
+            "phone_otp_resends": cint(doc.phone_otp_resends) + 1,
+        }
+    )
+    _send_otp_sms(doc.owner_phone, otp)
+    return doc
+
+
+def _get_pending_phone_registration(registration: str):
+    invalid = _("This verification request is invalid or has expired.")
+    if not registration or not isinstance(registration, str):
+        frappe.throw(invalid, SignupValidationError)
+    name = frappe.db.get_value(
+        "SaaS Registration",
+        {
+            "name": registration,
+            "status": "Pending Verification",
+            "phone_verification_required": 1,
+            "phone_verified": 0,
+        },
+        "name",
+    )
+    if not name:
+        frappe.throw(invalid, SignupValidationError)
+    doc = frappe.get_doc("SaaS Registration", name, for_update=True)
+    if _verification_expired(doc):
+        doc.db_set({"status": "Cancelled", "email_verification_hash": None, "phone_otp_hash": None})
+        frappe.throw(invalid, SignupValidationError)
+    return doc
+
+
+def _start_provisioning_if_verified(registration) -> None:
+    if not registration.email_verified:
+        return
+    if registration.phone_verification_required and not registration.phone_verified:
+        return
+    registration.db_set("status", "Provisioning")
+    enqueue_registration_provisioning(registration.name)
+
+
+def _send_otp_sms(phone: str, otp: str) -> None:
+    validity = cint(get_signup_settings().otp_validity_minutes) or 10
+    send_sms(
+        phone,
+        _("Your Reckon ERP verification code is {0}. It expires in {1} minutes.").format(otp, validity),
+    )
+
+
+def _new_otp() -> str:
+    return f"{secrets.randbelow(10**6):06d}"
+
+
+def _hash_otp(otp: str) -> str:
+    salt = secrets.token_hex(8)
+    return f"{salt}${hashlib.sha256(f'{salt}:{otp}'.encode()).hexdigest()}"
+
+
+def _otp_matches(otp: str, stored: str | None) -> bool:
+    if not stored or "$" not in stored:
+        return False
+    salt, digest = stored.split("$", 1)
+    candidate = hashlib.sha256(f"{salt}:{otp}".encode()).hexdigest()
+    return hmac.compare_digest(candidate, digest)
 
 
 def enqueue_registration_provisioning(registration: str) -> None:
@@ -338,16 +550,18 @@ def _provision_registration(registration: str):
     doc = frappe.get_doc("SaaS Registration", registration, for_update=True)
     if doc.status not in {"Provisioning", "Failed"}:
         return doc
-    if not doc.email_verified:
+    if not doc.email_verified or (doc.phone_verification_required and not doc.phone_verified):
         frappe.throw(_("Registration {0} is not verified.").format(doc.name), SignupValidationError)
 
     savepoint = "reckon_saas_provision"
     frappe.db.savepoint(savepoint)
     try:
-        _assert_signup_identity_available(doc.business_name, doc.owner_email, registration=doc.name)
+        _assert_signup_identity_available(
+            doc.business_name, doc.owner_email, registration=doc.name, owner_phone=doc.owner_phone
+        )
         plan_doc = frappe.get_doc("SaaS Plan", doc.plan)
         company = _create_tenant_company(doc.business_name)
-        admin_user = _create_tenant_admin_user(doc.owner_email, doc.owner_name)
+        admin_user = _create_tenant_admin_user(doc.owner_email, doc.owner_name, doc.owner_phone)
         _assign_company_admin(admin_user.name, company.name)
         subscription = _create_registration_subscription(doc, plan_doc, company.name, admin_user.name)
         payment = frappe.get_doc(
@@ -574,10 +788,18 @@ def get_company_subscription(company: str):
 
 
 def _assert_signup_identity_available(
-    business_name: str, owner_email: str, registration: str | None = None
+    business_name: str,
+    owner_email: str,
+    registration: str | None = None,
+    owner_phone: str | None = None,
 ) -> None:
     """Refuse any signup that would attach the owner to an existing tenant or login."""
-    conflict = _("This business name or email is already registered. Sign in or contact support.")
+    conflict = _("This business name, email or mobile is already registered. Sign in or contact support.")
+    if owner_phone and (
+        frappe.db.exists("User", {"mobile_no": owner_phone})
+        or frappe.db.exists("User", {"mobile_no": f"0{owner_phone[3:]}"})
+    ):
+        frappe.throw(conflict, SignupConflictError)
     if frappe.db.exists("Company", business_name) or frappe.db.exists(
         "Company", {"company_name": business_name}
     ):
@@ -585,14 +807,17 @@ def _assert_signup_identity_available(
     if frappe.db.exists("User", owner_email) or frappe.db.exists("User", {"email": owner_email}):
         frappe.throw(conflict, SignupConflictError)
 
-    filters = {
-        "owner_email": owner_email,
-        "status": ["in", ["Pending Verification", "Provisioning"]],
-    }
+    filters = {"status": ["in", ["Pending Verification", "Provisioning"]]}
     if registration:
         filters["name"] = ["!=", registration]
+    or_filters = {"owner_email": owner_email}
+    if owner_phone:
+        or_filters["owner_phone"] = owner_phone
     for pending in frappe.get_all(
-        "SaaS Registration", filters=filters, fields=["name", "status", "verification_sent_on"]
+        "SaaS Registration",
+        filters=filters,
+        or_filters=or_filters,
+        fields=["name", "status", "verification_sent_on"],
     ):
         if pending.status == "Pending Verification" and _verification_expired(pending):
             frappe.db.set_value(
@@ -602,7 +827,7 @@ def _assert_signup_identity_available(
             )
             continue
         frappe.throw(
-            _("A signup for this email is already in progress. Check your inbox for the verification link."),
+            _("A signup for this email or mobile is already in progress. Finish its verification first."),
             SignupConflictError,
         )
 
@@ -663,7 +888,7 @@ def _create_tenant_company(company_name: str):
     ).insert(ignore_permissions=True)
 
 
-def _create_tenant_admin_user(email: str, full_name: str):
+def _create_tenant_admin_user(email: str, full_name: str, mobile_no: str | None = None):
     roles = []
     if frappe.db.exists("Role", "Reckon Distribution Admin"):
         roles.append({"role": "Reckon Distribution Admin"})
@@ -676,6 +901,7 @@ def _create_tenant_admin_user(email: str, full_name: str):
             "send_welcome_email": 0,
             "enabled": 1,
             "roles": roles,
+            "mobile_no": mobile_no,
         }
     )
     return user.insert(ignore_permissions=True)

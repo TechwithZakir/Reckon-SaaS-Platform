@@ -1,0 +1,28 @@
+{
+ "actions": [],
+ "creation": "2026-10-18 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["section_sms", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_site_key", "recaptcha_secret_key"],
+ "fields": [
+  {"fieldname": "section_sms", "fieldtype": "Section Break", "label": "Signup Phone Verification (BulkSMSBD)"},
+  {"fieldname": "require_phone_verification", "fieldtype": "Check", "label": "Require Phone Verification", "default": "1", "description": "Signups must confirm an SMS one-time code before the tenant is created. Signup is refused while this is on and BulkSMSBD is not configured."},
+  {"fieldname": "bulksmsbd_api_key", "fieldtype": "Password", "label": "BulkSMSBD API Key"},
+  {"fieldname": "bulksmsbd_sender_id", "fieldtype": "Data", "label": "BulkSMSBD Sender ID"},
+  {"fieldname": "column_break_sms", "fieldtype": "Column Break"},
+  {"fieldname": "otp_validity_minutes", "fieldtype": "Int", "label": "OTP Validity (Minutes)", "default": "10", "non_negative": 1},
+  {"fieldname": "otp_max_attempts", "fieldtype": "Int", "label": "OTP Max Attempts", "default": "5", "non_negative": 1},
+  {"fieldname": "otp_resend_cooldown_seconds", "fieldtype": "Int", "label": "OTP Resend Cooldown (Seconds)", "default": "60", "non_negative": 1},
+  {"fieldname": "section_captcha", "fieldtype": "Section Break", "label": "Signup Captcha (Google reCAPTCHA v2)"},
+  {"fieldname": "require_captcha", "fieldtype": "Check", "label": "Require Captcha", "default": "1", "description": "Signup is refused while this is on and no captcha verifier is configured."},
+  {"fieldname": "recaptcha_site_key", "fieldtype": "Data", "label": "reCAPTCHA Site Key"},
+  {"fieldname": "recaptcha_secret_key", "fieldtype": "Password", "label": "reCAPTCHA Secret Key"}
+ ],
+ "issingle": 1,
+ "modified": "2026-10-18 00:00:00.000000",
+ "module": "SaaS Platform",
+ "name": "SaaS Platform Settings",
+ "permissions": [{"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "create": 1}, {"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

@@ -37,7 +37,8 @@ doc_events = {
     },
 }
 
-# Sites register captcha verifiers here, e.g. in a site-specific app:
+# Google reCAPTCHA and BulkSMSBD are configured in SaaS Platform Settings. Other
+# apps may add captcha verifiers here, e.g.:
 # reckon_saas_signup_captcha_verifier = ["my_app.captcha.verify"]
 
 website_route_rules = [
@@ -58,6 +59,7 @@ permission_query_conditions = {
 has_permission = {
     "SaaS Payment": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Plan": "reckon_saas_platform.saas_security.has_vendor_only_permission",
+    "SaaS Platform Settings": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Registration": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Subscription": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.has_vendor_only_permission",

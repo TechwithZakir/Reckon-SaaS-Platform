@@ -111,14 +111,14 @@ class ProvisioningTests(unittest.TestCase):
     def test_verification_enqueues_deduplicated_provisioning(self):
         with platform_modules("saas") as (frappe, (saas,)):
             frappe.db.get_value.return_value = "REG-1"
-            registration = Mock(name="registration")
+            registration = Mock(name="registration", email_verified=1, phone_verification_required=0)
             registration.name = "REG-1"
             frappe.get_doc.return_value = registration
             with patch.object(saas, "_verification_expired", return_value=False):
                 saas.confirm_registration_email("token")
-            update = registration.db_set.call_args.args[0]
-            self.assertEqual(update["status"], "Provisioning")
+            update = registration.db_set.call_args_list[0].args[0]
             self.assertIsNone(update["email_verification_hash"])
+            registration.db_set.assert_called_with("status", "Provisioning")
             kwargs = frappe.enqueue.call_args.kwargs
             self.assertEqual(frappe.enqueue.call_args.args[0], "reckon_saas_platform.saas.provision_registration")
             self.assertTrue(kwargs["deduplicate"])
@@ -140,6 +140,9 @@ class ProvisioningTests(unittest.TestCase):
                 owner_email="o@example.com",
                 owner_name="O",
                 plan="Plan",
+                owner_phone=None,
+                phone_verification_required=0,
+                phone_verified=0,
                 db_set=Mock(),
             )
             frappe.get_doc.return_value = doc

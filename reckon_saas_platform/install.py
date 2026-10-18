@@ -14,6 +14,7 @@ SAAS_DOCTYPES = [
     ("SaaS Payment", "Payments"),
     ("Tenant Provisioning Job", "Provisioning Jobs"),
     ("Tenant User Assignment", "Tenant User Assignments"),
+    ("SaaS Platform Settings", "Signup Settings"),
 ]
 
 SAAS_WEB_PAGES = [
@@ -26,12 +27,33 @@ SAAS_WEB_PAGES = [
 def after_install() -> None:
     setup_roles()
     setup_workspace()
+    ensure_signup_settings()
 
 
 def after_migrate() -> None:
     setup_roles()
     setup_workspace()
+    ensure_signup_settings()
     audit_tenant_roles()
+
+
+def ensure_signup_settings() -> None:
+    """Persist SaaS Platform Settings defaults once.
+
+    An unsaved Single reads its Check fields as 0, which would silently switch
+    off phone verification and captcha. Saving the defaults makes both required
+    until the vendor configures BulkSMSBD and reCAPTCHA.
+    """
+    doctype = "SaaS Platform Settings"
+    if not frappe.db.exists("DocType", doctype):
+        return
+    if frappe.db.get_singles_dict(doctype):
+        return
+    settings = frappe.get_single(doctype)
+    for df in settings.meta.fields:
+        if df.default is not None and settings.get(df.fieldname) in (None, ""):
+            settings.set(df.fieldname, df.default)
+    settings.save(ignore_permissions=True)
 
 
 def audit_tenant_roles() -> None:
