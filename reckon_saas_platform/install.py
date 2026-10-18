@@ -94,7 +94,11 @@ def _workspace_doc(update: bool = False) -> dict:
         "title": _("Reckon SaaS Admin"),
         "module": "SaaS Platform",
         "category": "Modules",
-        "public": 0,
+        # The app icon opens /desk/reckon-saas-admin. Desk routes that slug to a
+        # workspace only when it is public; a private workspace falls through to
+        # a Page lookup and 404s. The roles below keep it hidden from tenants.
+        "public": 1,
+        "for_user": "",
         "is_hidden": 0,
         "icon": "settings",
         "roles": [{"role": role} for role in SAAS_WORKSPACE_ROLES],

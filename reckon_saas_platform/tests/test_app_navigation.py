@@ -39,6 +39,13 @@ def test_saas_workspace_uses_url_field_for_public_pages():
     assert workspace["links"] == []
 
 
+def test_saas_workspace_is_public_so_the_desk_route_resolves():
+    workspace = _workspace_doc()
+    assert workspace["public"] == 1
+    assert workspace["for_user"] == ""
+    assert {row["role"] for row in workspace["roles"]} == {"Reckon Vendor Superuser", "System Manager"}
+
+
 def frappe_session(user: str):
     class Session:
         pass
