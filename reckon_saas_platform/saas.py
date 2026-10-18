@@ -12,6 +12,7 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import (
     add_days,
+    add_months,
     add_to_date,
     cint,
     get_datetime,
@@ -23,9 +24,12 @@ from frappe.utils import (
 )
 
 from reckon_saas_platform.constants import (
+    BILLING_CYCLE_MONTHS,
     CURRENT_SEED_VERSION,
+    HARD_BLOCKED_STATUSES,
     OPERATIONAL_ACCESS_CACHE_TTL_SECONDS,
     OTP_MAX_RESENDS,
+    PAID_STATUSES,
     REGISTRATION_VERIFICATION_TTL_HOURS,
     SAAS_ACTIVE_STATUSES,
     SIGNUP_RATE_LIMIT_PER_HOUR,
@@ -322,32 +326,107 @@ def get_subscription_summary():
     if not subscription:
         return {"company": tenant.company, "status": "Missing", "modules": []}
 
-    payment = frappe.db.get_value(
-        "SaaS Payment",
-        {"subscription": subscription.name},
-        ["name", "status", "amount", "currency", "gateway_reference"],
-        as_dict=True,
-    )
+    payment = _latest_payment(subscription.name)
     job = frappe.db.get_value(
         "Tenant Provisioning Job",
         {"company": tenant.company, "seed_version": CURRENT_SEED_VERSION},
         ["name", "status", "current_step", "error"],
         as_dict=True,
     )
+    modules = get_company_module_subscriptions(tenant.company)
+    for row in modules:
+        row["payment"] = _latest_payment(row["name"])
+        row["landing_route"] = "/" + get_landing_workspace(row.get("saas_module")).lstrip("/")
+    billing = subscription_billing_state(subscription)
     return {
         "company": tenant.company,
         "subscription": subscription.name,
         "saas_module": subscription.saas_module,
+        "module_name": module_label(subscription.saas_module),
         "status": subscription.status,
         "plan": subscription.plan,
         "price": subscription.price,
         "currency": subscription.currency,
         "end_date": subscription.end_date,
         "grace_until": subscription.grace_until,
+        "trial_end_date": subscription.get("trial_end_date"),
+        "billing": billing,
         "payment": payment,
         "provisioning": job,
-        "modules": get_company_module_subscriptions(tenant.company),
+        "modules": modules,
+        "has_dues": any(row["billing"]["dues"] for row in modules),
         "operational_access": _has_operational_access(tenant.company),
+    }
+
+
+def _latest_payment(subscription: str):
+    return frappe.db.get_value(
+        "SaaS Payment",
+        {"subscription": subscription},
+        ["name", "status", "amount", "currency", "gateway_provider", "gateway_reference"],
+        as_dict=True,
+        order_by="creation desc",
+    )
+
+
+PAYMENT_PROVIDERS = ("bKash", "Nagad", "Rocket", "Bank Transfer", "Cash", "Other")
+MAX_PAYMENT_REFERENCE_LENGTH = 140
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=20, seconds=60 * 60)
+def submit_payment_reference(subscription: str, reference: str, provider: str | None = None):
+    """A tenant reports a payment (e.g. a bKash transaction ID) for the vendor to verify.
+
+    Reachable while the gate blocks the tenant, so a tenant with dues can pay.
+    One open payment per subscription: a new reference replaces the old one.
+    """
+    tenant = resolve_tenant()
+    reference = reference.strip() if isinstance(reference, str) else ""
+    provider = provider.strip() if isinstance(provider, str) and provider.strip() else "Other"
+    if not reference or len(reference) > MAX_PAYMENT_REFERENCE_LENGTH or _UNSAFE_NAME_CHARACTERS.search(
+        reference
+    ):
+        frappe.throw(_("Please enter the payment transaction reference."), SignupValidationError)
+    if provider not in PAYMENT_PROVIDERS:
+        frappe.throw(_("Please select a payment method."), SignupValidationError)
+
+    row = frappe.db.get_value(
+        "SaaS Subscription",
+        subscription,
+        ["name", "company", "price", "currency", "status"],
+        as_dict=True,
+    ) if isinstance(subscription, str) and subscription else None
+    if not row or row.company != tenant.company:
+        frappe.throw(_("Subscription not found."), frappe.PermissionError)
+    if row.status in HARD_BLOCKED_STATUSES:
+        frappe.throw(_("This subscription is closed. Please contact support."), SignupValidationError)
+
+    pending = frappe.db.get_value(
+        "SaaS Payment", {"subscription": row.name, "status": "Pending Verification"}, "name"
+    )
+    if pending:
+        payment = frappe.get_doc("SaaS Payment", pending)
+        payment.gateway_provider = provider
+        payment.gateway_reference = reference
+        payment.save(ignore_permissions=True)
+    else:
+        payment = frappe.get_doc(
+            {
+                "doctype": "SaaS Payment",
+                "subscription": row.name,
+                "company": row.company,
+                "amount": row.price,
+                "currency": row.currency,
+                "status": "Pending Verification",
+                "gateway_provider": provider,
+                "gateway_reference": reference,
+            }
+        ).insert(ignore_permissions=True)
+    return {
+        "ok": True,
+        "payment": payment.name,
+        "message": _("Thank you. We will verify your payment and unlock your workspace."),
     }
 
 
@@ -370,8 +449,37 @@ def get_vendor_saas_summary():
 
 @frappe.whitelist()
 def get_vendor_dashboard() -> dict:
-    """Everything the vendor dashboards show: Desk page and /reckon-saas-admin."""
+    """Everything the vendor dashboards show: Desk page and /reckon-saas-admin.
+
+    Every plan, registration, subscription and payment row carries ``saas_module``
+    and its label ``module_name``; subscriptions also carry their ``billing`` state.
+    """
     _require_vendor()
+    data = _vendor_dashboard_rows()
+    labels = get_module_labels()
+    for key in ("plans", "registrations", "subscriptions"):
+        _with_module_labels(data[key], labels)
+    modules_by_subscription = {}
+    subscription_names = sorted({p.subscription for p in data["pending_payments"] if p.subscription})
+    if subscription_names:
+        modules_by_subscription = {
+            row.name: row.saas_module
+            for row in frappe.get_all(
+                "SaaS Subscription",
+                filters={"name": ["in", subscription_names]},
+                fields=["name", "saas_module"],
+                ignore_permissions=True,
+            )
+        }
+    for payment in data["pending_payments"]:
+        payment["saas_module"] = modules_by_subscription.get(payment.subscription) or ""
+    _with_module_labels(data["pending_payments"], labels)
+    for subscription in data["subscriptions"]:
+        subscription["billing"] = subscription_billing_state(subscription)
+    return data
+
+
+def _vendor_dashboard_rows() -> dict:
     return {
         "summary": get_vendor_saas_summary(),
         "modules": frappe.get_all(
@@ -381,6 +489,22 @@ def get_vendor_dashboard() -> dict:
             ignore_permissions=True,
         ),
         "module_stats": _module_stats(),
+        "plans": frappe.get_all(
+            "SaaS Plan",
+            fields=[
+                "name",
+                "plan_name",
+                "saas_module",
+                "enabled",
+                "price",
+                "currency",
+                "billing_cycle",
+                "trial_days",
+                "grace_days",
+            ],
+            ignore_permissions=True,
+            order_by="saas_module asc, price asc",
+        ),
         "pending_payments": frappe.get_all(
             "SaaS Payment",
             filters={"status": "Pending Verification"},
@@ -438,8 +562,11 @@ def get_vendor_dashboard() -> dict:
                 "status",
                 "price",
                 "currency",
+                "start_date",
                 "end_date",
+                "trial_end_date",
                 "grace_until",
+                "grace_days",
             ],
             ignore_permissions=True,
             order_by="modified desc",
@@ -481,17 +608,62 @@ def get_company_module_subscriptions(company: str) -> list[dict]:
     rows = frappe.get_all(
         "SaaS Subscription",
         filters={"company": company},
-        fields=["name", "saas_module", "plan", "status", "end_date", "grace_until"],
+        fields=[
+            "name",
+            "saas_module",
+            "plan",
+            "status",
+            "billing_cycle",
+            "price",
+            "currency",
+            "start_date",
+            "end_date",
+            "trial_end_date",
+            "grace_until",
+            "grace_days",
+        ],
         order_by="creation desc",
         ignore_permissions=True,
     )
     latest = {}
     for row in rows:
         latest.setdefault(row.saas_module or "", row)
-    return [
-        {**row, "active": _subscription_row_active(row)}
-        for row in latest.values()
-    ]
+    labels = get_module_labels()
+    result = []
+    for row in latest.values():
+        billing = subscription_billing_state(row)
+        result.append(
+            {
+                **row,
+                "module_name": module_label(row.saas_module, labels),
+                "billing": billing,
+                "active": billing["access"],
+            }
+        )
+    return result
+
+
+def get_module_labels() -> dict[str, str]:
+    """``{module_key: module_name}`` for every SaaS Module, enabled or not."""
+    return {
+        row.name: row.module_name or row.name
+        for row in frappe.get_all(
+            "SaaS Module", fields=["name", "module_name"], ignore_permissions=True
+        )
+    }
+
+
+def module_label(module_key: str | None, labels: dict[str, str] | None = None) -> str:
+    if not module_key:
+        return ""
+    labels = get_module_labels() if labels is None else labels
+    return labels.get(module_key) or module_key
+
+
+def _with_module_labels(rows: list[dict], labels: dict[str, str]) -> list[dict]:
+    for row in rows:
+        row["module_name"] = module_label(row.get("saas_module"), labels)
+    return rows
 
 
 def get_user_home_page(user: str):
@@ -838,6 +1010,8 @@ def _provision_registration(registration: str):
 
 
 def _create_registration_subscription(doc, plan_doc, company: str, admin_user: str):
+    start = nowdate()
+    trial_days = max(cint(plan_doc.get("trial_days")), 0)
     return frappe.get_doc(
         {
             "doctype": "SaaS Subscription",
@@ -848,10 +1022,14 @@ def _create_registration_subscription(doc, plan_doc, company: str, admin_user: s
             "saas_module": plan_doc.saas_module or doc.get("saas_module"),
             "plan_version": plan_doc.plan_version,
             "billing_cycle": doc.billing_cycle,
-            "status": "Pending",
+            # With a trial the tenant works at once; without one Desk opens when
+            # the first payment is verified (or during the plan's grace days).
+            "status": "Trial" if trial_days else "Pending",
+            "trial_end_date": add_days(start, trial_days - 1) if trial_days else None,
+            "grace_days": max(cint(plan_doc.get("grace_days")), 0),
             "price": plan_doc.price,
             "currency": plan_doc.currency,
-            "start_date": nowdate(),
+            "start_date": start,
         }
     ).insert(ignore_permissions=True)
 
@@ -951,6 +1129,9 @@ def _company_module_keys(company: str) -> set[str] | None:
 
 def verify_payment(payment: str, reference: str | None = None):
     payment_doc = frappe.get_doc("SaaS Payment", payment)
+    if payment_doc.status == "Verified":
+        # Verifying twice must not buy a second period.
+        return frappe.get_doc("SaaS Subscription", payment_doc.subscription)
     payment_doc.status = "Verified"
     if reference:
         payment_doc.gateway_reference = reference
@@ -958,9 +1139,10 @@ def verify_payment(payment: str, reference: str | None = None):
     payment_doc.save(ignore_permissions=True)
 
     subscription = frappe.get_doc("SaaS Subscription", payment_doc.subscription)
-    subscription.status = "Active"
     subscription.start_date = subscription.start_date or nowdate()
-    subscription.end_date = subscription.end_date or add_days(nowdate(), 30)
+    subscription.end_date = _next_period_end(subscription)
+    subscription.status = "Active"
+    subscription.grace_until = None
     subscription.save(ignore_permissions=True)
     return subscription
 
@@ -979,13 +1161,143 @@ def is_subscription_active(company: str, saas_module: str | None = None) -> bool
 
 
 def _subscription_row_active(subscription) -> bool:
-    if subscription.status not in SAAS_ACTIVE_STATUSES:
-        return False
-    if subscription.status == "Grace" and subscription.grace_until:
-        return getdate(subscription.grace_until) >= getdate(nowdate())
-    if subscription.end_date and getdate(subscription.end_date) < getdate(nowdate()):
-        return False
-    return True
+    return subscription_billing_state(subscription)["access"]
+
+
+def _date(value):
+    return getdate(value) if value else None
+
+
+def subscription_billing_state(subscription, today=None) -> dict:
+    """Where a subscription stands on billing, computed from its dates.
+
+    * ``trial``: inside the free trial (``trial_end_date``), nothing paid yet.
+    * ``active``: a verified payment covers today (``end_date``), or a legacy
+      row with no end date.
+    * ``grace``: the trial or paid period is over and a payment is due, but the
+      grace period (``grace_days`` after that, or a later ``grace_until``) has
+      not ended. The tenant keeps access and sees the dues.
+    * ``blocked``: dues after the grace period, never paid and no trial, or the
+      vendor suspended or cancelled it. No Desk access until a payment is verified.
+
+    The status field follows this (see :func:`refresh_subscription_statuses`),
+    but access is always decided from the dates so a late scheduler cannot
+    keep an unpaid tenant in. Only Suspended and Cancelled block by status alone.
+    """
+    today = getdate(today or nowdate())
+    status = subscription.get("status")
+    trial_end = _date(subscription.get("trial_end_date"))
+    end = _date(subscription.get("end_date"))
+    grace_until = _date(subscription.get("grace_until"))
+    start = _date(subscription.get("start_date"))
+    grace_days = max(cint(subscription.get("grace_days")), 0)
+
+    state = {
+        "state": "blocked",
+        "access": False,
+        "dues": False,
+        "trial_end_date": trial_end,
+        "paid_until": end if status in PAID_STATUSES else None,
+        "grace_end": None,
+        "days_left": None,
+    }
+    if status in HARD_BLOCKED_STATUSES:
+        return state
+
+    if status == "Trial" and not trial_end:
+        # Trials created before trial_end_date existed ran until end_date.
+        trial_end = end
+        state["trial_end_date"] = end
+        if not end:
+            return {**state, "state": "trial", "access": True}
+    if status == "Active" and not end:
+        return {**state, "state": "active", "access": True}
+
+    paid_until = state["paid_until"]
+    if paid_until and today <= paid_until:
+        return {**state, "state": "active", "access": True, "days_left": (paid_until - today).days}
+    if trial_end and today <= trial_end:
+        return {**state, "state": "trial", "access": True, "days_left": (trial_end - today).days}
+
+    # A payment is due. The grace period starts after the last covered day.
+    covered = max([day for day in (paid_until, trial_end) if day], default=None)
+    if covered is None:
+        covered = add_days(start, -1) if start else add_days(today, -1)
+    grace_end = getdate(add_days(covered, grace_days))
+    if grace_until and grace_until > grace_end:
+        grace_end = grace_until
+    state.update({"dues": True, "grace_end": grace_end if grace_end > covered else None})
+    if today <= grace_end:
+        state.update({"state": "grace", "access": True, "days_left": (grace_end - today).days})
+    return state
+
+
+def subscription_status_for_state(subscription, billing: dict) -> str:
+    """The status a subscription should show for its billing state."""
+    status = subscription.get("status")
+    if status in HARD_BLOCKED_STATUSES:
+        return status
+    if billing["state"] == "active":
+        return "Active"
+    if billing["state"] == "trial":
+        return "Trial"
+    if billing["state"] == "grace":
+        return "Grace"
+    # Never paid and no trial: still waiting for the first payment.
+    if status == "Pending" and not billing["trial_end_date"]:
+        return "Pending"
+    return "Expired"
+
+
+def refresh_subscription_statuses() -> int:
+    """Daily job: move Trial/Active subscriptions to Grace or Expired as dates pass."""
+    rows = frappe.get_all(
+        "SaaS Subscription",
+        filters={"status": ["not in", sorted(HARD_BLOCKED_STATUSES)]},
+        fields=[
+            "name",
+            "company",
+            "status",
+            "start_date",
+            "end_date",
+            "trial_end_date",
+            "grace_until",
+            "grace_days",
+        ],
+        ignore_permissions=True,
+    )
+    changed = 0
+    for row in rows:
+        billing = subscription_billing_state(row)
+        status = subscription_status_for_state(row, billing)
+        values = {}
+        if status != row.status:
+            values["status"] = status
+        if status == "Grace" and billing["grace_end"] and _date(row.grace_until) != billing["grace_end"]:
+            values["grace_until"] = billing["grace_end"]
+        if values:
+            frappe.db.set_value("SaaS Subscription", row.name, values)
+            invalidate_operational_access_cache(row.company)
+            changed += 1
+    return changed
+
+
+def _next_period_end(subscription):
+    """End of the period a newly verified payment buys.
+
+    It starts after the current paid period or trial when that is still
+    running, otherwise today, so paying early never loses days.
+    """
+    today = getdate(nowdate())
+    months = BILLING_CYCLE_MONTHS.get(subscription.get("billing_cycle") or "Monthly", 1)
+    base = today
+    for day in (
+        _date(subscription.get("end_date")) if subscription.get("status") in PAID_STATUSES else None,
+        _date(subscription.get("trial_end_date")),
+    ):
+        if day and day > base:
+            base = day
+    return getdate(add_months(base, months))
 
 
 def assert_operational_access(company: str) -> None:

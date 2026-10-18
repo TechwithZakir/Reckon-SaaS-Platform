@@ -135,6 +135,8 @@
   .rk-plan-price small { font-size: 13px; font-weight: 600; color: var(--rk-muted); }
   .rk-plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; color: var(--rk-muted); }
   .rk-plan li::before { content: "• "; color: var(--rk-green-dark); }
+  .rk-plan-module { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--rk-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
 
   .rk-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px;
@@ -327,7 +329,9 @@
                   <input type="radio" name="plan" value="{{ plan.name|e }}"{% if plan_cards|length == 1 %} checked{% endif %}>
                   <span class="rk-plan-body">
                     <span class="rk-plan-name">{{ plan.plan_name|e }}</span>
+                    {% if plan.module_name and not module %}<small class="rk-plan-module">{{ plan.module_name|e }}</small>{% endif %}
                     <span class="rk-plan-price">{{ plan.symbol|e }}{{ plan.amount }} <small>/ {{ plan.period }}</small></span>
+                    {% if plan.trial %}<small class="rk-plan-trial">{{ plan.trial|e }}</small>{% endif %}
                     {% if plan.features %}<ul>{% for feature in plan.features[:4] %}<li>{{ feature|e }}</li>{% endfor %}</ul>{% endif %}
                   </span>
                 </label>
@@ -496,6 +500,15 @@
       return (data && typeof data.message === "string" && data.message) || fallback;
     }
 
+    // Frappe writes the session's CSRF token as frappe.csrf_token at the end of
+    // <body>; there is no window.csrf_token. A browser that is signed in (e.g. a
+    // vendor testing signup) has a saved token, and a POST without it fails with
+    // 400 "Invalid Request". Read it at call time, after the page has loaded.
+    function csrfToken() {
+      const token = (window.frappe && window.frappe.csrf_token) || "";
+      return token === "None" ? "" : token;
+    }
+
     async function call(method, params, httpMethod) {
       const isGet = httpMethod === "GET";
       const query = isGet ? "?" + new URLSearchParams(params).toString() : "";
@@ -512,7 +525,7 @@
         method: isGet ? "GET" : "POST",
         body: body,
         credentials: "same-origin",
-        headers: { "X-Frappe-CSRF-Token": window.csrf_token || "", Accept: "application/json" },
+        headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" },
       });
       const payload = await response.json().catch(function () { return {}; });
       const data = payload.message || payload;

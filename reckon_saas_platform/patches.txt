@@ -1,1 +1,4 @@
+[pre_model_sync]
 
+[post_model_sync]
+reckon_saas_platform.patches.copy_plan_grace_days_to_subscriptions

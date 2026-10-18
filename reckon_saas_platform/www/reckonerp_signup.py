@@ -41,7 +41,8 @@ def get_context(context):
     context.module_unavailable = bool(requested) and context.module is None
     context.selected_module = context.module["key"] if context.module else ""
     context.plans, context.plan_groups = get_signup_plans(context.selected_module)
-    context.plan_cards = [_plan_card(plan, context.t) for plan in context.plans]
+    module_names = {group["module"]: group["module_name"] for group in context.plan_groups}
+    context.plan_cards = [_plan_card(plan, context.t, module_names) for plan in context.plans]
     # Without ?module=, the form shows a module selector and filters the plan
     # cards by the chosen module.
     context.show_module_picker = not context.module and bool(context.modules)
@@ -80,7 +81,7 @@ def _whatsapp_url(t: dict, module: dict | None) -> str:
     return f"https://wa.me/{number}?text={quote(t['whatsapp_message'].format(module=suffix))}"
 
 
-def _plan_card(plan, t: dict) -> dict:
+def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
     currency = plan.get("currency") or ""
     price = flt(plan.get("price"))
     amount = f"{price:,.0f}" if price == int(price) else f"{price:,.2f}"
@@ -88,6 +89,10 @@ def _plan_card(plan, t: dict) -> dict:
         "name": plan.get("name"),
         "plan_name": plan.get("plan_name") or plan.get("name"),
         "module": plan.get("saas_module") or "",
+        "module_name": (module_names or {}).get(plan.get("saas_module") or "") or "",
+        "trial": t["trial_days"].format(days=cint(plan.get("trial_days")))
+        if cint(plan.get("trial_days")) > 0
+        else "",
         "symbol": CURRENCY_SYMBOLS.get(currency, currency),
         "amount": amount,
         "period": t.get(plan.get("billing_cycle") or "Monthly", ""),
@@ -164,6 +169,7 @@ def get_signup_plans(module_key: str | None = None) -> tuple[list[dict], list[di
                 "price",
                 "currency",
                 "billing_cycle",
+                "trial_days",
                 "features",
             ],
             order_by="price asc",

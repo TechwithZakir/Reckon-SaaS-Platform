@@ -15,6 +15,7 @@ def get_context(context):
     data = get_vendor_dashboard()
     context.summary = frappe._dict(data["summary"])
     context.module_stats = data["module_stats"]
+    context.plans = data["plans"]
     context.pending_payments = data["pending_payments"]
     context.seed_jobs = data["seed_jobs"]
     context.registrations = data["registrations"]

@@ -73,6 +73,7 @@ STRINGS = {
         "Monthly": "month",
         "Quarterly": "quarter",
         "Yearly": "year",
+        "trial_days": "{days}-day free trial",
         "js": {
             "pending": "Pending",
             "verified": "Verified",
@@ -157,6 +158,7 @@ STRINGS = {
         "Monthly": "মাস",
         "Quarterly": "তিন মাস",
         "Yearly": "বছর",
+        "trial_days": "{days} দিনের ফ্রি ট্রায়াল",
         "js": {
             "pending": "অপেক্ষমাণ",
             "verified": "যাচাই হয়েছে",

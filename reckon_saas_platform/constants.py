@@ -22,6 +22,11 @@ TENANT_FORBIDDEN_ROLES = frozenset({"System Manager", "Reckon Vendor Superuser"}
 
 SAAS_ACTIVE_STATUSES = frozenset({"Active", "Trial", "Grace"})
 SAAS_BLOCKED_STATUSES = frozenset({"Pending", "Due", "Expired", "Suspended", "Cancelled"})
+# Statuses whose end_date was bought by a verified payment.
+PAID_STATUSES = frozenset({"Active", "Due", "Grace", "Expired"})
+# The vendor's own blocks: no access whatever the dates say.
+HARD_BLOCKED_STATUSES = frozenset({"Suspended", "Cancelled"})
+BILLING_CYCLE_MONTHS = {"Monthly": 1, "Quarterly": 3, "Yearly": 12}
 CURRENT_SEED_VERSION = "2026.10.06"
 
 REGISTRATION_VERIFICATION_TTL_HOURS = 48

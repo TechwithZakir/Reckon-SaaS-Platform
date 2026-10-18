@@ -234,6 +234,38 @@
   </section>
 
   <section class="rs-section">
+    <h2>Plans</h2>
+    <div class="rs-table-wrap">
+      <table class="rs-table">
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>Module</th>
+            <th>Price</th>
+            <th>Trial Days</th>
+            <th>Grace Days</th>
+            <th>Enabled</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for plan in plans %}
+          <tr>
+            <td><a href="/app/saas-plan/{{ plan.name|urlencode }}">{{ (plan.plan_name or plan.name)|e }}</a></td>
+            <td>{{ plan.module_name|e }}</td>
+            <td>{{ plan.currency|e }} {{ plan.price }} / {{ plan.billing_cycle|e }}</td>
+            <td>{{ plan.trial_days or 0 }}</td>
+            <td>{{ plan.grace_days or 0 }}</td>
+            <td>{{ "Yes" if plan.enabled else "No" }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="rs-muted">No plans yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rs-section">
     <h2>Pending Payments</h2>
     <div class="rs-table-wrap">
       <table class="rs-table">
@@ -241,6 +273,7 @@
           <tr>
             <th>Payment</th>
             <th>Company</th>
+            <th>Module</th>
             <th>Amount</th>
             <th>Reference</th>
             <th>Action</th>
@@ -251,8 +284,9 @@
           <tr>
             <td><a href="/app/saas-payment/{{ payment.name }}">{{ payment.name }}</a></td>
             <td>{{ payment.company }}</td>
+            <td>{{ payment.module_name|e }}</td>
             <td>{{ payment.currency }} {{ payment.amount }}</td>
-            <td>{{ payment.gateway_reference or "No reference" }}</td>
+            <td>{% if payment.gateway_provider %}{{ payment.gateway_provider|e }}: {% endif %}{{ (payment.gateway_reference or "No reference")|e }}</td>
             <td>
               <form class="rs-inline-form" data-rs-action="verify-payment" data-payment="{{ payment.name }}">
                 <input name="reference" placeholder="Reference" value="{{ payment.gateway_reference or '' }}">
@@ -261,7 +295,7 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="5" class="rs-muted">No pending payments.</td></tr>
+          <tr><td colspan="6" class="rs-muted">No pending payments.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -334,7 +368,7 @@
               {{ registration.owner_email }}{% if registration.email_verified %} ✓{% endif %}
               {% if registration.owner_phone %}<br><span class="rs-muted">{{ registration.owner_phone }}{% if registration.phone_verified %} ✓{% elif registration.phone_verification_required %} (unverified){% endif %}</span>{% endif %}
             </td>
-            <td>{{ registration.saas_module or "" }}</td>
+            <td>{{ registration.module_name|e }}</td>
             <td>{{ registration.plan }}</td>
             <td>
               <span class="rs-pill">{{ registration.status }}</span>
@@ -371,6 +405,7 @@
             <th>Module</th>
             <th>Plan</th>
             <th>Status</th>
+            <th>Billing</th>
             <th>Price</th>
           </tr>
         </thead>
@@ -380,13 +415,21 @@
             <td><a href="/app/saas-subscription/{{ subscription.name }}">{{ subscription.name }}</a></td>
             <td>{{ subscription.company }}</td>
             <td>{{ subscription.company_admin or "" }}</td>
-            <td>{{ subscription.saas_module or "" }}</td>
+            <td>{{ subscription.module_name|e }}</td>
             <td>{{ subscription.plan }}</td>
             <td><span class="rs-pill">{{ subscription.status }}</span></td>
+            <td>
+              {% set billing = subscription.billing %}
+              {% if billing.state == "trial" %}Trial until {{ billing.trial_end_date }}
+              {% elif billing.state == "active" %}{% if billing.paid_until %}Paid until {{ billing.paid_until }}{% else %}Active{% endif %}
+              {% elif billing.state == "grace" %}<strong>Dues</strong> · grace until {{ billing.grace_end }}
+              {% elif billing.dues %}<strong>Dues</strong> · locked
+              {% else %}Locked{% endif %}
+            </td>
             <td>{{ subscription.currency }} {{ subscription.price }}</td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="rs-muted">No subscriptions yet.</td></tr>
+          <tr><td colspan="8" class="rs-muted">No subscriptions yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

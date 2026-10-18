@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import calendar
 import importlib
 import sys
 from contextlib import contextmanager
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from types import ModuleType
 from unittest.mock import Mock, patch
@@ -66,6 +68,23 @@ def plan_lookup(enabled=1, saas_module="distribution", module_enabled=1):
     return get_value
 
 
+def getdate(value=None) -> date:
+    if value is None or value == "":
+        return date.today()
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value)[:10])
+
+
+def add_months(value, months: int) -> date:
+    day = getdate(value)
+    month_index = day.month - 1 + months
+    year, month = day.year + month_index // 12, month_index % 12 + 1
+    return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))
+
+
 def build_requests() -> ModuleType:
     requests = ModuleType("requests")
 
@@ -125,16 +144,14 @@ def build_frappe() -> ModuleType:
     frappe.db.after_commit = Mock()
 
     utils = ModuleType("frappe.utils")
-    for name in (
-        "add_days",
-        "add_to_date",
-        "get_datetime",
-        "get_url",
-        "getdate",
-        "now_datetime",
-        "nowdate",
-    ):
+    for name in ("add_to_date", "get_datetime", "get_url", "now_datetime"):
         setattr(utils, name, Mock(name=name))
+    # Real date helpers, so billing dates can be checked. Tests pin "today" by
+    # patching ``nowdate`` on the module under test.
+    utils.getdate = Mock(name="getdate", side_effect=getdate)
+    utils.add_days = Mock(name="add_days", side_effect=lambda value, days: getdate(value) + timedelta(days=days))
+    utils.add_months = Mock(name="add_months", side_effect=add_months)
+    utils.nowdate = Mock(name="nowdate", side_effect=lambda: date.today().isoformat())
     utils.cint = lambda value: int(value or 0)
     utils.flt = lambda value: float(value or 0)
     utils.strip_html = lambda value: value
