@@ -370,6 +370,10 @@
               <input id="owner_password" name="owner_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
               <small class="rk-hint">{{ t.password_hint }}</small>
             </div>
+            <div class="rk-field">
+              <label for="owner_password_confirm">{{ t.confirm_password }}</label>
+              <input id="owner_password_confirm" name="owner_password_confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            </div>
             {% endif %}
 
             <input type="hidden" name="billing_cycle" value="Monthly">
@@ -687,9 +691,23 @@
       }, 1000);
     }
 
+    // The browser's own check shows the mismatch message on the confirm field.
+    const passwordInput = document.getElementById("owner_password");
+    const confirmInput = document.getElementById("owner_password_confirm");
+    function checkPasswordsMatch() {
+      if (!passwordInput || !confirmInput) return;
+      const mismatch = confirmInput.value && confirmInput.value !== passwordInput.value;
+      confirmInput.setCustomValidity(mismatch ? T.password_mismatch : "");
+    }
+    if (passwordInput && confirmInput) {
+      passwordInput.addEventListener("input", checkPasswordsMatch);
+      confirmInput.addEventListener("input", checkPasswordsMatch);
+    }
+
     if (form) {
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
+        checkPasswordsMatch();
         if (!form.querySelector('input[name="plan"]:checked')) {
           showAlert(T.choose_plan, "error");
           return;

@@ -147,7 +147,8 @@ def is_outgoing_email_configured() -> bool:
 OWNER_PASSWORD_MIN_LENGTH = 8
 
 
-def _clean_owner_password(password) -> str:
+def _clean_owner_password(password, confirm=None) -> str:
+    """Validate the signup password. ``confirm`` is checked unless it is None."""
     password = password if isinstance(password, str) else ""
     if len(password) < OWNER_PASSWORD_MIN_LENGTH:
         frappe.throw(
@@ -156,6 +157,8 @@ def _clean_owner_password(password) -> str:
         )
     if len(password) > 128:
         frappe.throw(_("Password is too long."), SignupValidationError)
+    if confirm is not None and confirm != password:
+        frappe.throw(_("Passwords do not match."), SignupValidationError)
     return password
 
 
@@ -171,6 +174,7 @@ def public_signup(
     owner_phone: str | None = None,
     module: str | None = None,
     owner_password: str | None = None,
+    owner_password_confirm: str | None = None,
 ):
     verify_signup_captcha(captcha_token)
     registration = create_registration(
@@ -182,6 +186,8 @@ def public_signup(
         owner_phone=owner_phone,
         saas_module=module,
         owner_password=owner_password,
+        # The form always posts the confirm field; a missing one must not match.
+        owner_password_confirm=owner_password_confirm or "",
     )
     send_registration_verification(registration)
     # With both checks switched off there is nothing to wait for.
@@ -779,6 +785,7 @@ def create_registration(
     owner_phone: str | None = None,
     saas_module: str | None = None,
     owner_password: str | None = None,
+    owner_password_confirm: str | None = None,
 ):
     """Record a signup request without touching Company or User.
 
@@ -823,7 +830,7 @@ def create_registration(
     email_required = email_verification_required()
     # Without the email check the address is trusted as typed and no email is
     # sent at all, so the owner signs in with the password chosen here.
-    password = None if email_required else _clean_owner_password(owner_password)
+    password = None if email_required else _clean_owner_password(owner_password, owner_password_confirm)
     token = frappe.generate_hash(length=32) if email_required else None
     values = {
         "doctype": "SaaS Registration",

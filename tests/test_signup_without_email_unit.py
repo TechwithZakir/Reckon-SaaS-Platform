@@ -66,6 +66,30 @@ class OwnerPasswordTests(unittest.TestCase):
                 with self.subTest(password=password), self.assertRaises(saas.SignupValidationError):
                     _create(saas, frappe, owner_password=password)
 
+    def test_confirmation_must_match(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.settings = FakeSettings(require_email_verification=0)
+            for confirm in ("", "s3cret-pasS", "other-password"):
+                with self.subTest(confirm=confirm), self.assertRaises(saas.SignupValidationError):
+                    _create(saas, frappe, owner_password="s3cret-pass", owner_password_confirm=confirm)
+            _registration, values = _create(
+                saas, frappe, owner_password="s3cret-pass", owner_password_confirm="s3cret-pass"
+            )
+        self.assertEqual(values["owner_password"], "s3cret-pass")
+
+    def test_public_signup_refuses_a_missing_confirmation(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.settings = FakeSettings(require_email_verification=0)
+            frappe.db.get_value.side_effect = plan_lookup()
+            with patch.object(saas, "verify_signup_captcha"), self.assertRaises(saas.SignupValidationError):
+                saas.public_signup(
+                    business_name="New Co",
+                    owner_email="owner@example.com",
+                    owner_name="Owner",
+                    plan="Plan",
+                    owner_password="s3cret-pass",
+                )
+
     def test_password_is_ignored_when_the_link_is_emailed(self):
         with platform_modules("saas") as (frappe, (saas,)):
             _registration, values = _create(saas, frappe, owner_password="s3cret-pass")
@@ -91,8 +115,10 @@ class OwnerPasswordTests(unittest.TestCase):
                     owner_name="Owner",
                     plan="Plan",
                     owner_password="s3cret-pass",
+                    owner_password_confirm="s3cret-pass",
                 )
         self.assertEqual(create.call_args.kwargs["owner_password"], "s3cret-pass")
+        self.assertEqual(create.call_args.kwargs["owner_password_confirm"], "s3cret-pass")
         self.assertIn("password", result["message"])
 
 
@@ -150,15 +176,19 @@ class SignupPageTests(unittest.TestCase):
     def test_form_asks_for_a_password_only_without_the_email_check(self):
         html = (APP / "www/reckonerp_signup.html").read_text(encoding="utf-8")
         block = html.split("{% if not email_required %}\n            <div class=\"rk-field\">", 1)[1]
-        self.assertIn('name="owner_password"', block.split("{% endif %}", 1)[0])
+        fields = block.split("{% endif %}", 1)[0]
+        self.assertIn('name="owner_password"', fields)
+        self.assertIn('name="owner_password_confirm"', fields)
+        self.assertIn("T.password_mismatch", html)
 
     def test_both_languages_have_the_password_strings(self):
         with platform_modules("signup_i18n") as (_frappe, (i18n,)):
             for lang in i18n.LANGUAGES:
                 strings = i18n.get_strings(lang)
-                for key in ("password", "password_hint", "form_sub_phone", "form_sub_quick"):
+                for key in ("password", "password_hint", "confirm_password", "form_sub_phone", "form_sub_quick"):
                     with self.subTest(lang=lang, key=key):
                         self.assertTrue(strings[key])
+                self.assertTrue(strings["js"]["password_mismatch"])
 
 
 if __name__ == "__main__":
