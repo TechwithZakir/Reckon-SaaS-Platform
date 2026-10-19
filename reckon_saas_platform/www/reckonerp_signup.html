@@ -111,6 +111,7 @@
     font-size: 15px; color: var(--rk-ink); background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
   }
   .rk-field input:focus, .rk-field select:focus { border-color: var(--rk-blue); box-shadow: 0 0 0 3px rgba(19, 155, 217, 0.15); }
+  .rk-hint { display: block; color: var(--rk-muted); font-size: 12px; margin-top: 6px; line-height: 1.45; }
   .rk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .rk-muted-note { font-size: 13px; color: var(--rk-muted); padding: 14px; border: 1px dashed var(--rk-line); border-radius: 10px; margin: 0; }
   .rk-muted-note[hidden] { display: none; }
@@ -280,7 +281,9 @@
           <li>{{ t.feature_private }}</li>
           <li>{{ t.feature_anywhere }}</li>
           {% endif %}
+          {% if email_required %}
           <li>{{ t.feature_verified_both if phone_required else t.feature_verified_email }}</li>
+          {% endif %}
         </ul>
 
         <div class="rk-help">
@@ -301,7 +304,11 @@
 
         <div data-step="details"{% if registration %} hidden{% endif %}>
           <h2>{{ t.form_title }}</h2>
+          {% if email_required %}
           <p class="rk-sub">{{ t.form_sub_both if phone_required else t.form_sub_email }}</p>
+          {% else %}
+          <p class="rk-sub">{{ t.form_sub_phone if phone_required else t.form_sub_quick }}</p>
+          {% endif %}
 
           {% if plan_cards %}
           <form id="rk-signup-form" novalidate>
@@ -357,6 +364,13 @@
               <label for="owner_email">{{ t.email }}</label>
               <input id="owner_email" name="owner_email" type="email" autocomplete="email" maxlength="140" placeholder="you@company.com" required>
             </div>
+            {% if not email_required %}
+            <div class="rk-field">
+              <label for="owner_password">{{ t.password }}</label>
+              <input id="owner_password" name="owner_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+              <small class="rk-hint">{{ t.password_hint }}</small>
+            </div>
+            {% endif %}
 
             <input type="hidden" name="billing_cycle" value="Monthly">
             <input type="hidden" id="captcha_token" name="captcha_token" value="">

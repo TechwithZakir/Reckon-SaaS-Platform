@@ -5,12 +5,13 @@
  "doctype": "DocType",
  "document_type": "Document",
  "engine": "InnoDB",
- "field_order": ["business_name", "owner_email", "owner_name", "owner_phone", "plan", "saas_module", "billing_cycle", "status", "company", "company_admin", "subscription", "payment", "provisioning_job", "section_verification", "email_verification_required", "email_verified", "verification_sent_on", "verified_on", "email_verification_hash", "phone_verification_required", "phone_verified", "phone_verified_on", "phone_otp_sent_on", "phone_otp_attempts", "phone_otp_resends", "phone_otp_hash", "error"],
+ "field_order": ["business_name", "owner_email", "owner_name", "owner_phone", "owner_password", "plan", "saas_module", "billing_cycle", "status", "company", "company_admin", "subscription", "payment", "provisioning_job", "section_verification", "email_verification_required", "email_verified", "verification_sent_on", "verified_on", "email_verification_hash", "phone_verification_required", "phone_verified", "phone_verified_on", "phone_otp_sent_on", "phone_otp_attempts", "phone_otp_resends", "phone_otp_hash", "error"],
  "fields": [
   {"fieldname": "business_name", "fieldtype": "Data", "label": "Business Name", "reqd": 1, "in_list_view": 1},
   {"fieldname": "owner_email", "fieldtype": "Data", "label": "Owner Email", "reqd": 1},
   {"fieldname": "owner_name", "fieldtype": "Data", "label": "Owner Name"},
   {"fieldname": "owner_phone", "fieldtype": "Data", "label": "Owner Mobile", "options": "Phone"},
+  {"fieldname": "owner_password", "fieldtype": "Password", "label": "Owner Password", "hidden": 1, "read_only": 1, "no_copy": 1, "print_hide": 1, "description": "Chosen at signup when email verification is off. Cleared once the owner's User is created."},
   {"fieldname": "plan", "fieldtype": "Link", "label": "Plan", "options": "SaaS Plan", "reqd": 1},
   {"fieldname": "saas_module", "fieldtype": "Link", "label": "Module", "options": "SaaS Module", "in_list_view": 1, "in_standard_filter": 1, "read_only": 1},
   {"fieldname": "billing_cycle", "fieldtype": "Select", "label": "Billing Cycle", "options": "Monthly\nQuarterly\nYearly", "default": "Monthly"},
@@ -36,7 +37,7 @@
   {"fieldname": "error", "fieldtype": "Small Text", "label": "Provisioning Error", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-10-19 00:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Registration",
  "naming_rule": "Set by controller",

@@ -56,12 +56,12 @@ class RateLimitSettingsTests(unittest.TestCase):
 
 
 class OptionalEmailVerificationTests(unittest.TestCase):
-    def _create(self, saas, frappe):
+    def _create(self, saas, frappe, **extra):
         frappe.db.get_value.side_effect = plan_lookup()
         registration = Mock(flags=_Dict())
         frappe.get_doc.return_value.insert.return_value = registration
         saas.create_registration(
-            business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan"
+            business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan", **extra
         )
         return registration, frappe.get_doc.call_args.args[0]
 
@@ -77,7 +77,7 @@ class OptionalEmailVerificationTests(unittest.TestCase):
     def test_email_check_switched_off_trusts_the_address(self):
         with platform_modules("saas") as (frappe, (saas,)):
             frappe.settings = FakeSettings(require_email_verification=0)
-            registration, values = self._create(saas, frappe)
+            registration, values = self._create(saas, frappe, owner_password="s3cret-pass")
             self.assertEqual(values["email_verification_required"], 0)
             self.assertEqual(values["email_verified"], 1)
             self.assertIsNone(values["email_verification_hash"])

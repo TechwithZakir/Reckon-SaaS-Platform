@@ -6,7 +6,7 @@
  "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour"],
  "fields": [
   {"fieldname": "section_sms", "fieldtype": "Section Break", "label": "Signup Verification (Email and SMS)"},
-  {"fieldname": "require_email_verification", "fieldtype": "Check", "label": "Require Email Verification", "default": "1", "description": "Signups must open the emailed link before the tenant is created. When off, the email is trusted as typed; the owner still sets a password from the welcome email, so only the real mailbox owner can log in."},
+  {"fieldname": "require_email_verification", "fieldtype": "Check", "label": "Require Email Verification", "default": "1", "description": "Signups must open the emailed link before the tenant is created. Applies only when an outgoing Email Account is set up. When off (or with no Email Account), no email is sent: the address is trusted as typed and the owner chooses a password on the signup form."},
   {"fieldname": "require_phone_verification", "fieldtype": "Check", "label": "Require Phone Verification", "default": "1", "description": "Signups must confirm an SMS one-time code before the tenant is created. Signup is refused while this is on and BulkSMSBD is not configured."},
   {"fieldname": "bulksmsbd_api_key", "fieldtype": "Password", "label": "BulkSMSBD API Key"},
   {"fieldname": "bulksmsbd_sender_id", "fieldtype": "Data", "label": "BulkSMSBD Sender ID"},
@@ -26,7 +26,7 @@
   {"fieldname": "verify_rate_limit_per_hour", "fieldtype": "Int", "label": "Verification Requests per Hour", "default": "20", "non_negative": 1, "description": "Email link, SMS code and resend requests."}
  ],
  "issingle": 1,
- "modified": "2026-10-19 00:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Platform Settings",
  "permissions": [{"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "create": 1}, {"role": "System Manager", "read": 1, "write": 1, "create": 1}],

@@ -30,9 +30,11 @@ email link and, by default, an SMS one-time code. Configure it in
   **v2 Checkbox** shows "I'm not a robot"; **v3 Invisible** needs no click and
   refuses signups below **reCAPTCHA v3 Minimum Score** (default 0.5). The key's
   type in Google's console must match the type selected here.
-- **Require Email Verification** (on by default): when off, the typed email is
-  trusted and no link is sent. The owner still sets a password from the welcome
-  email. With both email and phone checks off, provisioning starts immediately,
+- **Require Email Verification** (on by default) applies only when the site has
+  an outgoing Email Account. When it is off, or there is no Email Account, the
+  site sends no email at all: the typed address is trusted, the signup form asks
+  for a password, and the owner signs in with it as soon as the workspace is
+  ready. With both email and phone checks off, provisioning starts immediately,
   leaving only captcha and rate limits in front of Company creation.
 - **Require Phone Verification / Require Captcha** are on by default. While
   either is on without credentials, signup answers 503 "temporarily

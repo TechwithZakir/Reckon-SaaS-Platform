@@ -8,7 +8,7 @@ import sys
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -175,6 +175,13 @@ def build_frappe() -> ModuleType:
     document.Document = object
     model.document = document
     frappe.model = model
+
+    # A site with an outgoing Email Account; tests without one set
+    # ``frappe.EmailAccount.find_outgoing.return_value = None``.
+    email_account = ModuleType("frappe.email.doctype.email_account.email_account")
+    email_account.EmailAccount = SimpleNamespace(find_outgoing=Mock(return_value="Default Outgoing"))
+    frappe.EmailAccount = email_account.EmailAccount
+    frappe.email_account_module = email_account
     return frappe
 
 
@@ -190,6 +197,10 @@ def platform_modules(*names: str):
         "frappe.rate_limiter": frappe.rate_limiter,
         "frappe.model": frappe.model,
         "frappe.model.document": frappe.model.document,
+        "frappe.email": ModuleType("frappe.email"),
+        "frappe.email.doctype": ModuleType("frappe.email.doctype"),
+        "frappe.email.doctype.email_account": ModuleType("frappe.email.doctype.email_account"),
+        "frappe.email.doctype.email_account.email_account": frappe.email_account_module,
     }
     saved_path = list(sys.path)
     sys.path.insert(0, str(REPO_ROOT))

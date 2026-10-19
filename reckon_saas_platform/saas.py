@@ -119,9 +119,44 @@ def get_signup_settings():
 
 
 def email_verification_required() -> bool:
+    """Whether signups must open an emailed link before the tenant is created.
+
+    Only when the setting is on (unset, on an older site before migrate, counts as
+    on) and the site can actually send email. Without an outgoing Email Account
+    the link could never arrive, so the check is skipped rather than blocking
+    every signup; the owner then chooses a password on the signup form.
+    """
     value = get_signup_settings().get("require_email_verification")
-    # Unset (an older site before migrate) keeps the safe default: required.
-    return True if value is None else bool(cint(value))
+    required = True if value is None else bool(cint(value))
+    return required and is_outgoing_email_configured()
+
+
+def is_outgoing_email_configured() -> bool:
+    """True when ``frappe.sendmail`` has an outgoing account and mail is not muted."""
+    # Muted mail resolves to a dummy account that sends nothing.
+    if frappe.flags.mute_emails or frappe.conf.get("mute_emails"):
+        return False
+    try:
+        from frappe.email.doctype.email_account.email_account import EmailAccount
+
+        return bool(EmailAccount.find_outgoing())
+    except Exception:
+        return False
+
+
+OWNER_PASSWORD_MIN_LENGTH = 8
+
+
+def _clean_owner_password(password) -> str:
+    password = password if isinstance(password, str) else ""
+    if len(password) < OWNER_PASSWORD_MIN_LENGTH:
+        frappe.throw(
+            _("Password must be at least {0} characters.").format(OWNER_PASSWORD_MIN_LENGTH),
+            SignupValidationError,
+        )
+    if len(password) > 128:
+        frappe.throw(_("Password is too long."), SignupValidationError)
+    return password
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -135,6 +170,7 @@ def public_signup(
     captcha_token: str | None = None,
     owner_phone: str | None = None,
     module: str | None = None,
+    owner_password: str | None = None,
 ):
     verify_signup_captcha(captcha_token)
     registration = create_registration(
@@ -145,6 +181,7 @@ def public_signup(
         billing_cycle=billing_cycle,
         owner_phone=owner_phone,
         saas_module=module,
+        owner_password=owner_password,
     )
     send_registration_verification(registration)
     # With both checks switched off there is nothing to wait for.
@@ -160,7 +197,9 @@ def public_signup(
     elif email_required:
         message = _("Signup received. Check your email and open the verification link to continue.")
     else:
-        message = _("Signup received. We are creating your workspace now.")
+        message = _(
+            "Signup received. We are creating your workspace now. Sign in with your email and the password you chose."
+        )
     return {
         "ok": True,
         "registration": registration.name,
@@ -739,6 +778,7 @@ def create_registration(
     billing_cycle: str = "Monthly",
     owner_phone: str | None = None,
     saas_module: str | None = None,
+    owner_password: str | None = None,
 ):
     """Record a signup request without touching Company or User.
 
@@ -781,8 +821,9 @@ def create_registration(
     _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
     email_required = email_verification_required()
-    # Without the email check the address is trusted as typed. The owner still
-    # sets a password from the welcome email, so only the mailbox owner can log in.
+    # Without the email check the address is trusted as typed and no email is
+    # sent at all, so the owner signs in with the password chosen here.
+    password = None if email_required else _clean_owner_password(owner_password)
     token = frappe.generate_hash(length=32) if email_required else None
     values = {
         "doctype": "SaaS Registration",
@@ -802,6 +843,9 @@ def create_registration(
         "phone_verification_required": 1 if phone_required else 0,
         "phone_verified": 0,
     }
+    if password:
+        # A Password field: Frappe keeps it encrypted in __Auth, not on the row.
+        values["owner_password"] = password
     otp = None
     if phone_required:
         otp = _new_otp()
@@ -1029,7 +1073,11 @@ def _provision_registration(registration: str):
         plan_doc = frappe.get_doc("SaaS Plan", doc.plan)
         company = _create_tenant_company(doc.business_name)
         admin_user = _create_tenant_admin_user(
-            doc.owner_email, doc.owner_name, doc.owner_phone, doc.get("saas_module")
+            doc.owner_email,
+            doc.owner_name,
+            doc.owner_phone,
+            doc.get("saas_module"),
+            password=_registration_password(doc),
         )
         # Subscription before the owner's assignment: module apps decide on
         # assignment save which module the company belongs to.
@@ -1062,8 +1110,24 @@ def _provision_registration(registration: str):
             "error": "",
         }
     )
+    _forget_registration_password(doc)
     run_tenant_seed_job(company.name)
     return doc
+
+
+def _registration_password(doc) -> str | None:
+    if not doc.meta.has_field("owner_password"):
+        return None
+    return doc.get_password("owner_password", raise_exception=False) or None
+
+
+def _forget_registration_password(doc) -> None:
+    """The password is on the User now; keep no copy on the registration."""
+    if not doc.meta.has_field("owner_password"):
+        return
+    from frappe.utils.password import remove_encrypted_password
+
+    remove_encrypted_password(doc.doctype, doc.name, "owner_password")
 
 
 def _create_registration_subscription(doc, plan_doc, company: str, admin_user: str):
@@ -1573,29 +1637,36 @@ def _create_tenant_company(company_name: str):
 
 
 def _create_tenant_admin_user(
-    email: str, full_name: str, mobile_no: str | None = None, saas_module: str | None = None
+    email: str,
+    full_name: str,
+    mobile_no: str | None = None,
+    saas_module: str | None = None,
+    password: str | None = None,
 ):
     """The owner's login. Its first role is the module's ``admin_role``; the
-    module app adds the rest when the Tenant User Assignment is saved."""
+    module app adds the rest when the Tenant User Assignment is saved.
+
+    With the password chosen at signup the owner signs in straight away and no
+    email is sent. Otherwise the welcome email carries the set-password link,
+    sent only when the site has an outgoing Email Account.
+    """
     roles = []
     admin_role = get_module_admin_role(saas_module)
     if admin_role and frappe.db.exists("Role", admin_role):
         roles.append({"role": admin_role})
 
-    user = frappe.get_doc(
-        {
-            "doctype": "User",
-            "email": email,
-            "first_name": full_name or email,
-            # The owner verified this address; the welcome email carries the
-            # link to set a password and sign in.
-            "send_welcome_email": 1,
-            "enabled": 1,
-            "roles": roles,
-            "mobile_no": mobile_no,
-        }
-    )
-    return user.insert(ignore_permissions=True)
+    values = {
+        "doctype": "User",
+        "email": email,
+        "first_name": full_name or email,
+        "send_welcome_email": 0 if password else int(is_outgoing_email_configured()),
+        "enabled": 1,
+        "roles": roles,
+        "mobile_no": mobile_no,
+    }
+    if password:
+        values["new_password"] = password
+    return frappe.get_doc(values).insert(ignore_permissions=True)
 
 
 def _assign_company_admin(user: str, company: str):
