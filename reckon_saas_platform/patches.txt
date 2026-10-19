@@ -2,3 +2,4 @@
 
 [post_model_sync]
 reckon_saas_platform.patches.copy_plan_grace_days_to_subscriptions
+reckon_saas_platform.patches.clear_default_company_on_unprovisioned_registrations

@@ -182,6 +182,12 @@ def build_frappe() -> ModuleType:
     email_account.EmailAccount = SimpleNamespace(find_outgoing=Mock(return_value="Default Outgoing"))
     frappe.EmailAccount = email_account.EmailAccount
     frappe.email_account_module = email_account
+
+    # System Settings password policy off; tests switch it on by setting a return value.
+    user_module = ModuleType("frappe.core.doctype.user.user")
+    user_module.test_password_strength = Mock(return_value={})
+    frappe.test_password_strength = user_module.test_password_strength
+    frappe.user_module = user_module
     return frappe
 
 
@@ -201,6 +207,10 @@ def platform_modules(*names: str):
         "frappe.email.doctype": ModuleType("frappe.email.doctype"),
         "frappe.email.doctype.email_account": ModuleType("frappe.email.doctype.email_account"),
         "frappe.email.doctype.email_account.email_account": frappe.email_account_module,
+        "frappe.core": ModuleType("frappe.core"),
+        "frappe.core.doctype": ModuleType("frappe.core.doctype"),
+        "frappe.core.doctype.user": ModuleType("frappe.core.doctype.user"),
+        "frappe.core.doctype.user.user": frappe.user_module,
     }
     saved_path = list(sys.path)
     sys.path.insert(0, str(REPO_ROOT))

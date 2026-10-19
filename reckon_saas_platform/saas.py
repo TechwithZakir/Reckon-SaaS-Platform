@@ -145,6 +145,8 @@ def is_outgoing_email_configured() -> bool:
 
 
 OWNER_PASSWORD_MIN_LENGTH = 8
+# Set by provisioning only, once the tenant's own records exist.
+REGISTRATION_RESULT_FIELDS = ("company", "company_admin", "subscription", "payment", "provisioning_job")
 
 
 def _clean_owner_password(password, confirm=None) -> str:
@@ -160,6 +162,24 @@ def _clean_owner_password(password, confirm=None) -> str:
     if confirm is not None and confirm != password:
         frappe.throw(_("Passwords do not match."), SignupValidationError)
     return password
+
+
+def _check_owner_password_policy(password: str, owner_name: str, owner_email: str) -> None:
+    """Apply the site's password policy at signup, as Frappe will when it creates the User.
+
+    Checking only at provisioning failed the whole tenant setup after the owner had
+    left the page. Same test and inputs as ``User.password_strength_test``.
+    """
+    from frappe.core.doctype.user.user import test_password_strength
+
+    result = test_password_strength(password, user_data=(owner_name, None, None, owner_email, None)) or {}
+    feedback = result.get("feedback") or {}
+    if not feedback or feedback.get("password_policy_validation_passed"):
+        return
+    parts = [feedback.get("warning") or ""] + list(feedback.get("suggestions") or [])
+    detail = " ".join(part.strip() for part in parts if part and part.strip())
+    message = _("Please choose a stronger password.")
+    frappe.throw(f"{message} {detail}".strip(), SignupValidationError)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -831,6 +851,8 @@ def create_registration(
     # Without the email check the address is trusted as typed and no email is
     # sent at all, so the owner signs in with the password chosen here.
     password = None if email_required else _clean_owner_password(owner_password, owner_password_confirm)
+    if password:
+        _check_owner_password_policy(password, owner_name, owner_email)
     token = frappe.generate_hash(length=32) if email_required else None
     values = {
         "doctype": "SaaS Registration",
@@ -849,6 +871,10 @@ def create_registration(
         "verified_on": None if email_required else now_datetime(),
         "phone_verification_required": 1 if phone_required else 0,
         "phone_verified": 0,
+        # Blank, not missing: on insert Frappe fills missing Link fields from the
+        # user and global defaults, which put the vendor's own Company here. Only
+        # provisioning sets these, to the records it created.
+        **{field: "" for field in REGISTRATION_RESULT_FIELDS},
     }
     if password:
         # A Password field: Frappe keeps it encrypted in __Auth, not on the row.
@@ -1164,7 +1190,8 @@ def _create_registration_subscription(doc, plan_doc, company: str, admin_user: s
 
 def _mark_registration_failed(doc, exc: Exception) -> None:
     error = _short_error(exc)
-    doc.db_set({"status": "Failed", "error": error})
+    # Provisioning rolled back, so the registration owns no tenant records.
+    doc.db_set({"status": "Failed", "error": error, **{field: None for field in REGISTRATION_RESULT_FIELDS}})
     frappe.log_error(title=f"SaaS registration {doc.name} provisioning failed", message=frappe.get_traceback())
 
 
@@ -1673,7 +1700,12 @@ def _create_tenant_admin_user(
     }
     if password:
         values["new_password"] = password
-    return frappe.get_doc(values).insert(ignore_permissions=True)
+    user = frappe.get_doc(values)
+    if password:
+        # Checked against the site's policy at signup; a policy tightened since
+        # must not fail a tenant the owner has already been told is on its way.
+        user.flags.ignore_password_policy = True
+    return user.insert(ignore_permissions=True)
 
 
 def _assign_company_admin(user: str, company: str):
