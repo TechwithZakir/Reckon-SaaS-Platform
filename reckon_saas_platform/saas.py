@@ -89,16 +89,39 @@ class PaymentGatewayAdapter:
         raise NotImplementedError
 
 
+def _configured_rate_limit(settings_field: str, conf_key: str, default: int) -> int:
+    """SaaS Platform Settings first, then site config, then the built-in default."""
+    try:
+        from_settings = cint(get_signup_settings().get(settings_field))
+    except Exception:
+        # Settings missing (e.g. before the first migrate): never block signup on it.
+        from_settings = 0
+    return from_settings or cint(frappe.conf.get(conf_key)) or default
+
+
 def _signup_rate_limit() -> int:
-    return cint(frappe.conf.get("reckon_saas_signup_rate_limit")) or SIGNUP_RATE_LIMIT_PER_HOUR
+    return _configured_rate_limit(
+        "signup_rate_limit_per_hour", "reckon_saas_signup_rate_limit", SIGNUP_RATE_LIMIT_PER_HOUR
+    )
 
 
 def _verify_rate_limit() -> int:
-    return cint(frappe.conf.get("reckon_saas_verify_rate_limit")) or VERIFY_RATE_LIMIT_PER_HOUR
+    return _configured_rate_limit(
+        "verify_rate_limit_per_hour", "reckon_saas_verify_rate_limit", VERIFY_RATE_LIMIT_PER_HOUR
+    )
+
+
+RATE_LIMIT_KEY_PREFIX = "rl:reckon_saas_platform.saas."
 
 
 def get_signup_settings():
     return frappe.get_cached_doc(SETTINGS_DOCTYPE)
+
+
+def email_verification_required() -> bool:
+    value = get_signup_settings().get("require_email_verification")
+    # Unset (an older site before migrate) keeps the safe default: required.
+    return True if value is None else bool(cint(value))
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -124,16 +147,26 @@ def public_signup(
         saas_module=module,
     )
     send_registration_verification(registration)
+    # With both checks switched off there is nothing to wait for.
+    _start_provisioning_if_verified(registration)
     phone_required = bool(registration.phone_verification_required)
+    email_required = bool(registration.email_verification_required)
+    if phone_required and email_required:
+        message = _(
+            "Signup received. Enter the code we sent by SMS, then open the verification link in your email."
+        )
+    elif phone_required:
+        message = _("Signup received. Enter the code we sent by SMS to continue.")
+    elif email_required:
+        message = _("Signup received. Check your email and open the verification link to continue.")
+    else:
+        message = _("Signup received. We are creating your workspace now.")
     return {
         "ok": True,
         "registration": registration.name,
+        "email_verification_required": email_required,
         "phone_verification_required": phone_required,
-        "message": _(
-            "Signup received. Enter the code we sent by SMS, then open the verification link in your email."
-        )
-        if phone_required
-        else _("Signup received. Check your email and open the verification link to continue."),
+        "message": message,
     }
 
 
@@ -223,13 +256,21 @@ def registration_verification_status(registration: str) -> dict:
         row = frappe.db.get_value(
             "SaaS Registration",
             registration,
-            ["status", "email_verified", "phone_verification_required", "phone_verified"],
+            [
+                "status",
+                "email_verification_required",
+                "email_verified",
+                "phone_verification_required",
+                "phone_verified",
+            ],
             as_dict=True,
         )
     if not row:
         frappe.throw(_("This verification request is invalid or has expired."), SignupValidationError)
     return {
         "stage": REGISTRATION_STAGES.get(row.status, "closed"),
+        "email_required": row.email_verification_required is None
+        or bool(row.email_verification_required),
         "email_verified": bool(row.email_verified),
         "phone_required": bool(row.phone_verification_required),
         "phone_verified": bool(row.phone_verified),
@@ -306,6 +347,17 @@ def verify_payment_manual(payment: str, reference: str | None = None):
 def retry_tenant_seed_job(company: str):
     _require_vendor()
     return run_tenant_seed_job(company).name
+
+
+@frappe.whitelist(methods=["POST"])
+def reset_signup_rate_limits() -> int:
+    """Clear every IP's signup and verification counters. Vendor only."""
+    _require_vendor()
+    # frappe.rate_limiter stores counters as ``rl:<method path>:<identity>``.
+    keys = frappe.cache.get_keys(RATE_LIMIT_KEY_PREFIX) or []
+    if keys:
+        frappe.cache.delete_keys(RATE_LIMIT_KEY_PREFIX)
+    return len(keys)
 
 
 @frappe.whitelist()
@@ -728,7 +780,10 @@ def create_registration(
 
     _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
-    token = frappe.generate_hash(length=32)
+    email_required = email_verification_required()
+    # Without the email check the address is trusted as typed. The owner still
+    # sets a password from the welcome email, so only the mailbox owner can log in.
+    token = frappe.generate_hash(length=32) if email_required else None
     values = {
         "doctype": "SaaS Registration",
         "business_name": business_name,
@@ -739,9 +794,11 @@ def create_registration(
         "saas_module": plan_row.saas_module,
         "billing_cycle": billing_cycle,
         "status": "Pending Verification",
-        "email_verified": 0,
-        "email_verification_hash": _hash_token(token),
+        "email_verification_required": 1 if email_required else 0,
+        "email_verified": 0 if email_required else 1,
+        "email_verification_hash": _hash_token(token) if token else None,
         "verification_sent_on": now_datetime(),
+        "verified_on": None if email_required else now_datetime(),
         "phone_verification_required": 1 if phone_required else 0,
         "phone_verified": 0,
     }

@@ -14,6 +14,12 @@ class SaaSPlatformSettings(Document):
             ("otp_validity_minutes", 1),
             ("otp_max_attempts", 1),
             ("otp_resend_cooldown_seconds", 0),
+            # 0 falls back to site config or the built-in default.
+            ("signup_rate_limit_per_hour", 0),
+            ("verify_rate_limit_per_hour", 0),
         ):
             if (self.get(fieldname) or 0) < minimum:
                 frappe.throw(f"{self.meta.get_label(fieldname)} must be at least {minimum}.")
+        score = self.get("recaptcha_min_score")
+        if score is not None and not 0 <= score <= 1:
+            frappe.throw(f"{self.meta.get_label('recaptcha_min_score')} must be between 0 and 1.")

@@ -360,7 +360,7 @@
 
             <input type="hidden" name="billing_cycle" value="Monthly">
             <input type="hidden" id="captcha_token" name="captcha_token" value="">
-            {% if recaptcha_site_key %}
+            {% if recaptcha_site_key and not recaptcha_v3 %}
             <div class="rk-field"><div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key|e }}" data-hl="{{ lang }}"></div></div>
             {% endif %}
             {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
@@ -378,7 +378,7 @@
           <h2>{{ t.verify_title }}</h2>
           <p class="rk-sub">{{ t.verify_sub_both if phone_required else t.verify_sub_email }}</p>
 
-          <div class="rk-verify-item" data-verify="email">
+          <div class="rk-verify-item" data-verify="email"{% if not email_required %} hidden{% endif %}>
             <div class="rk-verify-head">
               <div class="rk-verify-icon">{{ icon("mail") }}</div>
               <div>
@@ -457,12 +457,15 @@
   </a>
 </div>
 
-{% if recaptcha_site_key %}
+{% if recaptcha_site_key and recaptcha_v3 %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key|urlencode }}&hl={{ lang }}" async defer></script>
+{% elif recaptcha_site_key %}
 <script src="https://www.google.com/recaptcha/api.js?hl={{ lang }}" async defer></script>
 {% endif %}
 <script>
   (function () {
     const T = {{ js_strings|tojson }};
+    const RECAPTCHA_V3_KEY = {{ (recaptcha_site_key if recaptcha_v3 else "")|tojson }};
     const state = {
       registration: "{{ registration }}",
       module: "{{ selected_module }}",
@@ -628,6 +631,7 @@
 
     function applyStatus(status) {
       document.querySelector('[data-verify="phone"]').hidden = !status.phone_required;
+      document.querySelector('[data-verify="email"]').hidden = status.email_required === false;
       markItem("email", status.email_verified);
       markItem("phone", status.phone_verified);
       if (status.stage === "verify") {
@@ -678,7 +682,20 @@
         }
         if (!form.reportValidity()) return;
         const captcha = document.getElementById("captcha_token");
-        if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
+        if (RECAPTCHA_V3_KEY) {
+          // v3 is invisible: ask Google for a fresh score token on each submit.
+          try {
+            captcha.value = await new Promise(function (resolve, reject) {
+              if (!window.grecaptcha) return reject(new Error(T.robot));
+              window.grecaptcha.ready(function () {
+                window.grecaptcha.execute(RECAPTCHA_V3_KEY, { action: "signup" }).then(resolve, reject);
+              });
+            });
+          } catch (error) {
+            showAlert(T.robot, "error");
+            return;
+          }
+        } else if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
           captcha.value = window.grecaptcha.getResponse();
           if (!captcha.value) {
             showAlert(T.robot, "error");
@@ -695,13 +712,15 @@
           document.querySelector("[data-email-target]").textContent = fill(T.email_sent_to, { email: state.email });
           rememberRegistration();
           showAlert(data.message, "success");
+          const emailRequired = data.email_verification_required !== false;
           applyStatus({
-            stage: "verify",
-            email_verified: false,
+            stage: emailRequired || data.phone_verification_required ? "verify" : "provisioning",
+            email_required: emailRequired,
+            email_verified: !emailRequired,
             phone_required: data.phone_verification_required,
             phone_verified: false,
           });
-          state.timer = setTimeout(refreshStatus, 5000);
+          state.timer = setTimeout(refreshStatus, emailRequired || data.phone_verification_required ? 5000 : 2000);
           const otp = document.getElementById("otp");
           if (data.phone_verification_required && otp) otp.focus();
         } catch (error) {

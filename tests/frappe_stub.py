@@ -34,6 +34,13 @@ class FakeCache:
     def delete_value(self, key):
         self.store.pop(key, None)
 
+    def get_keys(self, prefix):
+        return [key for key in self.store if key.startswith(prefix)]
+
+    def delete_keys(self, prefix):
+        for key in self.get_keys(prefix):
+            self.store.pop(key, None)
+
 
 class FakeSettings(_Dict):
     """SaaS Platform Settings with phone verification and captcha switched off."""

@@ -25,12 +25,22 @@ email link and, by default, an SMS one-time code. Configure it in
 - **BulkSMSBD API Key / Sender ID**: from your bulksmsbd.net account. Codes are
   sent in English, so use a non-masking sender ID (BulkSMSBD requires Bengali
   text for masking senders).
-- **reCAPTCHA Site Key / Secret Key**: create a reCAPTCHA **v2 "I'm not a
-  robot"** key at https://www.google.com/recaptcha/admin and restrict it to the
-  signup domain.
+- **reCAPTCHA Type / Site Key / Secret Key**: create a key at
+  https://www.google.com/recaptcha/admin and restrict it to the signup domain.
+  **v2 Checkbox** shows "I'm not a robot"; **v3 Invisible** needs no click and
+  refuses signups below **reCAPTCHA v3 Minimum Score** (default 0.5). The key's
+  type in Google's console must match the type selected here.
+- **Require Email Verification** (on by default): when off, the typed email is
+  trusted and no link is sent. The owner still sets a password from the welcome
+  email. With both email and phone checks off, provisioning starts immediately,
+  leaving only captcha and rate limits in front of Company creation.
 - **Require Phone Verification / Require Captcha** are on by default. While
   either is on without credentials, signup answers 503 "temporarily
   unavailable", so configure the keys right after deploying.
+- **Signup Rate Limits**: attempts per IP address per hour (signup 5 and
+  verification 20 by default; failed attempts count). 0 falls back to the
+  `reckon_saas_signup_rate_limit` / `reckon_saas_verify_rate_limit` site config,
+  then the defaults. **Reset Rate Limits** on the form clears the current counters.
 
 Failed provisioning jobs show on `/reckon-saas-admin` with a **Retry
 Provisioning** button.

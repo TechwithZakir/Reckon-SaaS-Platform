@@ -185,13 +185,36 @@ class VerificationStatusTests(unittest.TestCase):
         for status, stage in cases.items():
             with self.subTest(status=status), platform_modules("saas") as (frappe, (saas,)):
                 frappe.db.get_value.return_value = _Dict(
-                    status=status, email_verified=1, phone_verification_required=1, phone_verified=0
+                    status=status,
+                    email_verification_required=1,
+                    email_verified=1,
+                    phone_verification_required=1,
+                    phone_verified=0,
                 )
                 result = saas.registration_verification_status("REG-1")
                 self.assertEqual(
                     result,
-                    {"stage": stage, "email_verified": True, "phone_required": True, "phone_verified": False},
+                    {
+                        "stage": stage,
+                        "email_required": True,
+                        "email_verified": True,
+                        "phone_required": True,
+                        "phone_verified": False,
+                    },
                 )
+
+    def test_status_reports_email_not_required(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.db.get_value.return_value = _Dict(
+                status="Provisioning",
+                email_verification_required=0,
+                email_verified=1,
+                phone_verification_required=0,
+                phone_verified=0,
+            )
+            result = saas.registration_verification_status("REG-1")
+        self.assertFalse(result["email_required"])
+        self.assertEqual(result["stage"], "provisioning")
 
     def test_unknown_registration_is_a_400(self):
         with platform_modules("saas") as (_frappe, (saas,)):

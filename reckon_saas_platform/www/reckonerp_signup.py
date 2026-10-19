@@ -7,8 +7,8 @@ import frappe
 from frappe.utils import cint, flt, nowdate
 
 from reckon_saas_platform.constants import VENDOR_COMPANY
-from reckon_saas_platform.recaptcha import get_recaptcha_site_key
-from reckon_saas_platform.saas import get_signup_settings
+from reckon_saas_platform.recaptcha import RECAPTCHA_V3, get_recaptcha_site_key, get_recaptcha_type
+from reckon_saas_platform.saas import email_verification_required, get_signup_settings
 from reckon_saas_platform.signup_i18n import LANGUAGE_COOKIE, LANGUAGES, get_strings, pick_language
 
 REGISTRATION_NAME = re.compile("REG-[0-9]{1,12}")
@@ -31,7 +31,9 @@ def get_context(context):
     # Echoed into HTML attributes: accept only the REG-##### naming pattern.
     context.registration = registration if REGISTRATION_NAME.fullmatch(registration) else ""
     context.phone_required = bool(cint(get_signup_settings().require_phone_verification))
+    context.email_required = email_verification_required()
     context.recaptcha_site_key = get_recaptcha_site_key()
+    context.recaptcha_v3 = bool(context.recaptcha_site_key) and get_recaptcha_type() == RECAPTCHA_V3
 
     context.modules = get_signup_modules()
     requested = frappe.form_dict.get("module") or ""
