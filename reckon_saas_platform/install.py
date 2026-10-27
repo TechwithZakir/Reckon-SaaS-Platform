@@ -114,6 +114,8 @@ def _workspace_doc(update: bool = False) -> dict:
     """
     data = _read_shipped(WORKSPACE_FILE)
     data["title"] = _(data["title"])
+    # Frappe v16 requires a workspace type; a fresh install failed on "[Workspace, Reckon SaaS Admin]: type".
+    data.setdefault("type", "Workspace")
     if update:
         data.pop("name")
     return data
