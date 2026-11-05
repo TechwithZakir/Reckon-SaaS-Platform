@@ -100,6 +100,56 @@ class MarketingDataTests(unittest.TestCase):
             if app.get("url"):
                 self.assertIn(app["url"].rsplit("/", 1)[1], slugs)
 
+    def test_signed_in_users_go_to_their_module_not_the_marketing_page(self):
+        with platform_modules("marketing", "module_registry", "saas", "saas_gate", "saas_security") as (
+            frappe,
+            (marketing, registry, saas, gate, security),
+        ):
+            frappe.get_installed_apps = Mock(return_value=["app"])
+            hooks = {
+                "reckon_saas_modules": [dict(DEFINITIONS[0], home_route="/desk/distribution")],
+                "get_website_user_home_page": [],
+            }
+            frappe.get_hooks = Mock(side_effect=lambda name, app_name=None: hooks.get(name, []))
+            self.assertIsNone(marketing.landing_for_user("Guest"))
+            self.assertIsNone(marketing.landing_for_user(None))
+
+            saas.get_user_module_keys = Mock(return_value=["distribution"])
+            gate.is_user_gated = Mock(return_value=False)
+            security.is_vendor_user = Mock(return_value=False)
+            self.assertEqual(marketing.landing_for_user("owner@example.test"), "/desk/distribution")
+
+            gate.is_user_gated = Mock(return_value=True)
+            self.assertEqual(marketing.landing_for_user("owner@example.test"), "/reckonerp-subscription")
+
+            security.is_vendor_user = Mock(return_value=True)
+            self.assertEqual(marketing.landing_for_user("vendor@example.test"), "/reckon-saas-admin")
+
+            security.is_vendor_user = Mock(return_value=False)
+            gate.is_user_gated = Mock(return_value=False)
+            saas.get_user_module_keys = Mock(return_value=[])
+            self.assertEqual(marketing.landing_for_user("staff@example.test"), "/desk")
+
+            # A module app that claims the user wins, and bare routes get a leading slash.
+            hooks["get_website_user_home_page"] = ["x.home"]
+            frappe.get_attr = Mock(return_value=lambda user: "desk/sales-agent")
+            self.assertEqual(marketing.landing_for_user("rep@example.test"), "/desk/sales-agent")
+
+    def test_home_page_redirects_signed_in_users(self):
+        import importlib.util
+
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.Redirect = type("Redirect", (Exception,), {})
+            frappe.session = _Dict(user="owner@example.test")
+            frappe.local.flags = _Dict()
+            marketing.landing_for_user = Mock(return_value="/desk/distribution")
+            spec = importlib.util.spec_from_file_location("home_page_under_test", PKG / "www" / "index.py")
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            with self.assertRaises(frappe.Redirect):
+                module.get_context(_Dict())
+            self.assertEqual(frappe.local.flags.redirect_location, "/desk/distribution")
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)

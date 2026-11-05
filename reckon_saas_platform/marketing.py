@@ -1123,3 +1123,40 @@ def requested(name: str) -> str:
         parts = path.split("/")
         value = parts[1] if len(parts) > 1 else ""
     return str(value or "").strip().lower()
+
+
+def _as_route(route: str) -> str:
+    route = str(route).strip()
+    return route if route.startswith(("/", "http://", "https://")) else f"/{route}"
+
+
+def landing_for_user(user: str | None) -> str | None:
+    """Where a signed-in person belongs instead of the marketing home page.
+
+    ``None`` for guests, who see the marketing site. Module apps decide their own
+    users' landing page through the ``get_website_user_home_page`` hook; anyone
+    they do not claim goes to the first module their company subscribed to, the
+    subscription page when access is not active, the vendor console for vendors,
+    and otherwise to Desk.
+    """
+    if not user or user == "Guest":
+        return None
+    for hook in frappe.get_hooks("get_website_user_home_page") or []:
+        route = frappe.get_attr(hook)(user)
+        if route:
+            return _as_route(route)
+
+    from reckon_saas_platform.module_registry import get_module_definition
+    from reckon_saas_platform.saas import get_user_module_keys
+    from reckon_saas_platform.saas_gate import is_user_gated
+    from reckon_saas_platform.saas_security import is_vendor_user
+
+    if is_vendor_user(user):
+        return "/reckon-saas-admin"
+    if is_user_gated(user):
+        return "/reckonerp-subscription"
+    for key in get_user_module_keys(user):
+        definition = get_module_definition(key)
+        if definition and (definition.get("home_route") or definition.get("workspace")):
+            return _as_route(definition.get("home_route") or definition.get("workspace"))
+    return "/desk"
