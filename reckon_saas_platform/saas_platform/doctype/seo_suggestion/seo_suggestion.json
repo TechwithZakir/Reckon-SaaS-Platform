@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "autoname": "format:SEO-{#####}",
+ "creation": "2026-11-05 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["kind", "status", "source", "page_path", "column_break_main", "reason", "section_text", "current_title", "current_description", "column_break_proposed", "proposed_title", "proposed_description", "section_faq", "question", "answer"],
+ "fields": [
+  {"fieldname": "kind", "fieldtype": "Select", "label": "Kind", "options": "Title and Description\nFAQ\nContent Idea", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Pending\nApproved\nRejected", "default": "Pending", "reqd": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "source", "fieldtype": "Select", "label": "Source", "options": "AI\nAudit", "default": "AI", "read_only": 1},
+  {"fieldname": "page_path", "fieldtype": "Data", "label": "Page", "in_list_view": 1, "description": "For example /modules/distribution"},
+  {"fieldname": "column_break_main", "fieldtype": "Column Break"},
+  {"fieldname": "reason", "fieldtype": "Small Text", "label": "Why", "read_only": 1},
+  {"fieldname": "section_text", "fieldtype": "Section Break", "label": "Page Text"},
+  {"fieldname": "current_title", "fieldtype": "Data", "label": "Current Title", "read_only": 1, "depends_on": "eval:doc.kind=='Title and Description'"},
+  {"fieldname": "current_description", "fieldtype": "Small Text", "label": "Current Description", "read_only": 1, "depends_on": "eval:doc.kind=='Title and Description'"},
+  {"fieldname": "column_break_proposed", "fieldtype": "Column Break"},
+  {"fieldname": "proposed_title", "fieldtype": "Data", "label": "Proposed Title", "length": 80, "depends_on": "eval:doc.kind=='Title and Description'", "description": "20-70 characters. You can edit it before approving."},
+  {"fieldname": "proposed_description", "fieldtype": "Small Text", "label": "Proposed Description", "depends_on": "eval:doc.kind=='Title and Description'", "description": "70-160 characters. You can edit it before approving."},
+  {"fieldname": "section_faq", "fieldtype": "Section Break", "label": "Question and Answer"},
+  {"fieldname": "question", "fieldtype": "Data", "label": "Question or Topic", "length": 200},
+  {"fieldname": "answer", "fieldtype": "Small Text", "label": "Answer or Outline"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-05 16:00:00.000000",
+ "module": "SaaS Platform",
+ "name": "SEO Suggestion",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "create": 1, "delete": 1},
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "page_path"
+}

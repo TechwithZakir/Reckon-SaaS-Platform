@@ -45,6 +45,7 @@ web_include_js = ["/assets/reckon_saas_platform/js/reckon_login.js"]
 # Keep subscription statuses in step with trial, paid-period and grace dates.
 # Access itself is decided from the dates, so the gate never waits for this job.
 scheduler_events = {
+    "weekly": ["reckon_saas_platform.seo_agent.run_agent_weekly"],
     "daily": [
         "reckon_saas_platform.saas.refresh_subscription_statuses",
         "reckon_saas_platform.seo.refresh_seo_daily",
@@ -84,6 +85,7 @@ website_route_rules = [
 
 permission_query_conditions = {
     "SaaS Payment": "reckon_saas_platform.saas_security.get_vendor_only_query",
+    "SEO Suggestion": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Plan": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Registration": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Subscription": "reckon_saas_platform.saas_security.get_vendor_only_query",
@@ -93,6 +95,7 @@ permission_query_conditions = {
 
 has_permission = {
     "SaaS Payment": "reckon_saas_platform.saas_security.has_vendor_only_permission",
+    "SEO Suggestion": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Plan": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Platform Settings": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Registration": "reckon_saas_platform.saas_security.has_vendor_only_permission",

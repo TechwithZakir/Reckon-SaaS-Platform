@@ -98,6 +98,22 @@ if **Notify Search Engines** is ticked, sends one IndexNow notice (Bing and
 partners). **Check SEO Now** runs it on demand. CI also fails if titles or
 descriptions repeat or run too long.
 
+### SEO agent (AI)
+
+**SaaS Platform Settings > SEO Agent (AI)**: tick **Enable SEO Agent**, choose the
+provider and model, paste an API key, list **Target Keywords** and **Questions to Ask
+AI Assistants**, and set the **Monthly AI Call Limit**. It runs weekly, or with the
+**Run SEO Agent** button, and does three things: lists target keywords no page
+covers, drafts better titles, descriptions and FAQ answers from facts the site
+already states, and asks the model your questions to see whether it names
+ReckonERP (model knowledge only, no browsing, so a signal, not a ranking).
+
+Everything it writes is an **SEO Suggestion** (`/app/seo-suggestion`) in *Pending*.
+Edit it if you like, then **Approve** or **Reject**. Only approved text reaches the
+site, after the same length and wording checks (no "best", "guaranteed", ...); the SEO
+check then re-runs and, if enabled, search engines are notified. It does nothing
+until enabled and keyed, and stops at the monthly limit.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

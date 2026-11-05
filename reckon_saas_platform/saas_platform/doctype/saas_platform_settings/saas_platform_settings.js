@@ -1,5 +1,17 @@
 frappe.ui.form.on("SaaS Platform Settings", {
 	refresh(frm) {
+		frm.add_custom_button(__("Run SEO Agent"), () => {
+			frappe.confirm(
+				__("Run the SEO agent now? It uses AI calls from this month's limit and only creates suggestions to approve."),
+				() =>
+					frappe
+						.call({ method: "reckon_saas_platform.seo_agent.run_agent_now", freeze: true })
+						.then(() => {
+							frappe.show_alert({ message: __("Done. Open SEO Suggestion to review."), indicator: "green" });
+							frm.reload_doc();
+						})
+			);
+		});
 		frm.add_custom_button(__("Check SEO Now"), () => {
 			frappe
 				.call({ method: "reckon_saas_platform.seo.refresh_seo_now", freeze: true })

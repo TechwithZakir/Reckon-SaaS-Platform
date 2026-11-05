@@ -906,6 +906,44 @@ def breadcrumb_ld(base: str, trail: list[tuple[str, str]]) -> dict:
 
 
 # --- Page descriptions -----------------------------------------------------------
+OVERRIDES_CACHE_KEY = "reckon_saas_seo_overrides"
+FORBIDDEN_WORDS = re.compile(r"\b(best|number one|no\.? ?1|#1|guaranteed?|cheapest|frappe)\b", re.I)
+
+
+def seo_overrides() -> dict:
+    """Approved SEO Suggestions: ``{"pages": {path: {title, description}}, "faqs": [(q, a)]}``.
+
+    Read again with the same length and wording checks the agent uses, cached for
+    ten minutes and cleared whenever a suggestion is saved.
+    """
+    cached = frappe.cache.get_value(OVERRIDES_CACHE_KEY)
+    if cached is not None:
+        return cached
+    result: dict = {"pages": {}, "faqs": []}
+    try:
+        if frappe.db.exists("DocType", "SEO Suggestion"):
+            rows = frappe.get_all(
+                "SEO Suggestion",
+                filters={"status": "Approved"},
+                fields=["kind", "page_path", "proposed_title", "proposed_description", "question", "answer"],
+                order_by="modified asc",
+                ignore_permissions=True,
+            )
+            for row in rows:
+                if row.get("kind") == "Title and Description":
+                    title, desc = (row.get("proposed_title") or "").strip(), (row.get("proposed_description") or "").strip()
+                    if 20 <= len(title) <= 70 and 70 <= len(desc) <= 160 and not FORBIDDEN_WORDS.search(title + " " + desc):
+                        result["pages"][row.get("page_path")] = {"title": title, "description": desc}
+                elif row.get("kind") == "FAQ":
+                    q, a = (row.get("question") or "").strip(), (row.get("answer") or "").strip()
+                    if q.endswith("?") and 40 <= len(a) <= 600 and not FORBIDDEN_WORDS.search(q + " " + a):
+                        result["faqs"].append((q, a))
+    except Exception:
+        result = {"pages": {}, "faqs": []}
+    frappe.cache.set_value(OVERRIDES_CACHE_KEY, result, expires_in_sec=600)
+    return result
+
+
 def make_page(
     base: str,
     *,
@@ -921,6 +959,9 @@ def make_page(
 ) -> dict:
     """Everything a template needs: head tags, JSON-LD and breadcrumbs."""
     trail = trail or [("Home", HOME)]
+    approved = seo_overrides()["pages"].get(path)
+    if approved:
+        title, description = approved["title"], approved["description"]
     ld = []
     if path == HOME:
         ld.append(organization_ld(base, same_as))
@@ -1043,6 +1084,7 @@ def faq_groups(modules: list[dict]) -> list[dict]:
             groups.append({"title": title, "faqs": rows})
 
     add("About ReckonERP", HOME_FAQS)
+    add("More answers", seo_overrides()["faqs"])
     for module in modules:
         add(module["name"], module["faqs"])
     for feature in FEATURE_LIST:
