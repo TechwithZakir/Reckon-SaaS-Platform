@@ -1191,7 +1191,7 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
 
 
 def _registered_domain(host: str) -> str:
-    """``app.reckon.tech`` -> ``reckon.tech`` (last two labels; enough to tell sibling hosts apart)."""
+    """``app.example.com`` -> ``example.com`` (last two labels; enough to tell sibling hosts apart)."""
     return ".".join(host.split(":")[0].split(".")[-2:])
 
 
