@@ -1088,29 +1088,35 @@ def site_base() -> str:
     return frappe.utils.get_url().rstrip("/")
 
 
-def apply_context(context, page: dict, modules: list[dict]) -> None:
-    """Put a page description and the shared header/footer data on a web context."""
-    context.page = page
-    context.glyphs = GLYPHS
+def shared_context(context, modules: list[dict]) -> None:
+    """Header, footer and chat data used by every public page, signup included."""
     context.nav_features = FEATURE_LIST
     context.nav_modules = modules
     context.support_email = SUPPORT_EMAIL
     context.publisher = PUBLISHER
+    context.powered_by = POWERED_BY
     context.year = frappe.utils.nowdate()[:4]
     context.logo = LOGO
     context.logo_width, context.logo_height = LOGO_SIZE
-    context.icon = ICON
     context.company_site = COMPANY_SITE
     context.whatsapp_number = WHATSAPP_NUMBER
     context.whatsapp_display = WHATSAPP_DISPLAY
-    context.ai_points = AI_POINTS
-    context.ai_note = AI_NOTE
-    context.deployments = DEPLOYMENTS
+
+
+def apply_context(context, page: dict, modules: list[dict]) -> None:
+    """Put a page description and the shared header/footer data on a web context."""
+    shared_context(context, modules)
+    context.page = page
+    context.glyphs = GLYPHS
+    context.icon = ICON
     context.hero_image = HERO_IMAGE
     context.showcase = [
         {"title": title, "text": text, "image": illustration(name)} for name, title, text in SHOWCASE
     ]
     context.trademark_note = TRADEMARK_NOTE
+    context.ai_points = AI_POINTS
+    context.ai_note = AI_NOTE
+    context.deployments = DEPLOYMENTS
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1

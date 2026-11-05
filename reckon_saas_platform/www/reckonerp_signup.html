@@ -9,15 +9,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap">
 {% endif %}
 <style>
+  /* Same tokens and dark mode as the landing page (templates/marketing/chrome.css). */
+  {% include "reckon_saas_platform/templates/marketing/chrome.css" %}
   :root {
     --rk-green: #3cd400;
-    --rk-green-dark: #2a9a00;
-    --rk-blue: #139bd9;
-    --rk-blue-dark: #0b78ab;
-    --rk-ink: #0d2240;
-    --rk-muted: #5b6b82;
-    --rk-line: #dbe4ef;
-    --rk-card: #ffffff;
+    --rk-green-dark: var(--green);
+    --rk-blue: var(--brand2);
+    --rk-blue-dark: var(--brand);
+    --rk-ink: var(--ink);
+    --rk-muted: var(--mut);
+    --rk-line: var(--line);
+    --rk-card: var(--card);
     --rk-danger: #c62d3c;
     --rk-whatsapp: #25d366;
     --rk-radius: 14px;
@@ -28,12 +30,15 @@
   body {
     margin: 0;
     background:
-      radial-gradient(1100px 520px at 0% 0%, rgba(19, 155, 217, 0.10), transparent 60%),
-      radial-gradient(900px 480px at 100% 100%, rgba(60, 212, 0, 0.10), transparent 60%),
-      #f7fafd;
+      radial-gradient(1100px 520px at 0% 0%, color-mix(in srgb, var(--brand2) 14%, transparent), transparent 60%),
+      radial-gradient(900px 480px at 100% 100%, color-mix(in srgb, #3cd400 12%, transparent), transparent 60%),
+      var(--bg);
     color: var(--rk-ink);
-    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-family: Inter, "Segoe UI", system-ui, -apple-system, "Noto Sans Bengali", sans-serif;
   }
+  .rk-lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--card); }
+  .rk-lang a { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--mut); text-decoration: none; }
+  .rk-lang a.is-active { background: var(--brand2); color: #fff; }
   body.rk-lang-bn, .rk-lang-bn input, .rk-lang-bn select, .rk-lang-bn button {
     font-family: "Noto Sans Bengali", Inter, "Segoe UI", system-ui, sans-serif;
   }
@@ -50,7 +55,7 @@
   .rk-brand-text strong { font-size: 17px; color: var(--rk-ink); white-space: nowrap; }
   .rk-brand-text span { font-size: 13px; color: var(--rk-green-dark); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rk-header-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
-  .rk-lang { display: inline-flex; border: 1px solid var(--rk-line); border-radius: 999px; padding: 3px; background: #fff; }
+  .rk-lang { display: inline-flex; border: 1px solid var(--rk-line); border-radius: 999px; padding: 3px; background: var(--rk-card); }
   .rk-lang a { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--rk-muted); text-decoration: none; }
   .rk-lang a.is-active { background: var(--rk-blue); color: #fff; }
   .rk-signin { color: var(--rk-muted); font-size: 14px; text-decoration: none; }
@@ -77,7 +82,7 @@
   }
   .rk-help {
     display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--rk-radius);
-    background: #fff; border: 1px solid var(--rk-line); max-width: 460px;
+    background: var(--rk-card); border: 1px solid var(--rk-line); max-width: 460px;
   }
   .rk-help p { margin: 0; font-size: 14px; font-weight: 600; }
   .rk-help a { margin-left: auto; }
@@ -94,7 +99,7 @@
   }
   .rk-stepper li::before {
     content: counter(step); width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; display: grid; place-items: center;
-    border: 2px solid var(--rk-line); background: #fff; font-size: 12px;
+    border: 2px solid var(--rk-line); background: var(--rk-card); font-size: 12px;
   }
   .rk-stepper li.is-active { color: var(--rk-ink); }
   .rk-stepper li.is-active::before { border-color: var(--rk-blue); color: var(--rk-blue); }
@@ -108,7 +113,7 @@
   .rk-field > label, .rk-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   .rk-field input, .rk-field select {
     width: 100%; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px;
-    font-size: 15px; color: var(--rk-ink); background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
+    font-size: 15px; color: var(--rk-ink); background: var(--rk-card); outline: none; transition: border-color .15s, box-shadow .15s;
   }
   .rk-field input:focus, .rk-field select:focus { border-color: var(--rk-blue); box-shadow: 0 0 0 3px rgba(19, 155, 217, 0.15); }
   .rk-hint { display: block; color: var(--rk-muted); font-size: 12px; margin-top: 6px; line-height: 1.45; }
@@ -121,7 +126,7 @@
   .rk-plan[hidden] { display: none; }
   .rk-plan input { position: absolute; opacity: 0; pointer-events: none; }
   .rk-plan-body {
-    display: block; height: 100%; padding: 14px 14px 12px; border: 1.5px solid var(--rk-line); border-radius: 12px; background: #fff;
+    display: block; height: 100%; padding: 14px 14px 12px; border: 1.5px solid var(--rk-line); border-radius: 12px; background: var(--rk-card);
     transition: border-color .15s, box-shadow .15s;
   }
   .rk-plan:hover .rk-plan-body { border-color: #9fd3ee; }
@@ -168,7 +173,7 @@
   .rk-verify-icon svg { width: 20px; height: 20px; }
   .rk-verify-head h3 { font-size: 15px; margin: 0; }
   .rk-verify-head p { font-size: 13px; color: var(--rk-muted); margin: 2px 0 0; overflow-wrap: anywhere; }
-  .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #fff4e0; color: #9a5b00; white-space: nowrap; }
+  .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--rk-card)4e0; color: #9a5b00; white-space: nowrap; }
   .rk-chip.is-done { background: #ecfbe4; color: #22720a; }
   .rk-verify-body { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .rk-otp { flex: 1 1 160px; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px; font-size: 20px; letter-spacing: 6px; text-align: center; }
@@ -188,7 +193,7 @@
   [data-step][hidden] { display: none !important; }
 
   /* Bottom padding keeps the floating WhatsApp button off the copyright line. */
-  .rk-footer { border-top: 1px solid var(--rk-line); background: #fff; padding: 30px 0 92px; }
+  .rk-footer { border-top: 1px solid var(--rk-line); background: var(--rk-card); padding: 30px 0 92px; }
   .rk-footer-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 28px; align-items: start; }
   .rk-footer img { height: 34px; width: auto; display: block; margin-bottom: 10px; }
   .rk-footer p { margin: 0; color: var(--rk-muted); font-size: 13px; line-height: 1.6; }
@@ -242,24 +247,7 @@
 
 {% block page_content %}
 <div class="rk-page rk-lang-{{ lang }}" lang="{{ lang }}">
-  <header class="rk-header">
-    <div class="rk-shell">
-      <a class="rk-brand" href="{{ company.website }}" target="_blank" rel="noopener">
-        <img src="{{ company.logo }}" alt="{{ company.name|e }}">
-        <span class="rk-brand-text">
-          <strong>{{ t.product }}</strong>
-          {% if module %}<span>{{ module.name|e }}</span>{% endif %}
-        </span>
-      </a>
-      <div class="rk-header-actions">
-        <nav class="rk-lang" aria-label="Language">
-          <a href="{{ lang_links.bn }}" data-lang="bn" class="{% if lang == 'bn' %}is-active{% endif %}" lang="bn">বাংলা</a>
-          <a href="{{ lang_links.en }}" data-lang="en" class="{% if lang == 'en' %}is-active{% endif %}" lang="en">English</a>
-        </nav>
-        <a class="rk-signin" href="/login">{{ t.signin_prompt }} <strong>{{ t.signin }}</strong></a>
-      </div>
-    </div>
-  </header>
+  {% include "reckon_saas_platform/templates/marketing/header.html" %}
 
   <main class="rk-main">
     <div class="rk-shell rk-grid">
@@ -439,40 +427,10 @@
     </div>
   </main>
 
-  <footer class="rk-footer">
-    <div class="rk-shell">
-      <div class="rk-footer-grid">
-        <div>
-          <img src="{{ company.logo }}" alt="{{ company.name|e }}">
-          <p>{{ t.footer_about.format(company=(company.name|e)) }}</p>
-        </div>
-        <div>
-          <h4>{{ t.contact }}</h4>
-          <ul>
-            <li><a href="{{ company.website }}" target="_blank" rel="noopener"><span class="rk-icon">{{ icon("globe") }}</span>www.reckon.tech</a></li>
-            <li><a href="mailto:{{ company.email }}"><span class="rk-icon">{{ icon("mail") }}</span>{{ company.email }}</a></li>
-            <li><a href="tel:{{ company.phone|replace('-', '') }}"><span class="rk-icon">{{ icon("phone") }}</span>{{ company.phone }}</a></li>
-            <li><a href="{{ whatsapp_url }}" target="_blank" rel="noopener"><span class="rk-icon is-whatsapp">{{ icon("whatsapp") }}</span>WhatsApp</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>{{ t.company_heading }}</h4>
-          <ul>
-            <li><a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.name|e }}</a></li>
-            <li><a href="/login">{{ t.signin }}</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="rk-copy">
-        <span>© {{ current_year }} {{ company.name|e }} {{ t.rights }}</span>
-        <span>{{ t.powered }}</span>
-      </div>
-    </div>
-  </footer>
+  {% include "reckon_saas_platform/templates/marketing/footer.html" %}
 
-  <a class="rk-whatsapp-fab" href="{{ whatsapp_url }}" target="_blank" rel="noopener" aria-label="{{ t.chat_whatsapp }}">
-    {{ icon("whatsapp") }}<span>{{ t.chat_whatsapp }}</span>
-  </a>
+  {% include "reckon_saas_platform/templates/marketing/chat.html" %}
+  {% include "reckon_saas_platform/templates/marketing/chrome_js.html" %}
 </div>
 
 {% if recaptcha_site_key and recaptcha_v3 %}

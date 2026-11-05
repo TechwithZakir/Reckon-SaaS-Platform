@@ -1,0 +1,29 @@
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="ReckonERP home">
+      <img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="" decoding="async" fetchpriority="high">
+      <span>ReckonERP</span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <details class="dd"><summary>Features</summary>
+        <div class="panel">
+          {% for f in nav_features %}<a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a>{% endfor %}
+          <a href="/features"><strong>All features</strong></a>
+        </div>
+      </details>
+      <details class="dd"><summary>Modules</summary>
+        <div class="panel">
+          {% for m in nav_modules %}<a href="{{ m.url|e }}">{{ m.name|e }}</a>{% endfor %}
+          <a href="/modules"><strong>All modules</strong></a>
+        </div>
+      </details>
+      <a href="/integrations">Integrations</a>
+    </nav>
+    {% if lang_links %}<nav class="rk-lang" aria-label="Language"><a href="{{ lang_links.bn }}" data-lang="bn" class="{% if lang == 'bn' %}is-active{% endif %}" lang="bn">বাংলা</a><a href="{{ lang_links.en }}" data-lang="en" class="{% if lang == 'en' %}is-active{% endif %}" lang="en">English</a></nav>{% endif %}
+    <div class="actions">
+      <a class="btn" href="/login">Log in</a>
+      <a class="btn solid" href="/reckonerp-signup">Sign up</a>
+    </div>
+  </div>
+</header>

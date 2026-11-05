@@ -50,7 +50,19 @@ def get_context(context):
     context.show_module_picker = not context.module and bool(context.modules)
     context.lang_links = {lang: _url_with(lang=lang) for lang in LANGUAGES}
     context.whatsapp_url = _whatsapp_url(context.t, context.module)
+    _add_site_chrome(context)
     return context
+
+
+def _add_site_chrome(context) -> None:
+    """Header, footer and chat shared with the marketing site; signup works without them."""
+    from reckon_saas_platform import marketing
+
+    try:
+        marketing.shared_context(context, marketing.get_modules())
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Signup page site chrome")
+        marketing.shared_context(context, [])
 
 
 def _request_language() -> str:

@@ -1,0 +1,19 @@
+<script>
+(function(){
+  var d=document;
+  d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});
+  d.addEventListener('keydown',function(e){if(e.key==='Escape')d.querySelectorAll('nav.main details[open]').forEach(function(x){x.open=false})});
+  var chat=d.querySelector('[data-chat]');
+  if(chat){
+    var fab=chat.querySelector('.chat-fab'),panel=chat.querySelector('.chat-panel'),form=chat.querySelector('form');
+    function show(open){panel.hidden=!open;fab.setAttribute('aria-expanded',open);if(open)form.m.focus()}
+    fab.addEventListener('click',function(){show(panel.hidden)});
+    d.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden){show(false);fab.focus()}});
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      var who=form.n.value.trim(),text=(who?'Hi, I am '+who+'. ':'Hi. ')+form.m.value.trim()+' (from '+location.href+')';
+      window.open('https://wa.me/'+chat.dataset.wa+'?text='+encodeURIComponent(text),'_blank','noopener');
+    });
+  }
+})();
+</script>

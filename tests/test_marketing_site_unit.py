@@ -175,6 +175,30 @@ class MarketingDataTests(unittest.TestCase):
             install.ensure_site_branding()
             frappe.db.set_single_value.assert_not_called()
 
+    def test_signup_page_shares_the_landing_page_theme_and_chrome(self):
+        signup = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        for part in ("chrome.css", "header.html", "footer.html", "chat.html", "chrome_js.html"):
+            self.assertIn(f"reckon_saas_platform/templates/marketing/{part}", signup)
+        for token in ("--rk-ink: var(--ink)", "--rk-card: var(--card)", "--rk-blue-dark: var(--brand)"):
+            self.assertIn(token, signup)
+        self.assertNotIn('class="rk-footer"', signup)
+        self.assertNotIn("rk-whatsapp-fab\"", signup)
+        base = (PKG / "templates" / "marketing" / "base.html").read_text(encoding="utf-8")
+        for part in ("header.html", "footer.html", "chat.html", "chrome_js.html"):
+            self.assertIn(part, base)
+        style = (PKG / "templates" / "marketing" / "style.css").read_text(encoding="utf-8")
+        self.assertIn("chrome.css", style)
+
+    def test_signup_context_gets_site_chrome_even_if_modules_fail(self):
+        with platform_modules("www.reckonerp_signup", "marketing") as (frappe, (page, marketing)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-05")
+            context = _Dict()
+            frappe.get_installed_apps = Mock(side_effect=RuntimeError("no registry"))
+            page._add_site_chrome(context)
+        self.assertEqual(context.nav_modules, [])
+        self.assertEqual(context.support_email, "hello@reckon.tech")
+        self.assertEqual(context.powered_by, "Powered by ReckonERP")
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)
