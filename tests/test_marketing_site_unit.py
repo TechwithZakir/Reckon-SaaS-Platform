@@ -150,6 +150,31 @@ class MarketingDataTests(unittest.TestCase):
                 module.get_context(_Dict())
             self.assertEqual(frappe.local.flags.redirect_location, "/desk/distribution")
 
+    def test_login_branding_matches_the_landing_page_and_keeps_custom_values(self):
+        with platform_modules("install", "marketing") as (frappe, (install, marketing)):
+            stored = {
+                ("Website Settings", "app_name"): "Frappe",
+                ("Website Settings", "app_logo"): "/assets/frappe/images/frappe-framework-logo.svg",
+                ("Website Settings", "footer_logo"): "",
+                ("Website Settings", "footer_powered"): "Powered by ERPNext",
+                ("Website Settings", "copyright"): "My Own Company",
+                ("System Settings", "app_name"): "ERPNext",
+            }
+            frappe.db.exists = Mock(return_value=True)
+            frappe.get_meta = Mock(return_value=Mock(has_field=Mock(return_value=True)))
+            frappe.db.get_single_value = Mock(side_effect=lambda dt, field: stored[(dt, field)])
+            frappe.db.set_single_value = Mock(side_effect=lambda dt, field, value: stored.update({(dt, field): value}))
+            install.ensure_site_branding()
+            self.assertEqual(stored[("Website Settings", "app_name")], "ReckonERP")
+            self.assertEqual(stored[("System Settings", "app_name")], "ReckonERP")
+            self.assertEqual(stored[("Website Settings", "app_logo")], marketing.LOGO)
+            self.assertEqual(stored[("Website Settings", "footer_logo")], marketing.LOGO)
+            self.assertEqual(stored[("Website Settings", "footer_powered")], "Powered by ReckonERP")
+            self.assertEqual(stored[("Website Settings", "copyright")], "My Own Company")
+            frappe.db.set_single_value.reset_mock()
+            install.ensure_site_branding()
+            frappe.db.set_single_value.assert_not_called()
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)

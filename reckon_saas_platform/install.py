@@ -31,6 +31,7 @@ def after_install() -> None:
     setup_workspace()
     ensure_workspace_sidebar()
     ensure_signup_settings()
+    ensure_site_branding()
 
 
 def after_migrate() -> None:
@@ -40,6 +41,7 @@ def after_migrate() -> None:
     ensure_workspace_sidebar()
     ensure_signup_settings()
     ensure_marketing_home()
+    ensure_site_branding()
     audit_tenant_roles()
 
 
@@ -55,6 +57,40 @@ def ensure_marketing_home() -> None:
     current = frappe.db.get_single_value("Website Settings", "home_page") or ""
     if current in ("login", "index", "home"):
         frappe.db.set_single_value("Website Settings", "home_page", "")
+        frappe.clear_cache()
+
+
+def _is_default_branding(value) -> bool:
+    """True for a blank value or one that still names the stock framework or ERP."""
+    text = str(value or "").strip().lower()
+    return not text or "frappe" in text or "erpnext" in text
+
+
+def ensure_site_branding() -> None:
+    """Give /login, emails and the footer the same name, logo and "powered by" as the landing page.
+
+    The login page reads these Website Settings and System Settings fields. Only
+    blank or stock values are replaced, so a name or logo the vendor chose on
+    purpose is kept.
+    """
+    from reckon_saas_platform.marketing import BRAND_NAME, LOGO, POWERED_BY, PUBLISHER
+
+    wanted = (
+        ("Website Settings", "app_name", BRAND_NAME),
+        ("Website Settings", "app_logo", LOGO),
+        ("Website Settings", "footer_logo", LOGO),
+        ("Website Settings", "footer_powered", POWERED_BY),
+        ("Website Settings", "copyright", PUBLISHER),
+        ("System Settings", "app_name", BRAND_NAME),
+    )
+    changed = False
+    for doctype, field, value in wanted:
+        if not frappe.db.exists("DocType", doctype) or not frappe.get_meta(doctype).has_field(field):
+            continue
+        if _is_default_branding(frappe.db.get_single_value(doctype, field)):
+            frappe.db.set_single_value(doctype, field, value)
+            changed = True
+    if changed:
         frappe.clear_cache()
 
 

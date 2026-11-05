@@ -20,6 +20,8 @@ from xml.sax.saxutils import escape as xml_escape
 import frappe
 
 SITE_NAME = "ReckonERP"
+BRAND_NAME = SITE_NAME
+POWERED_BY = "Powered by ReckonERP"
 SUPPORT_EMAIL = "hello@reckon.tech"
 COMPANY_SITE = "https://www.reckon.tech/"
 WHATSAPP_DISPLAY = "+8801325-009955"
