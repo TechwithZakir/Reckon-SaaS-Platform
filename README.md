@@ -114,6 +114,15 @@ site, after the same length and wording checks (no "best", "guaranteed", ...); t
 check then re-runs and, if enabled, search engines are notified. It does nothing
 until enabled and keyed, and stops at the monthly limit.
 
+### SEO Agent Studio (a module of its own)
+
+**SEO Agent Studio** is a separate Desk module (workspace `/desk/seo-agent-studio`, vendor
+users only) that gathers everything the SEO agent produces: **SEO Suggestions** to
+approve, **Blog Articles** to review and publish, a link to the agent settings, and
+shortcuts to the live blog, sitemap, `llms.txt` and RSS feed. The agent's configuration
+stays in **SaaS Platform Settings > SEO Agent (AI)** because it shares that page with the
+site address and tracking IDs. After deploying, run `bench build` and `bench migrate`.
+
 ### Blog and the agent that writes for it
 
 The landing page, header and footer link to **/blog**: articles, tutorials, feature
@@ -124,14 +133,16 @@ landing page's "From the blog" section and the related module page. An empty blo
 `noindex` and stays out of the sitemap.
 
 To have the agent write: in **SaaS Platform Settings > SEO Agent (AI)** enable the agent,
-tick **Write Blog Drafts**, set **Articles per Run** (1-3) and, for the weekly update,
-paste this week's release notes or news into **Blog Notes**. Each run rotates through
+tick **Write Blog Drafts**, set **Articles per Run** (1-3), **Blog Frequency** (Monthly by default) and, for the weekly update,
+paste this week's release notes or news into **Blog Notes**. Monthly means a scheduled run writes only if no AI draft exists yet this month; **Run SEO Agent** always writes. Each run rotates through
 tutorial, feature guide, article and weekly update, and saves **drafts**. Read one,
 edit it, then **Publish**. The agent has no internet access and is told not to state
 news, statistics, dates or competitor claims; it may only describe ReckonERP from the
 site's own text and your notes. Each draft also carries an **Off-page Promotion Kit**:
-a LinkedIn post, a Facebook post and an outreach pitch for blogs and directories. A
-person copies and sends them; nothing is posted or emailed automatically.
+a LinkedIn post, a Facebook post and an outreach pitch for blogs and directories. Each draft also gets a **cover image** drawn by the platform (a branded 1200x630 picture with the title and a
+illustration for its kind); **Draw Cover** redraws it. The cover is used on the post, the cards and the social preview.
+Drafts are written in a plain, human voice and get one clean-up call when stock AI phrases slip in. A
+person copies and sends the promotion kit; nothing is posted or emailed automatically.
 
 Off-page checklist (the agent cannot do these for you): publish the LinkedIn and Facebook
 posts from the kit, send the pitch to relevant blogs, directories and partners, ask

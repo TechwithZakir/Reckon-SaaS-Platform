@@ -353,7 +353,7 @@ class BlogWiringTests(unittest.TestCase):
         self.assertIn('"SEO Article": "reckon_saas_platform.saas_security.get_vendor_only_query"', hooks)
         for name in ("reckon_blog.html", "reckon_blog.py", "reckon_blog_rss.xml", "reckon_blog_rss.py"):
             self.assertTrue((PKG / "www" / name).exists(), name)
-        doctype = json.loads((PKG / "saas_platform" / "doctype" / "seo_article" / "seo_article.json").read_text(encoding="utf-8"))
+        doctype = json.loads((PKG / "seo_agent_studio" / "doctype" / "seo_article" / "seo_article.json").read_text(encoding="utf-8"))
         self.assertEqual(doctype["autoname"], "field:slug")
         self.assertEqual(doctype["field_order"], [f["fieldname"] for f in doctype["fields"]])
         status = next(f for f in doctype["fields"] if f["fieldname"] == "status")

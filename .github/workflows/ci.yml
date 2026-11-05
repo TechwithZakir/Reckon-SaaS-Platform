@@ -36,7 +36,7 @@ jobs:
           assert deps["erpnext"] == ">=15.0.0,<17.0.0", deps["erpnext"]
           assert Path("reckon_saas_platform/hooks.py").exists()
           assert Path("reckon_saas_platform/patches.txt").exists()
-          assert Path("reckon_saas_platform/modules.txt").read_text().strip() == "SaaS Platform"
+          assert Path("reckon_saas_platform/modules.txt").read_text().split() == ["SaaS", "Platform", "SEO", "Agent", "Studio"]
           PY
 
       - name: Compile Python and validate JSON

@@ -1,0 +1,34 @@
+{
+ "doctype": "Workspace",
+ "name": "SEO Agent Studio",
+ "label": "SEO Agent Studio",
+ "title": "SEO Agent Studio",
+ "module": "SEO Agent Studio",
+ "category": "Modules",
+ "public": 1,
+ "for_user": "",
+ "is_hidden": 0,
+ "icon": "search",
+ "roles": [
+  {"role": "Reckon Vendor Superuser"},
+  {"role": "System Manager"}
+ ],
+ "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"SEO Agent Studio\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Suggestions and blog drafts from the SEO agent. Nothing goes live until you approve or publish it.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Suggestions\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Blog Articles\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Agent Settings\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Blog\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Sitemap\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"llms.txt\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"RSS Feed\", \"col\": 3}}]",
+ "shortcuts": [
+  {"label": "SEO Suggestions", "type": "DocType", "link_to": "SEO Suggestion", "doc_view": "List", "color": "Green"},
+  {"label": "Blog Articles", "type": "DocType", "link_to": "SEO Article", "doc_view": "List", "color": "Green"},
+  {"label": "Agent Settings", "type": "DocType", "link_to": "SaaS Platform Settings", "doc_view": "List"},
+  {"label": "Blog", "type": "URL", "url": "/blog", "color": "Blue"},
+  {"label": "Sitemap", "type": "URL", "url": "/sitemap.xml", "color": "Blue"},
+  {"label": "llms.txt", "type": "URL", "url": "/llms.txt", "color": "Blue"},
+  {"label": "RSS Feed", "type": "URL", "url": "/blog/rss.xml", "color": "Blue"}
+ ],
+ "links": [
+ ],
+ "charts": [
+ ],
+ "number_cards": [
+ ],
+ "modified": "2026-11-05 00:00:00.000000",
+ "type": "Workspace"
+}

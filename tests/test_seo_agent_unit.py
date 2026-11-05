@@ -171,7 +171,7 @@ class SeoAgentTests(unittest.TestCase):
         hooks = (pkg / "hooks.py").read_text(encoding="utf-8")
         self.assertIn('"weekly": ["reckon_saas_platform.seo_agent.run_agent_weekly"]', hooks)
         self.assertIn('"SEO Suggestion": "reckon_saas_platform.saas_security.get_vendor_only_query"', hooks)
-        doctype = json.loads((pkg / "saas_platform" / "doctype" / "seo_suggestion" / "seo_suggestion.json").read_text(encoding="utf-8"))
+        doctype = json.loads((pkg / "seo_agent_studio" / "doctype" / "seo_suggestion" / "seo_suggestion.json").read_text(encoding="utf-8"))
         self.assertEqual(doctype["name"], "SEO Suggestion")
         self.assertEqual(doctype["field_order"], [f["fieldname"] for f in doctype["fields"]])
         status = next(f for f in doctype["fields"] if f["fieldname"] == "status")

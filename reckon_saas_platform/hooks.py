@@ -116,6 +116,6 @@ fixtures = [
     },
     {
         "dt": "Workspace",
-        "filters": [["name", "=", "Reckon SaaS Admin"]],
+        "filters": [["name", "in", ["Reckon SaaS Admin", "SEO Agent Studio"]]],
     },
 ]

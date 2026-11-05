@@ -16,6 +16,10 @@ APP_PATH = Path(__file__).parent
 WORKSPACE_FILE = APP_PATH / "saas_platform" / "workspace" / "reckon_saas_admin" / "reckon_saas_admin.json"
 SAAS_SIDEBAR = "SaaS Platform"
 SIDEBAR_FILE = APP_PATH / "workspace_sidebar" / "saas_platform.json"
+# The SEO Agent Studio module ships its own workspace and rail the same way.
+SEO_STUDIO = "SEO Agent Studio"
+SEO_STUDIO_WORKSPACE_FILE = APP_PATH / "seo_agent_studio" / "workspace" / "seo_agent_studio" / "seo_agent_studio.json"
+SEO_STUDIO_SIDEBAR_FILE = APP_PATH / "workspace_sidebar" / "seo_agent_studio.json"
 
 
 def _read_shipped(path: Path) -> dict:
@@ -32,6 +36,7 @@ def after_install() -> None:
     ensure_workspace_sidebar()
     ensure_signup_settings()
     ensure_site_branding()
+    setup_seo_studio()
 
 
 def after_migrate() -> None:
@@ -39,6 +44,7 @@ def after_migrate() -> None:
     setup_modules()
     setup_workspace()
     ensure_workspace_sidebar()
+    setup_seo_studio()
     ensure_signup_settings()
     ensure_marketing_home()
     ensure_site_branding()
@@ -97,6 +103,64 @@ def refresh_site_seo() -> None:
     from reckon_saas_platform.seo import refresh_seo
 
     refresh_seo("migrate")
+
+
+def setup_seo_studio() -> None:
+    """Create or refresh the SEO Agent Studio workspace and its left rail.
+
+    A problem here is logged and never stops an install or a migrate.
+    """
+    try:
+        ensure_seo_studio_workspace()
+        ensure_seo_studio_sidebar()
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "SEO Agent Studio navigation")
+
+
+def _studio_workspace_doc(update: bool = False) -> dict:
+    data = _read_shipped(SEO_STUDIO_WORKSPACE_FILE)
+    data["title"] = _(data["title"])
+    data.setdefault("type", "Workspace")
+    if update:
+        data.pop("name")
+    return data
+
+
+def ensure_seo_studio_workspace() -> None:
+    if not frappe.db.exists("Workspace", SEO_STUDIO):
+        frappe.get_doc(_studio_workspace_doc()).insert(ignore_permissions=True)
+    else:
+        workspace = frappe.get_doc("Workspace", SEO_STUDIO)
+        workspace.update(_studio_workspace_doc(update=True))
+        workspace.save(ignore_permissions=True)
+
+
+def _studio_sidebar_doc() -> dict:
+    """The rail shipped in ``workspace_sidebar/seo_agent_studio.json``, minus doctypes this site lacks."""
+    definition = _read_shipped(SEO_STUDIO_SIDEBAR_FILE)
+    definition["items"] = [
+        item
+        for item in definition["items"]
+        if item["type"] != "Link" or item.get("link_type") == "URL" or frappe.db.exists(item["link_type"], item["link_to"])
+    ]
+    return definition
+
+
+def ensure_seo_studio_sidebar() -> None:
+    if not frappe.db.exists("DocType", "Workspace Sidebar"):
+        return  # Frappe v15 has no Workspace Sidebar.
+    names = set(frappe.get_all("Workspace Sidebar", filters={"module": SEO_STUDIO}, pluck="name"))
+    if frappe.db.exists("Workspace Sidebar", SEO_STUDIO):
+        names.add(SEO_STUDIO)
+    definition = _studio_sidebar_doc()
+    if not names:
+        frappe.get_doc(definition).insert(ignore_permissions=True, ignore_links=True)
+        return
+    for name in sorted(names):
+        sidebar = frappe.get_doc("Workspace Sidebar", name)
+        sidebar.set("items", definition["items"])
+        sidebar.header_icon = definition["header_icon"]
+        sidebar.save(ignore_permissions=True)
 
 
 def after_app_install(app_name: str | None = None) -> None:
