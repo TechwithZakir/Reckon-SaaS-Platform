@@ -1185,8 +1185,8 @@ def landing_for_user(user: str | None) -> str | None:
 
     ``None`` for guests, who see the marketing site. Administrator goes to Desk.
     Module apps decide their own users' landing page through the
-    ``get_website_user_home_page`` hook. Other vendor users go to the vendor
-    console, and tenant users to the page the platform has always chosen for
+    ``get_website_user_home_page`` hook. Other vendor users go to the module's
+    workspace, and tenant users to the page the platform has always chosen for
     them (``saas.get_user_home_page``: their module, or the subscription page
     when access is not active). Anyone else goes to Desk.
     """
@@ -1201,12 +1201,14 @@ def landing_for_user(user: str | None) -> str | None:
         if route:
             return _as_route(route)
 
+    from reckon_saas_platform.module_registry import get_landing_workspace
     from reckon_saas_platform.saas import get_user_home_page
     from reckon_saas_platform.saas_security import is_vendor_user
     from reckon_saas_platform.tenant_security import get_user_companies
 
-    if is_vendor_user(user):
-        return "/reckon-saas-admin"
     if get_user_companies(user):
         return _as_route(get_user_home_page(user))
+    if is_vendor_user(user):
+        # Vendor superusers (not Administrator) work in the module's workspace too.
+        return _as_route(get_landing_workspace())
     return "/desk"
