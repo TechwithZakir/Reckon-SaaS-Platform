@@ -100,34 +100,35 @@ class MarketingDataTests(unittest.TestCase):
             if app.get("url"):
                 self.assertIn(app["url"].rsplit("/", 1)[1], slugs)
 
-    def test_signed_in_users_go_to_their_module_not_the_marketing_page(self):
-        with platform_modules("marketing", "module_registry", "saas", "saas_gate", "saas_security") as (
+    def test_signed_in_users_go_to_desk_or_their_saas_page_not_the_marketing_page(self):
+        with platform_modules("marketing", "saas", "saas_security", "tenant_security") as (
             frappe,
-            (marketing, registry, saas, gate, security),
+            (marketing, saas, security, tenant),
         ):
-            frappe.get_installed_apps = Mock(return_value=["app"])
-            hooks = {
-                "reckon_saas_modules": [dict(DEFINITIONS[0], home_route="/desk/distribution")],
-                "get_website_user_home_page": [],
-            }
+            hooks = {"get_website_user_home_page": []}
             frappe.get_hooks = Mock(side_effect=lambda name, app_name=None: hooks.get(name, []))
             self.assertIsNone(marketing.landing_for_user("Guest"))
             self.assertIsNone(marketing.landing_for_user(None))
 
-            saas.get_user_module_keys = Mock(return_value=["distribution"])
-            gate.is_user_gated = Mock(return_value=False)
-            security.is_vendor_user = Mock(return_value=False)
-            self.assertEqual(marketing.landing_for_user("owner@example.test"), "/desk/distribution")
+            # Administrator always goes to Desk, even though it counts as a vendor.
+            security.is_vendor_user = Mock(return_value=True)
+            self.assertEqual(marketing.landing_for_user("Administrator"), "/desk")
 
-            gate.is_user_gated = Mock(return_value=True)
+            # A tenant user goes where the platform has always sent them.
+            security.is_vendor_user = Mock(return_value=False)
+            tenant.get_user_companies = Mock(return_value=["Acme"])
+            saas.get_user_home_page = Mock(return_value="app/distribution")
+            self.assertEqual(marketing.landing_for_user("owner@example.test"), "/app/distribution")
+            saas.get_user_home_page = Mock(return_value="reckonerp-subscription")
             self.assertEqual(marketing.landing_for_user("owner@example.test"), "/reckonerp-subscription")
 
+            # A vendor superuser (not Administrator) goes to the vendor console.
             security.is_vendor_user = Mock(return_value=True)
             self.assertEqual(marketing.landing_for_user("vendor@example.test"), "/reckon-saas-admin")
 
+            # Other users with no tenant company go to Desk.
             security.is_vendor_user = Mock(return_value=False)
-            gate.is_user_gated = Mock(return_value=False)
-            saas.get_user_module_keys = Mock(return_value=[])
+            tenant.get_user_companies = Mock(return_value=[])
             self.assertEqual(marketing.landing_for_user("staff@example.test"), "/desk")
 
             # A module app that claims the user wins, and bare routes get a leading slash.
