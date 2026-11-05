@@ -79,3 +79,4 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .prose code{background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.92em}
 .prose pre{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}.prose pre code{background:none;border:0;padding:0}
 .prose a{font-weight:600}.meta{color:var(--mut);font-size:.9rem;margin:0 0 20px}
+.cover{display:block;width:100%;height:auto;border-radius:16px;margin:0 0 24px}

@@ -244,6 +244,102 @@ class BlogAgentTests(unittest.TestCase):
             agent.call_model.assert_not_called()
 
 
+try:
+    import PIL.Image as _PILImage
+except ModuleNotFoundError:  # CI installs only ruff; the drawing tests run where Pillow exists.
+    _PILImage = None
+
+
+class HumanVoiceAndCoverTests(unittest.TestCase):
+    def test_stock_phrases_are_found_and_tidied(self):
+        with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_agent") as (_f, (_m, _s, _a, _b, agent)):
+            found = agent.cliches("In today's fast-paced world we leverage a seamless, robust tool. Moreover, it's important to note this.")
+            self.assertGreaterEqual(len(found), 5)
+            self.assertEqual(agent.cliches("We plan routes at 6am and check stock before loading the van."), [])
+            self.assertEqual(agent.tidy("Plan routes — then load the van — and go."), "Plan routes, then load the van, and go.")
+            self.assertIn("first person plural", agent.STYLE)
+            self.assertIn("Do not invent customers", agent.STYLE)
+
+    def test_one_cleanup_call_only_when_stock_phrases_are_present(self):
+        clean = BODY
+        stock = BODY + " We leverage a seamless approach."
+        with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_agent") as (_f, (_m, _s, seo_agent, _b, agent)):
+            seo_agent.call_model = Mock(return_value=BODY + " We use a simple approach.")
+            body, left = agent.humanise(_Dict(), clean)
+            self.assertEqual((body, left), (clean, []))
+            seo_agent.call_model.assert_not_called()
+            body, left = agent.humanise(_Dict(), stock)
+            self.assertEqual(left, [])
+            self.assertIn("simple approach", body)
+            self.assertEqual(seo_agent.call_model.call_count, 1)
+            self.assertIn("leverage", seo_agent.call_model.call_args.args[1])
+            # When the monthly cap stops the call, the draft is kept and the phrases are reported.
+            seo_agent.call_model = Mock(side_effect=seo_agent.AgentLimit("cap"))
+            body, left = agent.humanise(_Dict(), stock)
+            self.assertEqual(body, stock)
+            self.assertTrue(left)
+
+    def test_monthly_cadence_skips_scheduled_runs_but_not_the_button(self):
+        plan = json.dumps([{"category": "Weekly Update", "title": "Weekly tips", "keyword": "distribution", "outline": "a"}])
+        with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_agent") as (frappe, (marketing, seo, agent, blog, writer)):
+            modules = _site(frappe, marketing, [])
+            frappe.get_all = Mock(return_value=["existing-ai-draft"])  # an AI draft already exists this month
+            agent.call_model = Mock(side_effect=AssertionError("must not call the model"))
+            conf = _Dict(seo_blog_enabled=1, seo_blog_frequency="Monthly", seo_agent_articles_per_run=1)
+            self.assertEqual(writer.write_articles(conf, [], modules, [], 3), [])
+            filters = frappe.get_all.call_args.kwargs["filters"]
+            self.assertEqual((filters["source"], filters["creation"]), ("AI", [">=", "2026-11-01"]))
+            # Weekly frequency and forced runs do not check the month.
+            frappe.get_all = Mock(return_value=[])
+            replies = iter([plan, "no markers here"])
+            agent.call_model = Mock(side_effect=lambda s, prompt, max_tokens=1500: next(replies))
+            writer.write_articles(_Dict(seo_blog_enabled=1, seo_blog_frequency="Weekly", seo_agent_articles_per_run=1), [], modules, [], 3)
+            self.assertEqual(agent.call_model.call_count, 2)
+
+    def test_each_draft_gets_a_cover_and_a_failed_cover_does_not_lose_the_post(self):
+        plan = json.dumps([{"category": "Weekly Update", "title": "Weekly tips", "keyword": "distribution", "outline": "a"}])
+        reply = BlogAgentTests().reply()
+        for cover_result in ("/files/plan-fmcg-delivery-routes-step-by-step-cover.webp", RuntimeError("no pillow")):
+            with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_image", "blog_agent") as (frappe, (marketing, seo, agent, blog, image, writer)):
+                modules = _site(frappe, marketing, [])
+                frappe.db.exists = Mock(side_effect=lambda doctype, name=None: True if doctype == "DocType" else None)
+                frappe.get_doc = Mock(return_value=Mock())
+                frappe.db.set_value = Mock()
+                frappe.utils.get_url = Mock(return_value="https://example.test/")
+                frappe.get_all = Mock(return_value=[])
+                agent.call_model = Mock(side_effect=[plan, reply])
+                image.attach_cover = Mock(side_effect=[cover_result]) if isinstance(cover_result, Exception) else Mock(return_value=cover_result)
+                written = writer.write_articles(_Dict(seo_blog_enabled=1, seo_blog_frequency="Weekly"), [], modules, [], 3)
+                self.assertEqual(written, ["Plan FMCG delivery routes step by step"])
+                if isinstance(cover_result, Exception):
+                    frappe.log_error.assert_called()
+                else:
+                    frappe.db.set_value.assert_called_once_with("SEO Article", "plan-fmcg-delivery-routes-step-by-step", "cover_image", cover_result)
+
+    def test_cover_urls_must_be_files_and_reach_cards_posts_and_social_previews(self):
+        row = dict(ROWS[0], cover_image="/files/route-planning-guide-cover.webp")
+        bad = dict(ROWS[1], cover_image="/files/evil.svg")
+        with platform_modules("marketing", "blog") as (frappe, (marketing, blog)):
+            _site(frappe, marketing, [row, bad])
+            articles = blog.get_articles()
+            page = blog.article_page(BASE, {**articles[0], "body": BODY}, articles)
+        self.assertEqual(articles[0]["image"], "/files/route-planning-guide-cover.webp")
+        self.assertEqual(articles[1]["image"], "")  # an svg or foreign path is never used
+        self.assertEqual(page["og_image"], f"{BASE}/files/route-planning-guide-cover.webp")
+        self.assertEqual(json.loads(page["jsonld"][0])["image"], f"{BASE}/files/route-planning-guide-cover.webp")
+
+    @unittest.skipUnless(_PILImage, "Pillow is not installed")
+    def test_cover_is_drawn_for_every_kind_and_long_titles(self):
+        import io
+
+        with platform_modules("blog", "blog_image") as (_f, (blog, image)):
+            for category in blog.CATEGORIES:
+                data = image.make_cover("How to plan FMCG delivery routes and collections without the spreadsheet chaos", category)
+                picture = _PILImage.open(io.BytesIO(data))
+                self.assertEqual((picture.size, picture.format), ((1200, 630), "WEBP"))
+            self.assertLess(len(data), 200_000)
+
+
 class BlogWiringTests(unittest.TestCase):
     def test_routes_doctype_settings_and_permissions(self):
         hooks = (PKG / "hooks.py").read_text(encoding="utf-8")

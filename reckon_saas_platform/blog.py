@@ -23,7 +23,8 @@ RSS = "/blog/rss.xml"
 CACHE_KEY = "reckon_saas_blog_articles"
 CATEGORIES = ("Article", "Tutorial", "Feature Guide", "Weekly Update")
 SLUG = re.compile(r"[a-z0-9][a-z0-9-]{2,78}")
-LIST_FIELDS = ["name", "title", "summary", "category", "published_on", "modified", "related_module", "keywords"]
+LIST_FIELDS = ["name", "title", "summary", "category", "published_on", "modified", "related_module", "keywords", "cover_image"]
+COVER_FILE = re.compile(r"/files/[A-Za-z0-9._-]+\.(?:webp|png|jpg)")
 
 
 def slugify(text: str) -> str:
@@ -50,6 +51,7 @@ def _row(row) -> dict:
         "module": row.get("related_module") or "",
         "keywords": row.get("keywords") or "",
         "url": article_url(row.get("name") or ""),
+        "image": row.get("cover_image") if COVER_FILE.fullmatch(row.get("cover_image") or "") else "",
     }
 
 
@@ -196,7 +198,7 @@ def article_ld(base: str, article: dict) -> dict:
         "dateModified": article["modified"] or article["published"],
         "articleSection": article["category"],
         "inLanguage": "en",
-        "image": f"{base}{marketing.LOGO_SOCIAL}",
+        "image": f"{base}{article.get('image') or marketing.LOGO_SOCIAL}",
         "author": {"@type": "Organization", "name": marketing.SITE_NAME},
         "publisher": {
             "@type": "Organization",
@@ -241,6 +243,7 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
         h1=article["title"],
         trail=[("Home", marketing.HOME), ("Blog", BLOG), (article["title"], article["url"])],
         extra_ld=[article_ld(base, article)],
+        og_image=f"{base}{article['image']}" if article.get("image") else None,
         article=article,
         article_html=render_markdown(article.get("body", "")),
         minutes=read_minutes(article.get("body", "")),

@@ -264,7 +264,7 @@ def run_agent(trigger: str = "weekly") -> dict:
             from reckon_saas_platform import blog_agent
 
             week = int(frappe.utils.getdate(frappe.utils.nowdate()).isocalendar()[1])
-            written = blog_agent.write_articles(settings, pages, modules, keywords, week)
+            written = blog_agent.write_articles(settings, pages, modules, keywords, week, force=trigger == "manual")
             if written:
                 report.append(f"Blog drafts waiting for review ({len(written)}): " + "; ".join(written))
             if questions:

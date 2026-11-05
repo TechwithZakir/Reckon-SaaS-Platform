@@ -5,6 +5,11 @@ frappe.ui.form.on("SEO Article", {
 			frm.set_value("status", status);
 			frm.save();
 		};
+		frm.add_custom_button(__("Draw Cover"), () =>
+			frappe
+				.call({ method: "reckon_saas_platform.blog_image.generate_cover", args: { name: frm.doc.name }, freeze: true })
+				.then(() => frm.reload_doc())
+		);
 		if (frm.doc.status !== "Published") frm.add_custom_button(__("Publish"), () => set("Published"));
 		if (frm.doc.status === "Published") {
 			frm.add_custom_button(__("View on Website"), () => window.open("/blog/" + frm.doc.slug, "_blank"));

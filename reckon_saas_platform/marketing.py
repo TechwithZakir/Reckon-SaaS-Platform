@@ -957,6 +957,7 @@ def make_page(
     same_as=None,
     extra_ld=None,
     noindex: bool = False,
+    og_image: str | None = None,
     **extra,
 ) -> dict:
     """Everything a template needs: head tags, JSON-LD and breadcrumbs."""
@@ -980,7 +981,7 @@ def make_page(
         "description": description,
         "h1": h1,
         "canonical": f"{base}{path}",
-        "og_image": f"{base}{LOGO_SOCIAL}",
+        "og_image": og_image or f"{base}{LOGO_SOCIAL}",
         "site_name": SITE_NAME,
         "trail": trail,
         "noindex": noindex,
