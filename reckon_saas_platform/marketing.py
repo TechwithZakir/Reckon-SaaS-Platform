@@ -32,6 +32,7 @@ HOME = "/"
 FEATURES = "/features"
 MODULES = "/modules"
 INTEGRATIONS = "/integrations"
+FAQ = "/faq"
 SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
 LOGO = "/assets/reckon_saas_platform/images/reckonerp-logo.webp"
@@ -453,6 +454,8 @@ FEATURE_LIST = (
 # --- Module copy: marketing text layered on the registry's own fields -----------
 MODULE_COPY = {
     "distribution": {
+        "seo_title": "Distribution software for FMCG distributors in Bangladesh",
+        "headline": "Distribution software for FMCG distributors in Bangladesh",
         "tagline": "Routes, deliveries, collections and stock for FMCG distributors.",
         "audience": "FMCG distributors, wholesalers and van-sales teams",
         "benefits": [
@@ -475,6 +478,8 @@ MODULE_COPY = {
         ],
     },
     "accounts": {
+        "seo_title": "Accounting and inventory software for Bangladesh",
+        "headline": "Accounting and inventory software for Bangladesh small businesses",
         "tagline": "Invoices, bills, stock and Tally-style books for a small business.",
         "audience": "Shops, traders and small companies that need clean books",
         "benefits": [
@@ -492,6 +497,8 @@ MODULE_COPY = {
         ],
     },
     "sales_agent": {
+        "seo_title": "AI sales agent for B2B lead generation in Bangladesh",
+        "headline": "AI sales agent for finding and following up B2B customers",
         "tagline": "Find, research and follow up B2B customers, with approval before any send.",
         "audience": "Sales teams that sell to businesses in Bangladesh",
         "benefits": [
@@ -746,7 +753,7 @@ def get_modules() -> list[dict]:
     if frappe.db.exists("DocType", MODULE_DOCTYPE):
         for row in frappe.get_all(
             MODULE_DOCTYPE,
-            fields=["name", "module_name", "description", "features", "enabled"],
+            fields=["name", "module_name", "description", "features", "enabled", "modified"],
             ignore_permissions=True,
         ):
             records[row.get("name")] = row
@@ -772,11 +779,14 @@ def get_modules() -> list[dict]:
                 "name": label,
                 "description": description,
                 "tagline": copy.get("tagline") or description,
+                "seo_title": copy.get("seo_title") or "",
+                "headline": copy.get("headline") or "",
                 "audience": copy.get("audience") or "",
                 "benefits": list(copy.get("benefits") or []),
                 "features": [feature_label(k) for k in feature_keys],
                 "faqs": list(copy.get("faqs") or []),
                 "url": module_url(key),
+                "modified": str(record.get("modified") or "")[:10],
                 "image": illustration(MODULE_ILLUSTRATION.get(key, "erp")),
             }
         )
@@ -826,8 +836,8 @@ def dumps_ld(data: dict) -> str:
     return json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 
 
-def organization_ld(base: str) -> dict:
-    return {
+def organization_ld(base: str, same_as=None) -> dict:
+    data = {
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": SITE_NAME,
@@ -841,6 +851,9 @@ def organization_ld(base: str) -> dict:
             "email": SUPPORT_EMAIL,
         },
     }
+    if same_as:
+        data["sameAs"] = list(same_as)
+    return data
 
 
 def software_ld(base: str, name: str, description: str, path: str) -> dict:
@@ -893,13 +906,14 @@ def make_page(
     trail: list[tuple[str, str]] | None = None,
     faqs=None,
     software: tuple[str, str] | None = None,
+    same_as=None,
     **extra,
 ) -> dict:
     """Everything a template needs: head tags, JSON-LD and breadcrumbs."""
     trail = trail or [("Home", HOME)]
     ld = []
     if path == HOME:
-        ld.append(organization_ld(base))
+        ld.append(organization_ld(base, same_as))
     if software:
         ld.append(software_ld(base, software[0], software[1], path))
     if faqs:
@@ -921,7 +935,7 @@ def make_page(
     }
 
 
-def home_page(base: str, modules: list[dict], integrations=None) -> dict:
+def home_page(base: str, modules: list[dict], integrations=None, profiles=None) -> dict:
     description = (
         "ReckonERP is a cloud ERP with built-in AI for Bangladesh. Invoices, orders, stock and "
         "people in one workspace. Sign up for Distribution, Accounts or Sales AI."
@@ -934,6 +948,7 @@ def home_page(base: str, modules: list[dict], integrations=None) -> dict:
         h1="Your ERP, now with an AI that reads every ledger.",
         faqs=HOME_FAQS,
         software=(SITE_NAME, description),
+        same_as=profiles,
         features=FEATURE_LIST,
         modules=modules,
         integrations=list(integrations or INTEGRATIONS_LIST),
@@ -991,15 +1006,53 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
     return make_page(
         base,
         path=module["url"],
-        title=f"{module['name']} module | ReckonERP",
+        title=f"{module['seo_title'] or module['name'] + ' module'} | ReckonERP",
         description=description,
-        h1=module["name"],
+        h1=module["headline"] or module["name"],
         trail=[("Home", HOME), ("Modules", MODULES), (module["name"], module["url"])],
         faqs=module["faqs"],
         software=(f"{SITE_NAME} {module['name']}", description),
         module=module,
         modules=[m for m in modules if m["key"] != module["key"]],
         signup_url=signup_url(module["key"]),
+    )
+
+
+def faq_groups(modules: list[dict]) -> list[dict]:
+    """Every question the site answers, grouped, with repeated questions shown once."""
+    seen: set[str] = set()
+    groups = []
+
+    def add(title, faqs):
+        rows = []
+        for question, answer in faqs:
+            if question not in seen:
+                seen.add(question)
+                rows.append((question, answer))
+        if rows:
+            groups.append({"title": title, "faqs": rows})
+
+    add("About ReckonERP", HOME_FAQS)
+    for module in modules:
+        add(module["name"], module["faqs"])
+    for feature in FEATURE_LIST:
+        add(feature["title"], feature["faqs"])
+    return groups
+
+
+def faq_page(base: str, modules: list[dict]) -> dict:
+    groups = faq_groups(modules)
+    everything = [row for group in groups for row in group["faqs"]]
+    return make_page(
+        base,
+        path=FAQ,
+        title="ReckonERP FAQ: pricing, deployment, AI, licences and support",
+        description="Answers about ReckonERP pricing, implementation cost, dedicated cloud and "
+        "on-premises deployment, licences, AI and integration charges, and support.",
+        h1="Frequently asked questions about ReckonERP",
+        trail=[("Home", HOME), ("FAQ", FAQ)],
+        faqs=everything,
+        groups=groups,
     )
 
 
@@ -1028,12 +1081,19 @@ def public_paths(modules: list[dict]) -> list[str]:
     paths = [HOME, FEATURES]
     paths += [feature_url(f["slug"]) for f in FEATURE_LIST]
     paths += [MODULES] + [m["url"] for m in modules]
-    paths += [INTEGRATIONS, SIGNUP]
+    paths += [INTEGRATIONS, FAQ, SIGNUP]
     return paths
 
 
 def sitemap_xml(base: str, modules: list[dict]) -> str:
-    urls = "".join(f"<url><loc>{xml_escape(base + path)}</loc></url>" for path in public_paths(modules))
+    """Built on every request from the live module registry, so new modules appear by themselves."""
+    modified = {m["url"]: m.get("modified") for m in modules}
+    rows = []
+    for path in public_paths(modules):
+        lastmod = modified.get(path)
+        stamp = f"<lastmod>{xml_escape(lastmod)}</lastmod>" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", lastmod or "") else ""
+        rows.append(f"<url><loc>{xml_escape(base + path)}</loc>{stamp}</url>")
+    urls = "".join(rows)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n'
@@ -1074,6 +1134,12 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
         + ", ".join(item["name"] for item in integrations)
         + ".",
         "",
+        "## Answers",
+        "",
+        f"- [FAQ]({base}{FAQ}): pricing, deployment, implementation cost, licences, AI and "
+        "integration charges, support",
+        f"- [Full text for AI assistants]({base}/llms-full.txt)",
+        "",
         "## Start",
         "",
         f"- [Sign up]({base}{SIGNUP}): create a company workspace",
@@ -1084,8 +1150,85 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     return "\n".join(lines)
 
 
+def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
+    """The whole public site as one Markdown document, for AI assistants and crawlers."""
+    integrations = list(integrations or INTEGRATIONS_LIST)
+    out = [
+        f"# {SITE_NAME}: full site text",
+        "",
+        "> ReckonERP is a multi-tenant cloud ERP with built-in AI for businesses in Bangladesh, "
+        "built on ERPNext. Companies sign up online, subscribe to the modules they need and work "
+        "in their own private workspace, in Bangla or English.",
+        "",
+        f"Website: {base}/",
+        f"Contact: {SUPPORT_EMAIL}, WhatsApp {WHATSAPP_DISPLAY}, {COMPANY_SITE}",
+        "",
+        "## Modules",
+        "",
+    ]
+    for module in modules:
+        out += [f"### {module['name']}", f"URL: {base}{module['url']}", "", module["tagline"], ""]
+        if module["description"] and module["description"] != module["tagline"]:
+            out += [module["description"], ""]
+        if module["audience"]:
+            out += [f"Built for: {module['audience']}", ""]
+        out += [f"- {item}" for item in module["benefits"] + module["features"]] + [""]
+    out += ["## More from Reckon (on request)", ""]
+    out += [f"- {app['name']}: {app['text']}" for app in FAMILY_APPS] + ["", FAMILY_NOTE, "", "## Features", ""]
+    for feature in FEATURE_LIST:
+        out += [f"### {feature['title']}", f"URL: {base}{feature_url(feature['slug'])}", "", feature["intro"], ""]
+        out += [f"- {point}" for point in feature["points"]] + [""]
+    out += ["## Deployment options", ""]
+    out += [f"- {item['title']}: {item['text']}" for item in DEPLOYMENTS] + ["", AI_NOTE, ""]
+    out += ["## Integrations and channels", "", ", ".join(item["name"] for item in integrations) + ".", ""]
+    out += ["## Frequently asked questions", ""]
+    for group in faq_groups(modules):
+        out += [f"### {group['title']}", ""]
+        for question, answer in group["faqs"]:
+            out += [f"**{question}**", answer, ""]
+    out += [TRADEMARK_NOTE, ""]
+    return "\n".join(out)
+
+
+def _registered_domain(host: str) -> str:
+    """``app.reckon.tech`` -> ``reckon.tech`` (last two labels; enough to tell sibling hosts apart)."""
+    return ".".join(host.split(":")[0].split(".")[-2:])
+
+
+def _public_host_ok(host: str) -> bool:
+    """A host may build absolute URLs when it is, or sits beside, one of this site's own hosts.
+
+    Sibling hosts count (the site may have been renamed from distribution.example.com
+    to app.example.com), but an unrelated domain never does.
+    """
+    known = {str(frappe.local.site or "").lower()} if getattr(frappe.local, "site", None) else set()
+    configured = str(frappe.conf.get("host_name") or "")
+    if configured:
+        known.add(re.sub(r"^https?://", "", configured).split("/")[0].lower())
+    known.update(str(h).lower() for h in (frappe.conf.get("reckon_saas_public_hosts") or []))
+    return _registered_domain(host) in {_registered_domain(h) for h in known if h}
+
+
 def site_base() -> str:
-    """The domain this page is being served from (no trailing slash)."""
+    """The domain this page is served from, with no trailing slash and none written in code.
+
+    ``Public Website URL`` in SaaS Platform Settings wins. Otherwise the request's
+    own host is used when it is one of this site's known hosts; the site's
+    configured address is the last resort.
+    """
+    try:
+        configured = str(frappe.get_cached_doc("SaaS Platform Settings").get("public_website_url") or "").strip()
+    except Exception:
+        configured = ""
+    if re.fullmatch(r"https?://[A-Za-z0-9.-]+(:[0-9]{1,5})?/?", configured):
+        return configured.rstrip("/")
+
+    request = getattr(frappe.local, "request", None)
+    host = str(getattr(request, "host", "") or "").strip().lower()
+    if request is not None and re.fullmatch(r"[a-z0-9.-]+(:[0-9]{1,5})?", host) and _public_host_ok(host):
+        headers = getattr(request, "headers", None) or {}
+        scheme = headers.get("X-Forwarded-Proto") or getattr(request, "scheme", "") or "https"
+        return f"{'http' if scheme == 'http' else 'https'}://{host}"
     return frappe.utils.get_url().rstrip("/")
 
 
@@ -1119,6 +1262,16 @@ def get_tracking() -> dict:
     result["consent"] = (settings.get("tracking_consent") if settings is not None else None) != "Load immediately"
     result["enabled"] = bool(result["gtm"] or result["ga4"] or result["pixel"])
     return result
+
+
+def get_profiles() -> list[str]:
+    """Official profile links (LinkedIn, Facebook, ...) from SaaS Platform Settings, https only."""
+    try:
+        text = frappe.get_cached_doc("SaaS Platform Settings").get("social_profiles") or ""
+    except Exception:
+        return []
+    links = [line.strip() for line in str(text).splitlines()]
+    return [link for link in links if re.fullmatch(r"https://[^\s\"'<>]{4,200}", link)][:12]
 
 
 def shared_context(context, modules: list[dict]) -> None:

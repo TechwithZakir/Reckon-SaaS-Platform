@@ -13,5 +13,5 @@ def get_context(context):
 
     modules = marketing.get_modules()
     integrations = marketing.get_integrations()
-    page = marketing.home_page(marketing.site_base(), modules, integrations)
+    page = marketing.home_page(marketing.site_base(), modules, integrations, marketing.get_profiles())
     marketing.apply_context(context, page, modules)

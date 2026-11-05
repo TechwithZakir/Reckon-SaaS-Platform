@@ -270,6 +270,62 @@ class MarketingDataTests(unittest.TestCase):
             self.assertFalse(tracking["enabled"])
             self.assertTrue(tracking["consent"])  # unsaved settings still ask first
 
+    def test_public_address_comes_from_settings_or_a_known_request_host(self):
+        def request(host, proto=None):
+            return _Dict(host=host, scheme="http", headers={"X-Forwarded-Proto": proto} if proto else {})
+
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.get_url = Mock(return_value="https://old.example.test/")
+            frappe.local.site = "app.example.test"
+            frappe.conf = _Dict(host_name="https://old.example.test")
+            frappe.get_cached_doc = Mock(return_value=_Dict(public_website_url="https://www.example.test/"))
+            self.assertEqual(marketing.site_base(), "https://www.example.test")
+
+            frappe.get_cached_doc = Mock(return_value=_Dict(public_website_url="javascript:alert(1)"))
+            frappe.local.request = request("app.example.test", "https")
+            self.assertEqual(marketing.site_base(), "https://app.example.test")
+            # The site was renamed: its configured host is old.example.test but visitors use app2.
+            frappe.local.request = request("app2.example.test", "https")
+            self.assertEqual(marketing.site_base(), "https://app2.example.test")
+            frappe.local.request = request("evil.test")  # an unrelated domain is never trusted
+            self.assertEqual(marketing.site_base(), "https://old.example.test")
+            frappe.conf = _Dict(host_name="https://old.example.test", reckon_saas_public_hosts=["evil.test"])
+            frappe.local.request = request("evil.test", "http")
+            self.assertEqual(marketing.site_base(), "http://evil.test")
+
+    def test_sitemap_builds_itself_from_the_registry_with_lastmod(self):
+        record = {"name": "accounts", "module_name": "Accounts", "description": "d", "features": "", "modified": "2026-11-01 10:00:00"}
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe, records=[record])
+            xml = marketing.sitemap_xml(BASE, modules)
+        self.assertIn(f"<loc>{BASE}/modules/accounts</loc><lastmod>2026-11-01</lastmod>", xml)
+        self.assertIn(f"<loc>{BASE}/modules/distribution</loc></url>", xml)
+        self.assertIn(f"<loc>{BASE}/faq</loc>", xml)
+
+    def test_faq_page_and_llms_full_cover_the_questions(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe)
+            page = marketing.faq_page(BASE, modules)
+            full = marketing.llms_full_txt(BASE, modules)
+            llms = marketing.llms_txt(BASE, modules)
+        questions = [q for g in page["groups"] for q, _a in g["faqs"]]
+        self.assertEqual(len(questions), len(set(questions)))
+        self.assertIn("How does pricing work?", questions)
+        self.assertEqual(json.loads(page["jsonld"][0])["@type"], "FAQPage")
+        self.assertEqual(len(json.loads(page["jsonld"][0])["mainEntity"]), len(questions))
+        self.assertIn("**How does pricing work?**", full)
+        self.assertIn(f"{BASE}/modules/distribution", full)
+        self.assertNotIn("frappe", full.lower())
+        self.assertIn("/llms-full.txt", llms)
+
+    def test_home_page_lists_official_profiles_as_same_as(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(social_profiles="https://www.linkedin.com/company/x\njavascript:alert(1)\nhttps://a.b/c d"))
+            profiles = marketing.get_profiles()
+            home = marketing.home_page(BASE, _modules(marketing, frappe), None, profiles)
+        self.assertEqual(profiles, ["https://www.linkedin.com/company/x"])
+        self.assertEqual(json.loads(home["jsonld"][0])["sameAs"], profiles)
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)
@@ -433,6 +489,8 @@ class MarketingWiringTests(unittest.TestCase):
             ("/sitemap.xml", "reckon_sitemap.xml"),
             ("/robots.txt", "reckon_robots.txt"),
             ("/llms.txt", "reckon_llms.txt"),
+            ("/llms-full.txt", "reckon_llms_full.txt"),
+            ("/faq", "reckon_faq"),
             ("/reckonerp-signup", "reckonerp_signup"),
         ):
             self.assertIn(f'{{"from_route": "{source}", "to_route": "{target}"}}', hooks)
