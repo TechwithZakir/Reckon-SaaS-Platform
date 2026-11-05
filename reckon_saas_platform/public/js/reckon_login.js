@@ -23,6 +23,12 @@
     document.querySelectorAll("[class*=powered], .web-footer, footer").forEach(function (el) {
       if (/frappe|erpnext/i.test(el.textContent || "")) el.textContent = POWERED;
     });
+    // Reckon Aura Theme draws its own branded hero with the same name, logo and footer line.
+    if (document.querySelector(".aura-login-hero")) {
+      var extra = document.querySelector(".reckon-powered");
+      if (extra) extra.remove();
+      return;
+    }
     if (!document.querySelector(".reckon-powered")) {
       var line = document.createElement("p");
       line.className = "reckon-powered";
@@ -37,4 +43,5 @@
   // The login card can render after load (hash changes between login, signup and forgot password).
   window.addEventListener("hashchange", apply);
   window.addEventListener("load", apply);
+  setTimeout(apply, 1200);
 })();
