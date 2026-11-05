@@ -24,7 +24,8 @@
       if (/frappe|erpnext/i.test(el.textContent || "")) el.textContent = POWERED;
     });
     // Reckon Aura Theme draws its own branded hero with the same name, logo and footer line.
-    if (document.querySelector(".aura-login-hero")) {
+    var hero = document.querySelector(".aura-login-hero");
+    if (hero && hero.offsetParent !== null) {
       var extra = document.querySelector(".reckon-powered");
       if (extra) extra.remove();
       return;
