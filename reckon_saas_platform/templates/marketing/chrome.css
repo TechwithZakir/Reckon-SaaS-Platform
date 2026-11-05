@@ -42,8 +42,8 @@ footer.foot .foot-logo{display:block;line-height:0}
 footer.foot .foot-logo img{display:block;height:64px;width:auto;margin:0}
 address.contact{font-style:normal;display:grid;gap:10px;margin:0}
 address.contact>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-address.contact .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand2) 16%,transparent);color:var(--brand);flex:none}
-address.contact .ic svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+address.contact .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand2) 16%,transparent);color:var(--brand);flex:none}
+address.contact .ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 address.contact strong{min-width:118px;margin-right:2px;color:var(--mut);font-weight:700}
 address.contact a{font-weight:700}
 .chat{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px}

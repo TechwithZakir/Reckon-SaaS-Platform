@@ -517,6 +517,8 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn("+8801325-009955", html)
         self.assertIn('class="foot-logo"', html)
         self.assertEqual(html.count('<span class="ic">'), 3)
+        self.assertNotIn("<strong>Mail Address</strong>", html)  # icon-only; the label is for screen readers
+        self.assertIn('<span class="sr">Mail Address: </span>', html)
         self.assertIn("data-chat", html)
         self.assertIn("Continue on WhatsApp", html)
         questions = " ".join(q for q, _a in page["faqs"]).lower()
