@@ -1,0 +1,10 @@
+{
+ "doctype":"Page",
+ "icon":"search",
+ "module":"SEO Agent Studio",
+ "name":"seo-agent",
+ "page_name":"seo-agent",
+ "roles":[{"role":"Reckon Vendor Superuser"},{"role":"System Manager"}],
+ "standard":"Yes",
+ "title":"SEO Agent"
+}

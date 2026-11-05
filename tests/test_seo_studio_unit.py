@@ -40,36 +40,42 @@ class StudioInsideSaasAdminTests(unittest.TestCase):
         self.assertNotIn("SEO_STUDIO", install)
         self.assertNotIn("setup_seo_studio", install)
 
-    def test_saas_admin_workspace_has_the_seo_section_with_in_app_links(self):
+    def test_saas_admin_workspace_has_one_seo_agent_tile_and_its_settings(self):
         workspace = read(APP / "saas_platform" / "workspace" / "reckon_saas_admin" / "reckon_saas_admin.json")
-        seo = {s["label"]: s for s in workspace["shortcuts"] if s["label"] in ("SEO Suggestions", "Blog Articles", "SEO Agent Settings")}
-        self.assertEqual(set(seo), {"SEO Suggestions", "Blog Articles", "SEO Agent Settings"})
-        for shortcut in seo.values():
-            self.assertEqual(shortcut["type"], "DocType")  # opens inside the desk, not a new window
-        self.assertEqual(json.loads(seo["SEO Suggestions"]["stats_filter"]), {"status": "Pending"})
-        self.assertEqual(json.loads(seo["Blog Articles"]["stats_filter"]), {"status": "Draft"})
+        seo = {s["label"]: s for s in workspace["shortcuts"] if s["label"].startswith("SEO")}
+        self.assertEqual(set(seo), {"SEO Agent", "SEO Agent Settings"})
+        self.assertEqual((seo["SEO Agent"]["type"], seo["SEO Agent"]["link_to"]), ("Page", "seo-agent"))
+        self.assertEqual(seo["SEO Agent Settings"]["link_to"], "SaaS Platform Settings")
         self.assertFalse([s for s in workspace["shortcuts"] if s.get("type") == "URL" and "seo" in s["label"].lower()])
         blocks = json.loads(workspace["content"])
         self.assertIn("SEO Agent Studio", [b["data"].get("text") for b in blocks if b["type"] == "header"])
-        shortcut_blocks = {b["data"]["shortcut_name"] for b in blocks if b["type"] == "shortcut"}
-        self.assertEqual(shortcut_blocks, {s["label"] for s in workspace["shortcuts"]})
+        shortcut_blocks = [b["data"]["shortcut_name"] for b in blocks if b["type"] == "shortcut"]
+        self.assertEqual(shortcut_blocks, [s["label"] for s in workspace["shortcuts"]])
 
-    def test_saas_left_rail_has_the_same_section(self):
+    def test_saas_left_rail_has_the_same_two_links(self):
         rail = read(APP / "workspace_sidebar" / "saas_platform.json")
         labels = [(i["label"], i["type"]) for i in rail["items"]]
         position = labels.index((NAME, "Section Break"))
-        after = rail["items"][position + 1 : position + 4]
-        self.assertEqual([i["label"] for i in after], ["SEO Suggestions", "Blog Articles", "SEO Agent Settings"])
-        for item in after:
-            self.assertEqual((item["type"], item["link_type"]), ("Link", "DocType"))
+        after = rail["items"][position + 1 :]
+        self.assertEqual([i["label"] for i in after], ["SEO Agent", "SEO Agent Settings"])
+        self.assertEqual((after[0]["link_type"], after[0]["link_to"]), ("Page", "seo-agent"))
         self.assertEqual(sum(1 for label, kind in labels if label == NAME and kind == "Section Break"), 1)
+
+    def test_the_agent_page_exists_for_vendor_roles_only(self):
+        page = read(APP / scrub(NAME) / "page" / "seo_agent" / "seo_agent.json")
+        self.assertEqual((page["name"], page["module"], page["standard"]), ("seo-agent", NAME, "Yes"))
+        self.assertEqual({r["role"] for r in page["roles"]}, {"Reckon Vendor Superuser", "System Manager"})
+        script = (APP / scrub(NAME) / "page" / "seo_agent" / "seo_agent.js").read_text(encoding="utf-8")
+        self.assertIn('frappe.pages["seo-agent"].on_page_load', script)
+        self.assertNotIn("window.open", script)  # everything stays in this window
 
     def test_rail_filter_keeps_urls_and_drops_missing_doctypes(self):
         with platform_modules("install") as (frappe, (install,)):
             frappe.db.exists = Mock(side_effect=lambda doctype, name: name != "SEO Article")
             labels = [i["label"] for i in install._workspace_sidebar_doc()["items"]]
-        self.assertNotIn("Blog Articles", labels)
-        self.assertIn("SEO Suggestions", labels)
+        self.assertIn("SEO Agent", labels)
+        frappe.db.exists = Mock(side_effect=lambda doctype, name: name != "seo-agent")
+        self.assertNotIn("SEO Agent", [i["label"] for i in install._workspace_sidebar_doc()["items"]])
 
     def test_the_article_form_stays_in_the_same_window(self):
         script = (APP / scrub(NAME) / "doctype" / "seo_article" / "seo_article.js").read_text(encoding="utf-8")

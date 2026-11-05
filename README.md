@@ -114,15 +114,19 @@ site, after the same length and wording checks (no "best", "guaranteed", ...); t
 check then re-runs and, if enabled, search engines are notified. It does nothing
 until enabled and keyed, and stops at the monthly limit.
 
-### SEO Agent Studio (inside SaaS Admin)
+### SEO Agent (a chat page inside SaaS Admin)
 
-**SEO Agent Studio** is a module (it owns the SEO Suggestion and SEO Article doctypes) that
-opens **inside the same SaaS Admin page**, with no second workspace or window: a
-"SEO Agent Studio" section on the **Reckon SaaS Admin** home page and in its left
-rail, with **SEO Suggestions** (pending count), **Blog Articles** (draft count) and
-**SEO Agent Settings**. Vendor users only. The agent's configuration lives in
-**SaaS Platform Settings > SEO Agent (AI)**, next to the site address and tracking
-IDs. After deploying, run `bench build`, `bench migrate` and `bench restart`.
+Open **SaaS Admin > SEO Agent Studio > SEO Agent** (`/desk/seo-agent`, vendor users only). It is
+one text box, like a chat: type "What needs my approval?", "Find keyword gaps", "Improve page
+titles", "Suggest new FAQs", "Check if AI assistants mention us" or "Write a blog article about
+route planning". Replies are plain sentences, and anything it proposes appears as a card you
+**Approve**, **Reject**, **Publish** or open to edit, right in the conversation. Pending and
+keyword-gap questions cost nothing; the rest use the monthly AI call limit and the same checks as
+the weekly run. It stays in one window, and nothing goes live until you act on a card. Settings
+(enable, AI key, model, keywords, limits) are in **SaaS Platform Settings > SEO Agent (AI)**. The
+module **SEO Agent Studio** owns the SEO Suggestion and SEO Article doctypes, still reachable from
+the page's **All suggestions** and **All articles** buttons. After deploying run `bench build`,
+`bench migrate` and `bench restart`.
 
 ### Blog and the agent that writes for it
 

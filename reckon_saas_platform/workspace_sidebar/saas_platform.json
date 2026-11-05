@@ -168,22 +168,11 @@
    "show_arrow": 0
   },
   {
-   "label": "SEO Suggestions",
-   "link_to": "SEO Suggestion",
-   "link_type": "DocType",
+   "label": "SEO Agent",
+   "link_to": "seo-agent",
+   "link_type": "Page",
    "type": "Link",
-   "icon": "lightbulb",
-   "child": 1,
-   "indent": 0,
-   "collapsible": 1,
-   "show_arrow": 0
-  },
-  {
-   "label": "Blog Articles",
-   "link_to": "SEO Article",
-   "link_type": "DocType",
-   "type": "Link",
-   "icon": "file-text",
+   "icon": "sparkles",
    "child": 1,
    "indent": 0,
    "collapsible": 1,

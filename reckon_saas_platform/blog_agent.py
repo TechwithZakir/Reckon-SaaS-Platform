@@ -173,6 +173,60 @@ def _module_for(topic_text: str, modules: list[dict]) -> str:
     return ""
 
 
+def draft_topic(settings, topic: dict, pages: list[dict], modules: list[dict], paths: list[str], notes: str, base: str):
+    """Write, check, clean up and save one draft. Returns ``(title, "")`` or ``(None, reason)``."""
+    category = topic["category"]
+    working = topic["title"]
+    reply = seo_agent.call_model(settings, _write_prompt(topic, pages, paths, notes), 3500)
+    parts = parse_sections(reply)
+    title = seo_agent._clean(parts.get("TITLE"), 80)
+    summary = seo_agent._clean(parts.get("SUMMARY"), 200)
+    body = tidy(re.sub(r"<[^>]*>", "", parts.get("BODY", "")))
+    problem = valid_article(title, summary, body)
+    if problem:
+        return None, problem
+    body, left = humanise(settings, body)
+    problem = valid_article(title, summary, body)
+    if len(left) >= 4 or problem:
+        return None, problem or "the draft still reads like stock AI text"
+    slug = unique_slug(title)
+    link = f"{base}{blog.article_url(slug)}"
+    promo = "\n\n".join(
+        f"{label}:\n{parts.get(key, '').replace('{LINK}', link).strip()}"
+        for label, key in (("LinkedIn post", "LINKEDIN"), ("Facebook post", "FACEBOOK"), ("Outreach pitch", "PITCH"))
+        if parts.get(key)
+    )
+    doc = frappe.get_doc(
+        {
+            "doctype": blog.DOCTYPE,
+            "slug": slug,
+            "title": title,
+            "category": category,
+            "status": "Draft",
+            "source": "AI",
+            "summary": summary,
+            "body": blog.render_markdown(body),  # stored as HTML so the rich-text editor shows it formatted
+            "keywords": seo_agent._clean(parts.get("KEYWORDS"), 140),
+            "related_module": _module_for(title + " " + working + " " + str(topic.get("keyword") or ""), modules),
+            "promo_kit": promo,
+        }
+    )
+    doc.insert(ignore_permissions=True)
+    try:
+        from reckon_saas_platform import blog_image
+
+        cover = blog_image.attach_cover(slug, title, category)
+        if cover:
+            frappe.db.set_value(blog.DOCTYPE, slug, "cover_image", cover)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Blog cover image")  # the post is still saved without a cover
+    return title, ""
+
+
+def site_paths(modules: list[dict]) -> list[str]:
+    return [marketing.MODULES, marketing.FEATURES, marketing.INTEGRATIONS, marketing.FAQ, marketing.SIGNUP] + [m["url"] for m in modules]
+
+
 def already_wrote_this_month() -> bool:
     first = str(frappe.utils.nowdate())[:7] + "-01"
     return bool(
@@ -198,8 +252,7 @@ def write_articles(
     keyword_list = seo_agent._lines(settings.get("seo_target_keywords"))
     titles = frappe.get_all(blog.DOCTYPE, pluck="title", ignore_permissions=True)
     plan = seo_agent.parse_json_list(seo_agent.call_model(settings, _plan_prompt(categories, pages, keyword_list, titles, notes), 900))
-    paths = [marketing.MODULES, marketing.FEATURES, marketing.INTEGRATIONS, marketing.FAQ, marketing.SIGNUP]
-    paths += [m["url"] for m in modules]
+    paths = site_paths(modules)
     base = marketing.site_base()
     written = []
     for topic in plan[:count]:
@@ -207,50 +260,7 @@ def write_articles(
         working = seo_agent._clean(topic.get("title"), 120)
         if category not in categories or not working:
             continue
-        reply = seo_agent.call_model(
-            settings,
-            _write_prompt({**topic, "category": category, "title": working}, pages, paths, notes),
-            3500,
-        )
-        parts = parse_sections(reply)
-        title = seo_agent._clean(parts.get("TITLE"), 80)
-        summary = seo_agent._clean(parts.get("SUMMARY"), 200)
-        body = tidy(re.sub(r"<[^>]*>", "", parts.get("BODY", "")))
-        if valid_article(title, summary, body):
-            continue
-        body, left = humanise(settings, body)
-        if len(left) >= 4 or valid_article(title, summary, body):
-            continue
-        slug = unique_slug(title)
-        link = f"{base}{blog.article_url(slug)}"
-        promo = "\n\n".join(
-            f"{label}:\n{parts.get(key, '').replace('{LINK}', link).strip()}"
-            for label, key in (("LinkedIn post", "LINKEDIN"), ("Facebook post", "FACEBOOK"), ("Outreach pitch", "PITCH"))
-            if parts.get(key)
-        )
-        doc = frappe.get_doc(
-            {
-                "doctype": blog.DOCTYPE,
-                "slug": slug,
-                "title": title,
-                "category": category,
-                "status": "Draft",
-                "source": "AI",
-                "summary": summary,
-                "body": blog.render_markdown(body),  # stored as HTML so the rich-text editor shows it formatted
-                "keywords": seo_agent._clean(parts.get("KEYWORDS"), 140),
-                "related_module": _module_for(title + " " + working + " " + str(topic.get("keyword") or ""), modules),
-                "promo_kit": promo,
-            }
-        )
-        doc.insert(ignore_permissions=True)
-        try:
-            from reckon_saas_platform import blog_image
-
-            cover = blog_image.attach_cover(slug, title, category)
-            if cover:
-                frappe.db.set_value(blog.DOCTYPE, slug, "cover_image", cover)
-        except Exception:
-            frappe.log_error(frappe.get_traceback(), "Blog cover image")  # the post is still saved without a cover
-        written.append(title)
+        title, _reason = draft_topic(settings, {**topic, "category": category, "title": working}, pages, modules, paths, notes, base)
+        if title:
+            written.append(title)
     return written

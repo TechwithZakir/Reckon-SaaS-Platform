@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 from frappe_stub import _Dict, plan_lookup, platform_modules
 
 # The SEO agent's doctypes are surfaced inside the same SaaS Admin page.
-SEO_AGENT_DOCTYPES = {"SEO Suggestion", "SEO Article"}
+SEO_AGENT_DOCTYPES: set[str] = set()  # the agent is one page; its settings reuse SaaS Platform Settings
 ALL_SAAS_DOCTYPES = {
     "SaaS Module",
     "SaaS Plan",
