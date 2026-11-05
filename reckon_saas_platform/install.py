@@ -42,6 +42,7 @@ def after_migrate() -> None:
     ensure_signup_settings()
     ensure_marketing_home()
     ensure_site_branding()
+    refresh_site_seo()
     audit_tenant_roles()
 
 
@@ -89,6 +90,13 @@ def ensure_site_branding() -> None:
             changed = True
     if changed:
         frappe.clear_cache()
+
+
+def refresh_site_seo() -> None:
+    """After every migrate (a release of this app or the theme) re-check the public site's SEO."""
+    from reckon_saas_platform.seo import refresh_seo
+
+    refresh_seo("migrate")
 
 
 def after_app_install(app_name: str | None = None) -> None:

@@ -3,7 +3,7 @@
  "creation": "2026-10-18 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour", "section_marketing", "public_website_url", "google_tag_manager_id", "google_analytics_id", "meta_pixel_id", "tracking_consent", "column_break_marketing", "google_site_verification", "bing_site_verification", "meta_domain_verification", "social_profiles"],
+ "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour", "section_marketing", "public_website_url", "google_tag_manager_id", "google_analytics_id", "meta_pixel_id", "tracking_consent", "column_break_marketing", "google_site_verification", "bing_site_verification", "meta_domain_verification", "social_profiles", "section_seo_status", "seo_last_checked", "seo_url_count", "seo_status", "seo_content_hash", "column_break_seo", "indexnow_enabled", "indexnow_key", "seo_last_notified"],
  "fields": [
   {"fieldname": "section_sms", "fieldtype": "Section Break", "label": "Signup Verification (Email and SMS)"},
   {"fieldname": "require_email_verification", "fieldtype": "Check", "label": "Require Email Verification", "default": "1", "description": "Signups must open the emailed link before the tenant is created. Applies only when an outgoing Email Account is set up. When off (or with no Email Account), no email is sent: the address is trusted as typed and the owner chooses a password on the signup form."},
@@ -34,10 +34,19 @@
   {"fieldname": "google_site_verification", "fieldtype": "Data", "label": "Google Search Console Verification", "description": "Only the content value of the google-site-verification tag."},
   {"fieldname": "bing_site_verification", "fieldtype": "Data", "label": "Bing Webmaster Verification", "description": "Only the content value of the msvalidate.01 tag."},
   {"fieldname": "meta_domain_verification", "fieldtype": "Data", "label": "Meta Domain Verification", "description": "Only the content value of the facebook-domain-verification tag."},
-  {"fieldname": "social_profiles", "fieldtype": "Small Text", "label": "Official Profile Links", "description": "One https link per line (LinkedIn, Facebook, YouTube, Crunchbase, ...). Added to the home page structured data so search and AI engines connect these profiles to ReckonERP."}
+  {"fieldname": "social_profiles", "fieldtype": "Small Text", "label": "Official Profile Links", "description": "One https link per line (LinkedIn, Facebook, YouTube, Crunchbase, ...). Added to the home page structured data so search and AI engines connect these profiles to ReckonERP."},
+  {"fieldname": "section_seo_status", "fieldtype": "Section Break", "label": "SEO Health (automatic)", "description": "Checked after every migrate and once a day. Pages, titles, descriptions and the sitemap rebuild themselves from the module registry."},
+  {"fieldname": "seo_last_checked", "fieldtype": "Datetime", "label": "Last Checked", "read_only": 1},
+  {"fieldname": "seo_url_count", "fieldtype": "Int", "label": "Public Pages", "read_only": 1},
+  {"fieldname": "seo_status", "fieldtype": "Small Text", "label": "Result", "read_only": 1},
+  {"fieldname": "seo_content_hash", "fieldtype": "Data", "label": "Content Fingerprint", "read_only": 1, "hidden": 1},
+  {"fieldname": "column_break_seo", "fieldtype": "Column Break"},
+  {"fieldname": "indexnow_enabled", "fieldtype": "Check", "label": "Notify Search Engines (IndexNow)", "default": "0", "description": "When the public pages change, tell Bing and other IndexNow search engines. Off by default; nothing is sent until you tick this."},
+  {"fieldname": "indexnow_key", "fieldtype": "Data", "label": "IndexNow Key", "read_only": 1, "description": "Created automatically and served at /<key>.txt on your website."},
+  {"fieldname": "seo_last_notified", "fieldtype": "Datetime", "label": "Last Search Engine Notice", "read_only": 1}
  ],
  "issingle": 1,
- "modified": "2026-11-05 14:00:00.000000",
+ "modified": "2026-11-05 15:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Platform Settings",
  "permissions": [

@@ -454,8 +454,8 @@ FEATURE_LIST = (
 # --- Module copy: marketing text layered on the registry's own fields -----------
 MODULE_COPY = {
     "distribution": {
-        "seo_title": "Distribution software for FMCG distributors in Bangladesh",
-        "headline": "Distribution software for FMCG distributors in Bangladesh",
+        "seo_title": "FMCG distribution software for route sales and collections",
+        "headline": "FMCG distribution software for route sales, collections and stock",
         "tagline": "Routes, deliveries, collections and stock for FMCG distributors.",
         "audience": "FMCG distributors, wholesalers and van-sales teams",
         "benefits": [
@@ -478,8 +478,8 @@ MODULE_COPY = {
         ],
     },
     "accounts": {
-        "seo_title": "Accounting and inventory software for Bangladesh",
-        "headline": "Accounting and inventory software for Bangladesh small businesses",
+        "seo_title": "Accounting and inventory software for small business",
+        "headline": "Accounting and inventory software for growing small businesses",
         "tagline": "Invoices, bills, stock and Tally-style books for a small business.",
         "audience": "Shops, traders and small companies that need clean books",
         "benefits": [
@@ -497,10 +497,10 @@ MODULE_COPY = {
         ],
     },
     "sales_agent": {
-        "seo_title": "AI sales agent for B2B lead generation in Bangladesh",
+        "seo_title": "AI sales agent for B2B lead generation and follow-up",
         "headline": "AI sales agent for finding and following up B2B customers",
         "tagline": "Find, research and follow up B2B customers, with approval before any send.",
-        "audience": "Sales teams that sell to businesses in Bangladesh",
+        "audience": "B2B sales teams, with strong coverage of Bangladesh",
         "benefits": [
             "Run discovery campaigns to find businesses worth contacting",
             "Research each lead from its website and keep the evidence",
@@ -608,7 +608,7 @@ AI_NOTE = "AI and integration tools are billed separately from the module subscr
 DEPLOYMENTS = (
     {
         "title": "Shared cloud",
-        "text": "Sign up online and start in your own private company workspace. Fastest way to begin.",
+        "text": "Sign up online from anywhere and start in your own private company workspace. Fastest way to begin.",
     },
     {
         "title": "Dedicated cloud",
@@ -625,7 +625,7 @@ DEPLOYMENTS = (
 HOME_FAQS = (
     (
         "What is ReckonERP?",
-        "ReckonERP is a cloud ERP for businesses in Bangladesh, built on ERPNext, with Reckon AI "
+        "ReckonERP is a cloud ERP for growing businesses, built on ERPNext, with Reckon AI "
         "built in. You pick the modules you need, such as Distribution, Accounts or the "
         "Sales AI Agent, and each company works in its own private workspace.",
     ),
@@ -690,6 +690,13 @@ HOME_FAQS = (
         "WhatsApp, Facebook Messenger, Instagram, LinkedIn, Twilio, SMS gateways, email "
         "services such as Brevo and SendGrid, Google services and AI providers. The "
         "integrations page lists them all.",
+    ),
+    (
+        "Can I use ReckonERP outside Bangladesh?",
+        "Yes. Workspaces run in the cloud and open from any country in English. Plans can be "
+        "priced in BDT, USD, EUR or INR. Bangla screens and Bangladeshi SMS gateways are extra "
+        "strengths for Bangladesh. Dedicated cloud and on-premises installations are available "
+        "for companies anywhere on request.",
     ),
     (
         "Can I use it in Bangla?",
@@ -845,6 +852,8 @@ def organization_ld(base: str, same_as=None) -> dict:
         "url": f"{base}/",
         "logo": f"{base}{LOGO_SOCIAL}",
         "email": SUPPORT_EMAIL,
+        "areaServed": "Worldwide",
+        "knowsLanguage": ["en", "bn"],
         "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer support",
@@ -865,6 +874,7 @@ def software_ld(base: str, name: str, description: str, path: str) -> dict:
         "url": f"{base}{path}",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
+        "inLanguage": ["en", "bn"],
         "publisher": {"@type": "Organization", "name": SITE_NAME},
     }
 
@@ -937,13 +947,13 @@ def make_page(
 
 def home_page(base: str, modules: list[dict], integrations=None, profiles=None) -> dict:
     description = (
-        "ReckonERP is a cloud ERP with built-in AI for Bangladesh. Invoices, orders, stock and "
-        "people in one workspace. Sign up for Distribution, Accounts or Sales AI."
+        "ReckonERP is a cloud ERP with built-in AI. Invoices, orders, stock and people in one "
+        "workspace, in English and Bangla. Start online today."
     )
     return make_page(
         base,
         path=HOME,
-        title="ReckonERP: cloud ERP with built-in AI for Bangladesh",
+        title="ReckonERP: cloud ERP with built-in AI for growing businesses",
         description=description,
         h1="Your ERP, now with an AI that reads every ledger.",
         faqs=HOME_FAQS,
@@ -1111,7 +1121,7 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     lines = [
         f"# {SITE_NAME}",
         "",
-        "> ReckonERP is a multi-tenant cloud ERP for businesses in Bangladesh, built on "
+        "> ReckonERP is a multi-tenant cloud ERP for growing businesses worldwide, with deep support for Bangladesh, built on "
         "ERPNext. Companies sign up online, subscribe to the modules they need and work in "
         "their own private workspace, in Bangla or English.",
         "",
@@ -1156,7 +1166,7 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
     out = [
         f"# {SITE_NAME}: full site text",
         "",
-        "> ReckonERP is a multi-tenant cloud ERP with built-in AI for businesses in Bangladesh, "
+        "> ReckonERP is a multi-tenant cloud ERP with built-in AI for growing businesses worldwide, with deep support for Bangladesh, "
         "built on ERPNext. Companies sign up online, subscribe to the modules they need and work "
         "in their own private workspace, in Bangla or English.",
         "",
@@ -1308,6 +1318,13 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1
+
+
+def requested_path_stem() -> str:
+    """``/abc123.txt`` -> ``abc123`` (the single path segment of the current request)."""
+    request = getattr(frappe.local, "request", None)
+    path = (getattr(request, "path", "") or "").strip("/")
+    return path.rsplit("/", 1)[-1].rsplit(".", 1)[0] if path else ""
 
 
 def requested(name: str) -> str:

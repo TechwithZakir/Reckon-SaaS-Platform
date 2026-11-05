@@ -326,6 +326,102 @@ class MarketingDataTests(unittest.TestCase):
         self.assertEqual(profiles, ["https://www.linkedin.com/company/x"])
         self.assertEqual(json.loads(home["jsonld"][0])["sameAs"], profiles)
 
+    def test_seo_check_flags_problems_and_fingerprints_content(self):
+        with platform_modules("marketing", "seo") as (frappe, (marketing, seo)):
+            modules = _modules(marketing, frappe)
+            pages = seo.collect_pages(BASE, modules)
+            self.assertEqual(seo.check_pages(pages), [])
+            paths = marketing.public_paths(modules)
+            first = seo.fingerprint(pages, paths)
+            self.assertEqual(first, seo.fingerprint(pages, paths))
+            broken = [dict(p) for p in pages]
+            broken[1]["title"] = broken[0]["title"]
+            broken[2]["description"] = "short"
+            broken[3]["h1"] = " "
+            issues = seo.check_pages(broken)
+            self.assertTrue(any("repeats" in i for i in issues))
+            self.assertTrue(any("description is 5 characters" in i for i in issues))
+            self.assertTrue(any("missing main heading" in i for i in issues))
+            self.assertNotEqual(first, seo.fingerprint(broken, paths))
+            self.assertNotEqual(first, seo.fingerprint(pages, paths + ["/new"]))
+
+    def test_refresh_runs_each_time_and_only_notifies_when_enabled_and_changed(self):
+        with platform_modules("marketing", "seo") as (frappe, (marketing, seo)):
+            _modules(marketing, frappe)
+            frappe.utils.now_datetime = Mock(return_value="now")
+            frappe.utils.cint = lambda v: int(v or 0)
+            frappe.get_cached_doc = Mock(return_value=_Dict())
+            frappe.enqueue = Mock()
+            stored = {"seo_content_hash": "", "indexnow_enabled": 0}
+            frappe.db.get_single_value = Mock(side_effect=lambda dt, field: stored.get(field))
+            frappe.db.set_single_value = Mock(side_effect=lambda dt, field, value: stored.update({field: value}))
+            frappe.get_installed_apps = Mock(return_value=["app"])
+            frappe.get_hooks = Mock(return_value=[dict(d) for d in DEFINITIONS])
+            frappe.get_all = Mock(return_value=[])
+
+            result = seo.refresh_seo("migrate")
+            self.assertTrue(result["changed"])
+            self.assertEqual(result["issues"], [])
+            self.assertIn("OK:", stored["seo_status"])
+            self.assertEqual(stored["seo_url_count"], result["pages"])
+            frappe.enqueue.assert_not_called()  # IndexNow is off by default
+
+            again = seo.refresh_seo("daily")
+            self.assertFalse(again["changed"])  # nothing new to say
+
+            stored["indexnow_enabled"] = 1
+            stored["seo_content_hash"] = "stale"
+            seo.refresh_seo("migrate")
+            frappe.enqueue.assert_called_once()
+            self.assertEqual(frappe.enqueue.call_args.args[0], "reckon_saas_platform.seo.notify_search_engines")
+
+            # A failure is logged, never raised into a migrate.
+            frappe.db.exists = Mock(side_effect=RuntimeError("db down"))
+            self.assertEqual(seo.refresh_seo("daily"), {})
+            frappe.log_error.assert_called()
+
+    def test_indexnow_notice_needs_the_switch_a_public_https_address_and_its_key(self):
+        with platform_modules("marketing", "seo") as (frappe, (marketing, seo)):
+            _modules(marketing, frappe)
+            frappe.utils.now_datetime = Mock(return_value="now")
+            frappe.utils.cint = lambda v: int(v or 0)
+            stored = {"indexnow_enabled": 0, "indexnow_key": ""}
+            frappe.db.get_single_value = Mock(side_effect=lambda dt, field: stored.get(field))
+            frappe.db.set_single_value = Mock(side_effect=lambda dt, field, value: stored.update({field: value}))
+            frappe.get_cached_doc = Mock(return_value=_Dict(public_website_url="https://www.example.test"))
+            frappe.requests.post = Mock(return_value=_Dict(status_code=200))
+            self.assertFalse(seo.notify_search_engines())
+            frappe.requests.post.assert_not_called()
+
+            stored["indexnow_enabled"] = 1
+            frappe.get_cached_doc = Mock(return_value=_Dict(public_website_url="http://localhost:8000"))
+            self.assertFalse(seo.notify_search_engines())
+            frappe.requests.post.assert_not_called()
+
+            frappe.get_cached_doc = Mock(return_value=_Dict(public_website_url="https://www.example.test"))
+            self.assertTrue(seo.notify_search_engines())
+            payload = frappe.requests.post.call_args.kwargs["json"]
+            self.assertEqual(payload["host"], "www.example.test")
+            self.assertEqual(payload["keyLocation"], f"https://www.example.test/{payload['key']}.txt")
+            self.assertRegex(payload["key"], r"^[a-f0-9]{32}$")
+            self.assertIn("https://www.example.test/modules/distribution", payload["urlList"])
+            self.assertEqual(stored["seo_last_notified"], "now")
+
+    def test_site_targets_an_international_audience(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe)
+            home = marketing.home_page(BASE, modules)
+            org = json.loads(home["jsonld"][0])
+            questions = [q for q, _a in home["faqs"]]
+            pages = all_pages(marketing, modules)
+        self.assertEqual(org["areaServed"], "Worldwide")
+        self.assertEqual(org["knowsLanguage"], ["en", "bn"])
+        self.assertIn("Can I use ReckonERP outside Bangladesh?", questions)
+        self.assertNotIn("Bangladesh", home["title"])
+        for page in pages:
+            if page["path"].startswith("/modules/"):
+                self.assertNotIn("Bangladesh", page["title"], page["path"])
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)
@@ -491,6 +587,7 @@ class MarketingWiringTests(unittest.TestCase):
             ("/llms.txt", "reckon_llms.txt"),
             ("/llms-full.txt", "reckon_llms_full.txt"),
             ("/faq", "reckon_faq"),
+            ("/<key>.txt", "reckon_indexnow_key.txt"),
             ("/reckonerp-signup", "reckonerp_signup"),
         ):
             self.assertIn(f'{{"from_route": "{source}", "to_route": "{target}"}}', hooks)
@@ -631,6 +728,7 @@ class MarketingRenderTests(unittest.TestCase):
         for needle in ("googletagmanager", "fbevents", "google-site-verification", "data-consent"):
             self.assertNotIn(needle, off, needle)
         self.assertIn('<meta name="google-site-verification" content="abcDEF_123-xyz9">', on)
+        self.assertIn('rel="alternate" hreflang="x-default"', on)
         self.assertIn("GTM-ABC1234", on)
         self.assertIn("123456789012345", on)
         self.assertIn("data-consent", on)

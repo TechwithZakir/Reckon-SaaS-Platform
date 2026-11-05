@@ -8,6 +8,8 @@
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#0b78ab">
 <link rel="canonical" href="{{ page.canonical|e }}">
+<link rel="alternate" hreflang="en" href="{{ page.canonical|e }}">
+<link rel="alternate" hreflang="x-default" href="{{ page.canonical|e }}">
 {% if tracking.verify_google %}<meta name="google-site-verification" content="{{ tracking.verify_google|e }}">
 {% endif %}{% if tracking.verify_bing %}<meta name="msvalidate.01" content="{{ tracking.verify_bing|e }}">
 {% endif %}{% if tracking.verify_meta %}<meta name="facebook-domain-verification" content="{{ tracking.verify_meta|e }}">
@@ -15,6 +17,8 @@
 <link rel="icon" href="{{ icon|e }}" type="image/png">
 <link rel="apple-touch-icon" href="{{ icon|e }}">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="bn_BD">
 <meta property="og:site_name" content="{{ page.site_name|e }}">
 <meta property="og:title" content="{{ page.title|e }}">
 <meta property="og:description" content="{{ page.description|e }}">

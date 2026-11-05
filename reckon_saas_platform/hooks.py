@@ -45,7 +45,10 @@ web_include_js = ["/assets/reckon_saas_platform/js/reckon_login.js"]
 # Keep subscription statuses in step with trial, paid-period and grace dates.
 # Access itself is decided from the dates, so the gate never waits for this job.
 scheduler_events = {
-    "daily": ["reckon_saas_platform.saas.refresh_subscription_statuses"],
+    "daily": [
+        "reckon_saas_platform.saas.refresh_subscription_statuses",
+        "reckon_saas_platform.seo.refresh_seo_daily",
+    ],
 }
 
 doc_events = {
@@ -73,6 +76,7 @@ website_route_rules = [
     {"from_route": "/llms.txt", "to_route": "reckon_llms.txt"},
     {"from_route": "/llms-full.txt", "to_route": "reckon_llms_full.txt"},
     {"from_route": "/faq", "to_route": "reckon_faq"},
+    {"from_route": "/<key>.txt", "to_route": "reckon_indexnow_key.txt"},
     {"from_route": "/reckonerp-signup", "to_route": "reckonerp_signup"},
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
     {"from_route": "/reckonerp-subscription", "to_route": "reckonerp_subscription"},

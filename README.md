@@ -86,6 +86,18 @@ Open **SaaS Platform Settings** (`/app/saas-platform-settings`), section
 After saving, submit `/sitemap.xml` in Google Search Console and Bing Webmaster
 Tools. IDs are checked against their expected format before they reach a page.
 
+### SEO stays current by itself
+
+Titles, descriptions, `sitemap.xml`, `llms.txt`, `llms-full.txt` and structured data
+are built from the live module registry on every request, so a new or renamed
+module needs no SEO work. On top of that, `reckon_saas_platform.seo.refresh_seo`
+runs **after every migrate** (so after each release of this app or of the theme)
+and **once a day**: it checks every public page, stores the result in SaaS
+Platform Settings > SEO Health, clears the website cache when content changed, and,
+if **Notify Search Engines** is ticked, sends one IndexNow notice (Bing and
+partners). **Check SEO Now** runs it on demand. CI also fails if titles or
+descriptions repeat or run too long.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On
