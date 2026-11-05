@@ -63,6 +63,27 @@ class StudioFilesTests(unittest.TestCase):
             if item["type"] == "Link":
                 self.assertTrue(item.get("link_to") or item.get("url"), item["label"])
 
+    def test_studio_is_reachable_from_saas_admin_the_left_rail_and_the_apps_screen(self):
+        admin = read(APP / "saas_platform" / "workspace" / "reckon_saas_admin" / "reckon_saas_admin.json")
+        link = next(s for s in admin["shortcuts"] if s["label"] == "SEO Agent Studio")
+        self.assertEqual((link["type"], link["url"]), ("URL", "/desk/seo-agent-studio"))
+        blocks = json.loads(admin["content"])
+        self.assertIn("SEO Agent Studio", {b["data"]["shortcut_name"] for b in blocks if b["type"] == "shortcut"})
+        rail = read(APP / "workspace_sidebar" / "saas_platform.json")
+        item = next(i for i in rail["items"] if i.get("label") == "SEO Agent Studio")
+        self.assertEqual((item["link_type"], item["url"]), ("URL", "/desk/seo-agent-studio"))
+        back = read(APP / "workspace_sidebar" / "seo_agent_studio.json")
+        self.assertIn("/desk/reckon-saas-admin", {i.get("url") for i in back["items"]})
+        hooks = (APP / "hooks.py").read_text(encoding="utf-8")
+        self.assertIn('"route": "/desk/seo-agent-studio"', hooks)
+        self.assertTrue((APP / "public" / "images" / "seo-agent-studio-icon.svg").exists())
+
+    def test_the_saas_rail_filter_keeps_url_links(self):
+        with platform_modules("install") as (frappe, (install,)):
+            frappe.db.exists = Mock(return_value=True)
+            labels = [item["label"] for item in install._workspace_sidebar_doc()["items"]]
+        self.assertIn("SEO Agent Studio", labels)
+
     def test_ci_expects_both_modules(self):
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn('["SaaS", "Platform", "SEO", "Agent", "Studio"]', workflow)

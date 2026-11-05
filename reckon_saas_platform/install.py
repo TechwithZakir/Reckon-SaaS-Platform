@@ -271,6 +271,6 @@ def _workspace_sidebar_doc() -> dict:
     definition["items"] = [
         item
         for item in definition["items"]
-        if item["type"] != "Link" or frappe.db.exists(item["link_type"], item["link_to"])
+        if item["type"] != "Link" or item.get("link_type") == "URL" or frappe.db.exists(item["link_type"], item["link_to"])
     ]
     return definition

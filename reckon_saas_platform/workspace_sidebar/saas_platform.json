@@ -156,6 +156,27 @@
    "indent": 0,
    "collapsible": 1,
    "show_arrow": 0
+  },
+  {
+   "label": "SEO",
+   "type": "Section Break",
+   "icon": "search",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "SEO Agent Studio",
+   "link_type": "URL",
+   "url": "/desk/seo-agent-studio",
+   "type": "Link",
+   "icon": "search",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
   }
  ],
  "modified": "2026-01-01 00:00:00.000000"
