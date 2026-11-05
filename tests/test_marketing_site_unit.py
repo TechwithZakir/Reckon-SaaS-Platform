@@ -238,8 +238,7 @@ class MarketingDataTests(unittest.TestCase):
         self.assertIn("::placeholder { color: var(--mut)", signup)
         self.assertIn(".rk-lang a.is-active { background: var(--brand); color: var(--on); }", signup)
         self.assertNotIn("var(--rk-card)4", signup)  # a colour replaced halfway through its hex digits
-        dark = signup[signup.index("@media (prefers-color-scheme: dark) {
-    .rk-chip"):]
+        dark = signup[signup.index("@media (prefers-color-scheme: dark) {", signup.index(".rk-page ::placeholder")):]
         for selector in (".rk-chip", ".rk-alert.is-error", ".rk-alert.is-info"):
             self.assertIn(selector, dark)
 
