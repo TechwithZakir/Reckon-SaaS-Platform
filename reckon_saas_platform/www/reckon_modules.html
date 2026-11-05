@@ -1,0 +1,60 @@
+{% extends "reckon_saas_platform/templates/marketing/base.html" %}
+
+{% block content %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{{ m.crumbs(page.trail) }}
+{% if page.module %}
+<section class="page-hero">
+  <div class="wrap cols">
+    <div>
+      <p class="eyebrow">ERP module</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">{{ page.module.tagline|e }}</p>
+      {% if page.module.description and page.module.description != page.module.tagline %}<p>{{ page.module.description|e }}</p>{% endif %}
+      {% if page.module.benefits %}
+      <h2 style="font-size:1.3rem">What you can do</h2>
+      <ul class="tick">{% for b in page.module.benefits %}<li>{{ b|e }}</li>{% endfor %}</ul>
+      {% endif %}
+      <div class="actions"><a class="btn solid lg" href="{{ page.signup_url|e }}">Sign up for {{ page.module.name|e }}</a><a class="btn lg" href="/login">Log in</a></div>
+    </div>
+    <aside class="card" aria-label="Module details">
+      {% if page.module.audience %}<h2 style="font-size:1.1rem">Built for</h2><p>{{ page.module.audience|e }}</p>{% endif %}
+      {% if page.module.features %}
+      <h2 style="font-size:1.1rem">Included</h2>
+      <ul class="tick">{% for f in page.module.features %}<li>{{ f|e }}</li>{% endfor %}</ul>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{{ m.faq(page.faqs, "Questions about " ~ page.module.name) }}
+{% if page.modules %}
+<section class="alt" aria-labelledby="other-h">
+  <div class="wrap">
+    <div class="head"><h2 id="other-h">Other modules</h2></div>
+    <ul class="grid">
+      {% for mod in page.modules %}
+      <li><article class="card"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+{{ m.cta("Start with " ~ page.module.name, "Create your company workspace in minutes.", page.signup_url) }}
+{% else %}
+<section class="page-hero">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Modules</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">Every module has its own plans, roles and starting data. Subscribe to one or several.</p>
+    </div>
+    <ul class="grid">
+      {% for mod in page.modules %}
+      <li><article class="card"><h2 style="font-size:1.1rem">{{ mod.name|e }}</h2><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{{ m.cta("Pick a module and start", "Sign up, verify, and your workspace is created.", "/reckonerp-signup") }}
+{% endif %}
+{% endblock %}

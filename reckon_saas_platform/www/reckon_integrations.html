@@ -1,0 +1,30 @@
+{% extends "reckon_saas_platform/templates/marketing/base.html" %}
+
+{% block content %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{{ m.crumbs(page.trail) }}
+<section class="page-hero">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Integrations</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">Messaging, social, SMS, voice, email, AI and research services connect from one Integrations page, and each business keeps its own keys.</p>
+    </div>
+    <div class="ctl"><button type="button" data-marquee-toggle aria-pressed="false">Pause scrolling</button></div>
+  </div>
+  {{ m.marquee(page.integrations[:15], glyphs, "Messaging, social, voice and email integrations") }}
+  {{ m.marquee(page.integrations[15:], glyphs, "AI, search and platform integrations", True) }}
+</section>
+<section class="alt">
+  <div class="wrap">
+    {% for group in page.groups %}
+    <h2 style="margin-top:28px">{{ group.label|e }}</h2>
+    <ul class="grid">
+      {% for item in group["items"] %}<li class="chip">{{ m.mark(item, glyphs) }}<span>{{ item.name|e }}</span></li>{% endfor %}
+    </ul>
+    {% endfor %}
+    <p class="note" style="margin-top:28px">{{ page.trademark_note|e }}</p>
+  </div>
+</section>
+{{ m.cta("Connect your channels", "Sign up and switch on the channels you use.", "/reckonerp-signup") }}
+{% endblock %}

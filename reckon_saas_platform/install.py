@@ -39,7 +39,23 @@ def after_migrate() -> None:
     setup_workspace()
     ensure_workspace_sidebar()
     ensure_signup_settings()
+    ensure_marketing_home()
     audit_tenant_roles()
+
+
+def ensure_marketing_home() -> None:
+    """Let the site root show the marketing website instead of redirecting to login.
+
+    Website Settings > Home Page wins over the app's ``home_page`` hook, and an
+    older site may still point it at the login page. A deliberate custom value
+    is left alone.
+    """
+    if not frappe.db.exists("DocType", "Website Settings"):
+        return
+    current = frappe.db.get_single_value("Website Settings", "home_page") or ""
+    if current in ("login", "index", "home"):
+        frappe.db.set_single_value("Website Settings", "home_page", "")
+        frappe.clear_cache()
 
 
 def after_app_install(app_name: str | None = None) -> None:

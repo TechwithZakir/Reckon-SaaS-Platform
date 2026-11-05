@@ -1,0 +1,40 @@
+{% macro icon(d) %}<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="{{ d }}"/></svg>{% endmacro %}
+
+{% macro mark(item, glyphs) %}<span class="mk" style="--c:{{ item.color|e }}" aria-hidden="true">{% if item.mark %}{{ item.mark|e }}{% else %}{{ icon(glyphs[item.glyph]) }}{% endif %}</span>{% endmacro %}
+
+{% macro marquee(items, glyphs, label, reverse=False) %}
+<div class="marq{% if reverse %} rev{% endif %}" data-marquee role="group" aria-label="{{ label|e }}">
+  <ul class="track">
+    {% for copy in (0, 1) %}{% for item in items %}
+    <li class="chip"{% if copy %} aria-hidden="true"{% endif %}>{{ mark(item, glyphs) }}<span>{{ item.name|e }}</span></li>
+    {% endfor %}{% endfor %}
+  </ul>
+</div>
+{% endmacro %}
+
+{% macro faq(faqs, heading) %}
+{% if faqs %}
+<section aria-labelledby="faq-h"><div class="wrap">
+  <div class="head"><h2 id="faq-h">{{ heading|e }}</h2></div>
+  {% for q, a in faqs %}
+  <details class="faq"><summary>{{ q|e }}</summary><p>{{ a|e }}</p></details>
+  {% endfor %}
+</div></section>
+{% endif %}
+{% endmacro %}
+
+{% macro cta(title, text, signup_href) %}
+<section><div class="wrap"><div class="band">
+  <h2>{{ title|e }}</h2>
+  <p>{{ text|e }}</p>
+  <div class="actions" style="justify-content:center"><a class="btn solid lg" href="{{ signup_href|e }}">Sign up</a><a class="btn lg" href="/login">Log in</a></div>
+</div></div></section>
+{% endmacro %}
+
+{% macro crumbs(trail) %}
+{% if trail|length > 1 %}
+<nav class="crumbs wrap" aria-label="Breadcrumb"><ol>
+  {% for name, path in trail %}<li>{% if loop.last %}<span aria-current="page">{{ name|e }}</span>{% else %}<a href="{{ path|e }}">{{ name|e }}</a>{% endif %}</li>{% endfor %}
+</ol></nav>
+{% endif %}
+{% endmacro %}

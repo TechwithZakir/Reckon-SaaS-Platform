@@ -49,7 +49,19 @@ doc_events = {
 # apps may add captcha verifiers here, e.g.:
 # reckon_saas_signup_captcha_verifier = ["my_app.captcha.verify"]
 
+# The site root is the public marketing website (www/index). Signup and login stay
+# on /reckonerp-signup and /login; see reckon_saas_platform.marketing.
+home_page = "index"
+
 website_route_rules = [
+    {"from_route": "/features", "to_route": "reckon_features"},
+    {"from_route": "/features/<slug>", "to_route": "reckon_features"},
+    {"from_route": "/modules", "to_route": "reckon_modules"},
+    {"from_route": "/modules/<slug>", "to_route": "reckon_modules"},
+    {"from_route": "/integrations", "to_route": "reckon_integrations"},
+    {"from_route": "/sitemap.xml", "to_route": "reckon_sitemap.xml"},
+    {"from_route": "/robots.txt", "to_route": "reckon_robots.txt"},
+    {"from_route": "/llms.txt", "to_route": "reckon_llms.txt"},
     {"from_route": "/reckonerp-signup", "to_route": "reckonerp_signup"},
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
     {"from_route": "/reckonerp-subscription", "to_route": "reckonerp_subscription"},

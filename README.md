@@ -47,6 +47,25 @@ email link and, by default, an SMS one-time code. Configure it in
 Failed provisioning jobs show on `/reckon-saas-admin` with a **Retry
 Provisioning** button.
 
+## Public marketing website
+
+The site root `/` is a server-rendered marketing website (`www/index`), with
+`/features` and `/features/<slug>`, `/modules` and `/modules/<key>`,
+`/integrations`, `/sitemap.xml`, `/robots.txt` and `/llms.txt`. Sign up goes to
+`/reckonerp-signup` and log in to `/login`.
+
+- Module pages come from the `reckon_saas_modules` registry, so a module appears
+  when its app is installed and **Available for Sale** is ticked. Marketing text
+  for a module key lives in `MODULE_COPY` in `marketing.py`; a module without
+  written copy still gets a page from its registry description.
+- Feature pages and the integrations/channels icon list are data in
+  `marketing.py`; templates are in `templates/marketing/`.
+- Every address is relative or built from the domain serving the page
+  (`frappe.utils.get_url()`); no domain is written in the code.
+- Website Settings > Home Page overrides the app's `home_page` hook. On migrate,
+  a value of `login`, `index` or `home` is cleared so the root shows this site;
+  any other value is left alone.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

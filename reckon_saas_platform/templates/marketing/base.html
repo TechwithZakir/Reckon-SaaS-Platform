@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title|e }}</title>
+<meta name="description" content="{{ page.description|e }}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#0b78ab">
+<link rel="canonical" href="{{ page.canonical|e }}">
+<link rel="icon" href="/assets/reckon_saas_platform/images/reckon-saas-platform-icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ page.site_name|e }}">
+<meta property="og:title" content="{{ page.title|e }}">
+<meta property="og:description" content="{{ page.description|e }}">
+<meta property="og:url" content="{{ page.canonical|e }}">
+<meta property="og:image" content="{{ page.og_image|e }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ page.title|e }}">
+<meta name="twitter:description" content="{{ page.description|e }}">
+<meta name="twitter:image" content="{{ page.og_image|e }}">
+{% for block in page.jsonld %}<script type="application/ld+json">{{ block }}</script>
+{% endfor %}<style>{% include "reckon_saas_platform/templates/marketing/style.css" %}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="ReckonERP home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#139bd9"/><path d="M10 24V8h7a5 5 0 0 1 1.4 9.8L23 24h-3.6l-4-5.8H13V24z M13 11v5h4a2.5 2.5 0 0 0 0-5z" fill="#fff" fill-rule="evenodd"/></svg>
+      <span>ReckonERP</span>
+    </a>
+    <nav class="main" aria-label="Main">
+      <details class="dd"><summary>Features</summary>
+        <div class="panel">
+          {% for f in nav_features %}<a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a>{% endfor %}
+          <a href="/features"><strong>All features</strong></a>
+        </div>
+      </details>
+      <details class="dd"><summary>Modules</summary>
+        <div class="panel">
+          {% for m in nav_modules %}<a href="{{ m.url|e }}">{{ m.name|e }}</a>{% endfor %}
+          <a href="/modules"><strong>All modules</strong></a>
+        </div>
+      </details>
+      <a href="/integrations">Integrations</a>
+    </nav>
+    <div class="actions">
+      <a class="btn" href="/login">Log in</a>
+      <a class="btn solid" href="/reckonerp-signup">Sign up</a>
+    </div>
+  </div>
+</header>
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer class="foot">
+  <div class="wrap">
+    <div class="cols4">
+      <div><img src="{{ logo|e }}" width="150" height="54" alt="Reckon Technologies" loading="lazy" decoding="async"><h2>ReckonERP</h2><p>Cloud ERP for businesses in Bangladesh, built on ERPNext.</p><p><a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></p></div>
+      <div><h2>Features</h2><ul>{% for f in nav_features %}<li><a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a></li>{% endfor %}</ul></div>
+      <div><h2>Modules</h2><ul>{% for m in nav_modules %}<li><a href="{{ m.url|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
+      <div><h2>Company</h2><ul><li><a href="/integrations">Integrations</a></li><li><a href="/reckonerp-signup">Sign up</a></li><li><a href="/login">Log in</a></li></ul></div>
+    </div>
+    <p class="note">&copy; {{ year|e }} {{ publisher|e }}</p>
+  </div>
+</footer>
+<script>
+(function(){
+  var d=document;
+  d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});
+  d.addEventListener('keydown',function(e){if(e.key==='Escape')d.querySelectorAll('nav.main details[open]').forEach(function(x){x.open=false})});
+  var rows=d.querySelectorAll('[data-marquee]');
+  var b=d.querySelector('[data-marquee-toggle]');
+  if(b){b.addEventListener('click',function(){
+    var p=b.getAttribute('aria-pressed')!=='true';
+    b.setAttribute('aria-pressed',p);b.textContent=p?'Play scrolling':'Pause scrolling';
+    rows.forEach(function(r){r.classList.toggle('paused',p)});
+  })}
+})();
+</script>
+</body>
+</html>

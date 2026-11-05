@@ -1,0 +1,53 @@
+{% extends "reckon_saas_platform/templates/marketing/base.html" %}
+
+{% block content %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{{ m.crumbs(page.trail) }}
+{% if page.feature %}
+<section class="page-hero">
+  <div class="wrap cols">
+    <div>
+      <p class="eyebrow">Feature</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">{{ page.feature.intro|e }}</p>
+      <ul class="tick">
+        {% for point in page.feature.points %}<li>{{ point|e }}</li>{% endfor %}
+      </ul>
+      <div class="actions"><a class="btn solid lg" href="/reckonerp-signup">Sign up</a><a class="btn lg" href="/login">Log in</a></div>
+    </div>
+    <aside class="card" aria-label="Summary">
+      <span class="ico">{{ m.icon(glyphs[page.feature.icon]) }}</span>
+      <h2 style="font-size:1.2rem">In short</h2>
+      <p>{{ page.feature.summary|e }}</p>
+    </aside>
+  </div>
+</section>
+{{ m.faq(page.faqs, "Questions about " ~ page.feature.title) }}
+<section class="alt" aria-labelledby="more-h">
+  <div class="wrap">
+    <div class="head"><h2 id="more-h">More features</h2></div>
+    <ul class="grid">
+      {% for f in page.features %}
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="/features/{{ f.slug|e }}">Learn more<span class="sr"> about {{ f.title|e }}</span></a></article></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% else %}
+<section class="page-hero">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Features</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">One page for each thing the platform does, from signup to integrations.</p>
+    </div>
+    <ul class="grid">
+      {% for f in page.features %}
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h2 style="font-size:1.1rem">{{ f.title|e }}</h2><p>{{ f.summary|e }}</p><a class="more" href="/features/{{ f.slug|e }}">Learn more<span class="sr"> about {{ f.title|e }}</span></a></article></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+{{ m.cta("Try it with your company", "Sign up and your workspace is ready after verification.", "/reckonerp-signup") }}
+{% endblock %}
