@@ -36,7 +36,7 @@ LOGO = "/assets/reckon_saas_platform/images/reckonerp-logo.webp"
 LOGO_SIZE = (360, 232)
 LOGO_SOCIAL = "/assets/reckon_saas_platform/images/reckonerp-logo-512.png"
 ICON = "/assets/reckon_saas_platform/images/reckonerp-icon-64.png"
-HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.svg"
+HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.webp"
 IMAGE_DIR = "/assets/reckon_saas_platform/images"
 
 # Illustrations drawn for this site: (file, alt text, width, height).
