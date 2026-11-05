@@ -231,6 +231,18 @@ class MarketingDataTests(unittest.TestCase):
             marketing.redirect_signed_in_home(response, _Dict(path="/", method="GET"))
             self.assertEqual(response.status_code, 200)
 
+    def test_signup_text_stays_readable_in_dark_mode(self):
+        signup = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        # Headings must not fall back to the framework's near-black default.
+        self.assertIn(".rk-page h1, .rk-page h2, .rk-page h3, .rk-page h4 { color: var(--rk-ink); }", signup)
+        self.assertIn("::placeholder { color: var(--mut)", signup)
+        self.assertIn(".rk-lang a.is-active { background: var(--brand); color: var(--on); }", signup)
+        self.assertNotIn("var(--rk-card)4", signup)  # a colour replaced halfway through its hex digits
+        dark = signup[signup.index("@media (prefers-color-scheme: dark) {
+    .rk-chip"):]
+        for selector in (".rk-chip", ".rk-alert.is-error", ".rk-alert.is-info"):
+            self.assertIn(selector, dark)
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)

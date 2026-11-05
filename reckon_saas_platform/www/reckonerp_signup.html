@@ -21,7 +21,7 @@
     --rk-line: var(--line);
     --rk-card: var(--card);
     --rk-danger: #c62d3c;
-    --rk-whatsapp: #25d366;
+    --rk-whatsapp: #0f7a3f;
     --rk-radius: 14px;
   }
 
@@ -38,7 +38,18 @@
   }
   .rk-lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--card); }
   .rk-lang a { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--mut); text-decoration: none; }
-  .rk-lang a.is-active { background: var(--brand2); color: #fff; }
+  .rk-lang a.is-active { background: var(--brand); color: var(--on); }
+  .rk-page h1, .rk-page h2, .rk-page h3, .rk-page h4 { color: var(--rk-ink); }
+  .rk-btn.is-whatsapp { background: #0f7a3f; color: #fff; }
+  .rk-btn.is-whatsapp:hover { background: #0c6634; color: #fff; }
+  .rk-page ::placeholder { color: var(--mut); opacity: 1; }
+  .rk-otp { background: var(--rk-card); color: var(--rk-ink); }
+  @media (prefers-color-scheme: dark) {
+    .rk-chip { background: #3a2a0a; color: #ffd27a; }
+    .rk-chip.is-done { background: #12351a; color: #8be58b; }
+    .rk-alert.is-error { background: #3a1419; color: #ff9aa5; border-color: #6b2630; }
+    .rk-alert.is-info { background: #10304a; color: #9bd8f7; border-color: #1d4d70; }
+  }
   body.rk-lang-bn, .rk-lang-bn input, .rk-lang-bn select, .rk-lang-bn button {
     font-family: "Noto Sans Bengali", Inter, "Segoe UI", system-ui, sans-serif;
   }
@@ -173,7 +184,7 @@
   .rk-verify-icon svg { width: 20px; height: 20px; }
   .rk-verify-head h3 { font-size: 15px; margin: 0; }
   .rk-verify-head p { font-size: 13px; color: var(--rk-muted); margin: 2px 0 0; overflow-wrap: anywhere; }
-  .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--rk-card)4e0; color: #9a5b00; white-space: nowrap; }
+  .rk-chip { margin-left: auto; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #fff4e0; color: #9a5b00; white-space: nowrap; }
   .rk-chip.is-done { background: #ecfbe4; color: #22720a; }
   .rk-verify-body { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .rk-otp { flex: 1 1 160px; height: 46px; border: 1px solid var(--rk-line); border-radius: 10px; padding: 0 14px; font-size: 20px; letter-spacing: 6px; text-align: center; }
