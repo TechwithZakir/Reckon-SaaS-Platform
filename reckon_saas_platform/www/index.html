@@ -5,8 +5,8 @@
 <section class="hero">
   <div class="wrap">
     <div>
-      <p class="eyebrow">Cloud ERP for Bangladesh</p>
-      <h1>{{ page.h1|e }}</h1>
+      <p class="eyebrow"><span class="pill">ERP</span><span class="pill">CRM</span><span class="pill">Automation</span><span class="pill">AI</span></p>
+      <h1>Run your whole business on <span class="grad">one AI-powered cloud ERP</span></h1>
       <p class="lead">Pick the modules you need, verify your company and start in your own private workspace. Distribution, accounts and AI-assisted sales run on one platform, in Bangla or English.</p>
       <div class="actions">
         <a class="btn solid lg" href="/reckonerp-signup">Sign up</a>
@@ -15,6 +15,17 @@
       </div>
     </div>
     <img src="{{ hero_image|e }}" width="640" height="480" alt="Dashboard with sales, stock and collection cards" fetchpriority="high" decoding="async">
+  </div>
+</section>
+
+<section aria-labelledby="show-h">
+  <div class="wrap">
+    <div class="head"><h2 id="show-h">ERP, CRM, automation and AI working together</h2><p>One platform instead of four tools that never quite talk to each other.</p></div>
+    <ul class="bento">
+      {% for s in showcase %}
+      <li class="tile"><img src="{{ s.image.src|e }}" width="{{ s.image.width }}" height="{{ s.image.height }}" alt="{{ s.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ s.title|e }}</h3><p>{{ s.text|e }}</p></li>
+      {% endfor %}
+    </ul>
   </div>
 </section>
 
@@ -36,7 +47,7 @@
     <div class="head"><h2 id="mod-h">ERP modules</h2><p>Subscribe to one module or several. Each runs in your own company workspace.</p></div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
   </div>

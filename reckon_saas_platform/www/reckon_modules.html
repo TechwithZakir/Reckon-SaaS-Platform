@@ -18,6 +18,7 @@
       <div class="actions"><a class="btn solid lg" href="{{ page.signup_url|e }}">Sign up for {{ page.module.name|e }}</a><a class="btn lg" href="/login">Log in</a></div>
     </div>
     <aside class="card" aria-label="Module details">
+      {% if page.module.image %}<img src="{{ page.module.image.src|e }}" width="{{ page.module.image.width }}" height="{{ page.module.image.height }}" alt="{{ page.module.image.alt|e }}" decoding="async">{% endif %}
       {% if page.module.audience %}<h2 style="font-size:1.1rem">Built for</h2><p>{{ page.module.audience|e }}</p>{% endif %}
       {% if page.module.features %}
       <h2 style="font-size:1.1rem">Included</h2>
@@ -33,7 +34,7 @@
     <div class="head"><h2 id="other-h">Other modules</h2></div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -50,7 +51,7 @@
     </div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><h2 style="font-size:1.1rem">{{ mod.name|e }}</h2><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h2 style="font-size:1.1rem">{{ mod.name|e }}</h2><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
   </div>

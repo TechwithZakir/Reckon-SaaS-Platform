@@ -16,6 +16,7 @@
       <div class="actions"><a class="btn solid lg" href="/reckonerp-signup">Sign up</a><a class="btn lg" href="/login">Log in</a></div>
     </div>
     <aside class="card" aria-label="Summary">
+      {% if page.image %}<img src="{{ page.image.src|e }}" width="{{ page.image.width }}" height="{{ page.image.height }}" alt="{{ page.image.alt|e }}" decoding="async">{% endif %}
       <span class="ico">{{ m.icon(glyphs[page.feature.icon]) }}</span>
       <h2 style="font-size:1.2rem">In short</h2>
       <p>{{ page.feature.summary|e }}</p>

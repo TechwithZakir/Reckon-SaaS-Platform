@@ -30,6 +30,32 @@ SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
 LOGO = "/assets/reckon_saas_platform/images/reckon-tech-logo.png"
 HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.svg"
+IMAGE_DIR = "/assets/reckon_saas_platform/images"
+
+# Illustrations drawn for this site: (file, alt text, width, height).
+ILLUSTRATIONS = {
+    "erp": ("illus-erp.svg", "ERP dashboard with a sales chart, stock value and invoices", 480, 320),
+    "crm": ("illus-crm.svg", "CRM pipeline with lead cards moving from new to won", 480, 320),
+    "automation": (
+        "illus-automation.svg",
+        "Automation flow from a new lead through an AI step to email, approval and CRM sync",
+        480,
+        320,
+    ),
+    "ai": ("illus-ai.svg", "AI assistant drafting a reply that waits for a person to approve", 480, 320),
+}
+# Which illustration describes a module or feature best.
+MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm"}
+FEATURE_ILLUSTRATION = {
+    "self-serve-signup": "automation",
+    "separate-company-workspaces": "erp",
+    "plans-and-billing": "erp",
+    "modular-erp": "erp",
+    "bangla-and-english": "ai",
+    "roles-and-security": "crm",
+    "integrations-and-channels": "automation",
+    "ai-assisted-selling": "ai",
+}
 
 # Crawlers that fetch pages for search and AI answers. All are welcome on the
 # public pages; the app itself stays out of reach.
@@ -443,6 +469,13 @@ FEATURE_LABELS = {
 
 ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl", "ai"})
 
+SHOWCASE = (
+    ("erp", "ERP", "Sales, stock, collections and books for your company, in one place."),
+    ("crm", "CRM", "Leads and customers move through a pipeline your whole team can see."),
+    ("automation", "Automation", "Triggers hand work to steps that draft, route and sync for you."),
+    ("ai", "AI assistance", "AI drafts and researches; a person approves before anything is sent."),
+)
+
 HOME_FAQS = (
     (
         "What is ReckonERP?",
@@ -488,6 +521,14 @@ def humanise(key: str) -> str:
 
 def feature_label(key: str) -> str:
     return FEATURE_LABELS.get(key) or humanise(key)
+
+
+def illustration(name: str | None) -> dict | None:
+    """An illustration as template data, or ``None`` when the name is unknown."""
+    if name not in ILLUSTRATIONS:
+        return None
+    file, alt, width, height = ILLUSTRATIONS[name]
+    return {"src": f"{IMAGE_DIR}/{file}", "alt": alt, "width": width, "height": height}
 
 
 def feature_url(slug: str) -> str:
@@ -539,6 +580,7 @@ def get_modules() -> list[dict]:
                 "features": [feature_label(k) for k in definition.get("subscription_features") or []],
                 "faqs": list(copy.get("faqs") or []),
                 "url": module_url(key),
+                "image": illustration(MODULE_ILLUSTRATION.get(key, "erp")),
             }
         )
     return modules
@@ -659,7 +701,7 @@ def home_page(base: str, modules: list[dict]) -> dict:
         path=HOME,
         title="ReckonERP: cloud ERP for Bangladesh businesses",
         description=description,
-        h1="Run your whole business on one cloud ERP",
+        h1="Run your whole business on one AI-powered cloud ERP",
         faqs=HOME_FAQS,
         software=(SITE_NAME, description),
         features=FEATURE_LIST,
@@ -692,6 +734,7 @@ def feature_page(base: str, feature: dict) -> dict:
         trail=[("Home", HOME), ("Features", FEATURES), (feature["title"], feature_url(feature["slug"]))],
         faqs=feature["faqs"],
         feature=feature,
+        image=illustration(FEATURE_ILLUSTRATION.get(feature["slug"])),
         features=[f for f in FEATURE_LIST if f["slug"] != feature["slug"]],
     )
 
@@ -820,6 +863,9 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.year = frappe.utils.nowdate()[:4]
     context.logo = LOGO
     context.hero_image = HERO_IMAGE
+    context.showcase = [
+        {"title": title, "text": text, "image": illustration(name)} for name, title, text in SHOWCASE
+    ]
     context.trademark_note = TRADEMARK_NOTE
     context.title = page["title"]
     context.no_breadcrumbs = 1

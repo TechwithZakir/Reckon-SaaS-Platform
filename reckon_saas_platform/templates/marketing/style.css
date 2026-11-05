@@ -87,3 +87,14 @@ footer a:hover{text-decoration:underline}
 @media(max-width:820px){.hero .wrap,.cols{grid-template-columns:1fr}.hero{padding-top:32px}.bar{gap:8px}nav.main{order:3;width:100%}.dd .panel{position:static;box-shadow:none}.dd[open]{width:100%}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 footer img{display:block;margin-bottom:12px;height:auto;width:150px}
+.hero{background:radial-gradient(700px 360px at 90% -10%,color-mix(in srgb,#a78bfa 28%,transparent),transparent 70%),radial-gradient(800px 420px at 0 0,color-mix(in srgb,var(--brand2) 22%,transparent),transparent 70%)}
+.grad{background:linear-gradient(90deg,#139bd9,#7c5cf0 55%,#2fb800);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pill{display:inline-block;margin:0 6px 6px 0;padding:4px 12px;border-radius:999px;background:color-mix(in srgb,var(--brand2) 16%,transparent);color:var(--brand);letter-spacing:.06em}
+.hero img{border:0;box-shadow:0 24px 60px rgba(19,155,217,.28)}
+.card img,.tile img{width:100%;height:auto;border-radius:12px;display:block;margin-bottom:6px}
+.bento{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;list-style:none;padding:0;margin:0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 14px 20px;transition:transform .2s,box-shadow .2s}
+.tile:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(19,155,217,.18)}
+.tile h3{margin:10px 6px 4px}.tile p{margin:0 6px;color:var(--mut);font-size:.95rem}
+.card{transition:transform .2s,box-shadow .2s}.card:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(19,155,217,.14)}
+@media(prefers-reduced-motion:reduce){.tile,.card{transition:none}.tile:hover,.card:hover{transform:none}}
