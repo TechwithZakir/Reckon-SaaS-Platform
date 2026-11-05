@@ -17,7 +17,7 @@
    "role": "System Manager"
   }
  ],
- "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"Reckon SaaS Admin\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Modules, plans, registrations, subscriptions, payments and tenant provisioning.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Modules\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plans\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Registrations\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Subscriptions\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payments\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Provisioning Jobs\", \"col\": 3}}, {\"id\": \"shortcut-7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant User Assignments\", \"col\": 3}}, {\"id\": \"shortcut-8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Companies\", \"col\": 3}}, {\"id\": \"shortcut-9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Signup Settings\", \"col\": 3}}, {\"id\": \"shortcut-10\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Vendor SaaS Admin\", \"col\": 3}}, {\"id\": \"shortcut-11\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Public Signup\", \"col\": 3}}, {\"id\": \"shortcut-12\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Subscription\", \"col\": 3}}, {\"id\": \"shortcut-13\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent Studio\", \"col\": 3}}]",
+ "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"Reckon SaaS Admin\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Modules, plans, registrations, subscriptions, payments and tenant provisioning.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Modules\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plans\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Registrations\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Subscriptions\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payments\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Provisioning Jobs\", \"col\": 3}}, {\"id\": \"shortcut-7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant User Assignments\", \"col\": 3}}, {\"id\": \"shortcut-8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Companies\", \"col\": 3}}, {\"id\": \"shortcut-9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Signup Settings\", \"col\": 3}}, {\"id\": \"shortcut-10\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Vendor SaaS Admin\", \"col\": 3}}, {\"id\": \"shortcut-11\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Public Signup\", \"col\": 3}}, {\"id\": \"shortcut-12\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Subscription\", \"col\": 3}}, {\"id\": \"seo-header\", \"type\": \"header\", \"data\": {\"text\": \"SEO Agent Studio\", \"col\": 12}}, {\"id\": \"seo-summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Suggestions and blog drafts from the SEO agent. Nothing goes live until you approve or publish it.\", \"col\": 12}}, {\"id\": \"seo-seo-suggestions\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Suggestions\", \"col\": 3}}, {\"id\": \"seo-blog-articles\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Blog Articles\", \"col\": 3}}, {\"id\": \"seo-seo-agent-settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent Settings\", \"col\": 3}}]",
  "shortcuts": [
   {
    "label": "Dashboard",
@@ -98,10 +98,26 @@
    "color": "Blue"
   },
   {
-   "label": "SEO Agent Studio",
-   "type": "URL",
-   "url": "/desk/seo-agent-studio",
-   "color": "Green"
+   "label": "SEO Suggestions",
+   "type": "DocType",
+   "link_to": "SEO Suggestion",
+   "doc_view": "List",
+   "color": "Green",
+   "stats_filter": "{\"status\": \"Pending\"}"
+  },
+  {
+   "label": "Blog Articles",
+   "type": "DocType",
+   "link_to": "SEO Article",
+   "doc_view": "List",
+   "color": "Green",
+   "stats_filter": "{\"status\": \"Draft\"}"
+  },
+  {
+   "label": "SEO Agent Settings",
+   "type": "DocType",
+   "link_to": "SaaS Platform Settings",
+   "doc_view": "List"
   }
  ],
  "links": [],

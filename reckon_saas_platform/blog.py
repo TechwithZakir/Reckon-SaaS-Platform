@@ -16,6 +16,7 @@ from xml.sax.saxutils import escape as xml_escape
 import frappe
 
 from reckon_saas_platform import marketing
+from reckon_saas_platform.blog_html import is_html, plain_text, sanitize_html
 
 DOCTYPE = "SEO Article"
 BLOG = "/blog"
@@ -97,7 +98,12 @@ def get_article(slug: str) -> dict | None:
 
 
 def read_minutes(body: str) -> int:
-    return max(1, round(len(re.findall(r"\w+", body or "")) / 200))
+    return max(1, round(len(re.findall(r"\w+", plain_text(body))) / 200))
+
+
+def render_body(body: str) -> str:
+    """The editor's HTML, cleaned to the allow-list; a post stored as plain Markdown still renders."""
+    return sanitize_html(body) if is_html(body) else render_markdown(body)
 
 
 # --- Markdown, reduced to what an article needs and made safe ------------------------
@@ -245,7 +251,7 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
         extra_ld=[article_ld(base, article)],
         og_image=f"{base}{article['image']}" if article.get("image") else None,
         article=article,
-        article_html=render_markdown(article.get("body", "")),
+        article_html=render_body(article.get("body", "")),
         minutes=read_minutes(article.get("body", "")),
         related=same[:3],
     )

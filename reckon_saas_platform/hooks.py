@@ -19,15 +19,6 @@ add_to_apps_screen = [
         "has_permission": "reckon_saas_platform.api.check_app_permission",
         "sequence_id": 20,
     },
-    {
-        "name": "seo_agent_studio",
-        "logo": "/assets/reckon_saas_platform/images/seo-agent-studio-icon.svg",
-        "title": "SEO Agent Studio",
-        "route": "/desk/seo-agent-studio",
-        "desk_route": "/desk/seo-agent-studio",
-        "has_permission": "reckon_saas_platform.api.check_app_permission",
-        "sequence_id": 21,
-    },
 ]
 
 required_apps = ["frappe", "erpnext"]
@@ -125,6 +116,6 @@ fixtures = [
     },
     {
         "dt": "Workspace",
-        "filters": [["name", "in", ["Reckon SaaS Admin", "SEO Agent Studio"]]],
+        "filters": [["name", "=", "Reckon SaaS Admin"]],
     },
 ]

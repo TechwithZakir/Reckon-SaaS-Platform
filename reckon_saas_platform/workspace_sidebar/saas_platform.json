@@ -158,7 +158,7 @@
    "show_arrow": 0
   },
   {
-   "label": "SEO",
+   "label": "SEO Agent Studio",
    "type": "Section Break",
    "icon": "search",
    "child": 0,
@@ -168,11 +168,33 @@
    "show_arrow": 0
   },
   {
-   "label": "SEO Agent Studio",
-   "link_type": "URL",
-   "url": "/desk/seo-agent-studio",
+   "label": "SEO Suggestions",
+   "link_to": "SEO Suggestion",
+   "link_type": "DocType",
    "type": "Link",
-   "icon": "search",
+   "icon": "lightbulb",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "Blog Articles",
+   "link_to": "SEO Article",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "file-text",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "SEO Agent Settings",
+   "link_to": "SaaS Platform Settings",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "settings",
    "child": 1,
    "indent": 0,
    "collapsible": 1,

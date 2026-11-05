@@ -27,7 +27,7 @@ class SEOArticle(Document):
             frappe.throw("The body must be 150-2200 words before publishing.")
         if FORBIDDEN_ARTICLE.search((self.title or "") + " " + (self.summary or "") + " " + (self.body or "")):
             frappe.throw("Remove unverifiable claims (the best, number one, guaranteed, cheapest), scripts and the framework name.")
-        if re.search(r"\]\(http://", self.body or ""):
+        if re.search(r"(\]\(|href=[\"'])http://", self.body or ""):
             frappe.throw("Links must be https or site-relative.")
 
     def on_update(self):

@@ -64,7 +64,7 @@ def parse_sections(text: str) -> dict[str, str]:
 
 
 def word_count(text: str) -> int:
-    return len(re.findall(r"\w+", text or ""))
+    return len(re.findall(r"\w+", blog.plain_text(text)))
 
 
 def valid_article(title: str, summary: str, body: str) -> str:
@@ -237,7 +237,7 @@ def write_articles(
                 "status": "Draft",
                 "source": "AI",
                 "summary": summary,
-                "body": body,
+                "body": blog.render_markdown(body),  # stored as HTML so the rich-text editor shows it formatted
                 "keywords": seo_agent._clean(parts.get("KEYWORDS"), 140),
                 "related_module": _module_for(title + " " + working + " " + str(topic.get("keyword") or ""), modules),
                 "promo_kit": promo,

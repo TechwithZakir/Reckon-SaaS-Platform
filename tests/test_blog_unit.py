@@ -340,6 +340,74 @@ class HumanVoiceAndCoverTests(unittest.TestCase):
             self.assertLess(len(data), 200_000)
 
 
+class RichTextTests(unittest.TestCase):
+    def test_editor_html_is_cleaned_to_an_allow_list(self):
+        with platform_modules("blog_html") as (_f, (clean,)):
+            dirty = (
+                '<div class="ql-editor read-mode"><h1>Big</h1><p onclick="x()">Hi <b>there</b> <i>you</i></p>'
+                '<script>alert(1)</script><style>p{}</style><iframe src="https://evil.test"></iframe>'
+                '<a href="javascript:alert(1)">bad</a> <a href="/modules">ok</a> <a href="https://example.org/x" onmouseover="y()">ext</a> '
+                '<a href="http://insecure.test">http</a><img src="https://example.org/a.png" alt="A" width="300" onerror="z()">'
+                '<img src="javascript:alert(1)"><ul><li>one<li>two</ul><table><tr><td colspan="2">c</td></tr></table>'
+                '<p>unclosed <strong>bold</div></div>'
+            )
+            out = clean.sanitize_html(dirty)
+        self.assertNotIn("<script", out)
+        self.assertNotIn("alert(1)", out)
+        self.assertNotIn("onclick", out)
+        self.assertNotIn("onerror", out)
+        self.assertNotIn("onmouseover", out)
+        self.assertNotIn("iframe", out)
+        self.assertNotIn("<style", out)
+        self.assertNotIn("<div", out)
+        self.assertNotIn("javascript:", out)
+        self.assertNotIn("http://", out)
+        self.assertIn("<h2>Big</h2>", out)  # a second h1 never reaches the page
+        self.assertIn("<strong>there</strong>", out)
+        self.assertIn("<em>you</em>", out)
+        self.assertIn('<a href="/modules">ok</a>', out)
+        self.assertIn('<a href="https://example.org/x" rel="nofollow noopener" target="_blank">ext</a>', out)
+        self.assertIn('<img src="https://example.org/a.png" alt="A" width="300" loading="lazy" decoding="async">', out)
+        self.assertEqual(out.count("<img"), 1)
+        self.assertIn('<td colspan="2">c</td>', out)
+        self.assertTrue(out.endswith("</strong></p>"))  # tags left open are closed
+
+    def test_html_posts_use_the_sanitizer_and_markdown_posts_still_render(self):
+        with platform_modules("blog") as (_f, (blog,)):
+            html_out = blog.render_body("<p>Hello <script>x()</script><strong>world</strong></p>")
+            md_out = blog.render_body("## Heading\n\nSome **bold** text.")
+            minutes = blog.read_minutes("<p>" + "word " * 450 + "</p>")
+        self.assertEqual(html_out, "<p>Hello <strong>world</strong></p>")
+        self.assertIn("<h2>Heading</h2>", md_out)
+        self.assertIn("<strong>bold</strong>", md_out)
+        self.assertEqual(minutes, 2)  # tags are not counted as words
+
+    def test_words_are_counted_without_tags_and_the_body_field_is_a_rich_text_editor(self):
+        import json as _json
+
+        with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_agent") as (_f, (_m, _s, _a, _b, agent)):
+            self.assertEqual(agent.word_count("<p>one two</p><ul><li>three</li></ul>"), 3)
+        doctype = _json.loads((PKG / "seo_agent_studio" / "doctype" / "seo_article" / "seo_article.json").read_text(encoding="utf-8"))
+        body = next(f for f in doctype["fields"] if f["fieldname"] == "body")
+        self.assertEqual(body["fieldtype"], "Text Editor")
+
+    def test_agent_drafts_are_stored_as_html_for_the_editor(self):
+        plan = json.dumps([{"category": "Weekly Update", "title": "Weekly tips", "keyword": "distribution", "outline": "a"}])
+        with platform_modules("marketing", "seo", "seo_agent", "blog", "blog_agent") as (frappe, (marketing, seo, agent, blog, writer)):
+            modules = _site(frappe, marketing, [])
+            created = []
+            frappe.db.exists = Mock(side_effect=lambda doctype, name=None: True if doctype == "DocType" else None)
+            frappe.get_doc = Mock(side_effect=lambda values: Mock(insert=lambda ignore_permissions=False: created.append(values)))
+            frappe.utils.get_url = Mock(return_value="https://example.test/")
+            frappe.get_all = Mock(return_value=[])
+            agent.call_model = Mock(side_effect=[plan, BlogAgentTests().reply()])
+            writer.write_articles(_Dict(seo_blog_enabled=1, seo_blog_frequency="Weekly"), [], modules, [], 3)
+        body = created[0]["body"]
+        self.assertIn("<h2>Why routes matter</h2>", body)
+        self.assertIn('<a href="/modules/distribution">Distribution</a>', body)
+        self.assertNotIn("## ", body)
+
+
 class BlogWiringTests(unittest.TestCase):
     def test_routes_doctype_settings_and_permissions(self):
         hooks = (PKG / "hooks.py").read_text(encoding="utf-8")

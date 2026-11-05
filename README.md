@@ -114,20 +114,21 @@ site, after the same length and wording checks (no "best", "guaranteed", ...); t
 check then re-runs and, if enabled, search engines are notified. It does nothing
 until enabled and keyed, and stops at the monthly limit.
 
-### SEO Agent Studio (a module of its own)
+### SEO Agent Studio (inside SaaS Admin)
 
-**SEO Agent Studio** is a separate Desk module (workspace `/desk/seo-agent-studio`, vendor
-users only) that gathers everything the SEO agent produces: **SEO Suggestions** to
-approve, **Blog Articles** to review and publish, a link to the agent settings, and
-shortcuts to the live blog, sitemap, `llms.txt` and RSS feed. The agent's configuration
-stays in **SaaS Platform Settings > SEO Agent (AI)** because it shares that page with the
-site address and tracking IDs. After deploying, run `bench build` and `bench migrate`.
+**SEO Agent Studio** is a module (it owns the SEO Suggestion and SEO Article doctypes) that
+opens **inside the same SaaS Admin page**, with no second workspace or window: a
+"SEO Agent Studio" section on the **Reckon SaaS Admin** home page and in its left
+rail, with **SEO Suggestions** (pending count), **Blog Articles** (draft count) and
+**SEO Agent Settings**. Vendor users only. The agent's configuration lives in
+**SaaS Platform Settings > SEO Agent (AI)**, next to the site address and tracking
+IDs. After deploying, run `bench build`, `bench migrate` and `bench restart`.
 
 ### Blog and the agent that writes for it
 
 The landing page, header and footer link to **/blog**: articles, tutorials, feature
 guides and weekly updates, each at `/blog/<slug>`, with an RSS feed at
-`/blog/rss.xml`. Posts are **SEO Article** records (`/app/seo-article`). Published
+`/blog/rss.xml`. Posts are **SEO Article** records (`/app/seo-article`) written in a **rich-text editor**; the website outputs only an allow-list of the HTML (headings, lists, links, images, code, quotes, tables), never scripts or event handlers. Published
 posts feed the sitemap (with `lastmod`), `llms.txt`, BlogPosting structured data, the
 landing page's "From the blog" section and the related module page. An empty blog is
 `noindex` and stays out of the sitemap.

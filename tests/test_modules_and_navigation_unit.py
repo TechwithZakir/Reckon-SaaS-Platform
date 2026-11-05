@@ -8,6 +8,8 @@ from unittest.mock import Mock, patch
 
 from frappe_stub import _Dict, plan_lookup, platform_modules
 
+# The SEO agent's doctypes are surfaced inside the same SaaS Admin page.
+SEO_AGENT_DOCTYPES = {"SEO Suggestion", "SEO Article"}
 ALL_SAAS_DOCTYPES = {
     "SaaS Module",
     "SaaS Plan",
@@ -44,7 +46,7 @@ class SidebarAndWorkspaceTests(unittest.TestCase):
         links = [item for item in sidebar["items"] if item["type"] == "Link"]
         self.assertEqual(links[0]["label"], "Dashboard")
         self.assertEqual((links[0]["link_type"], links[0]["link_to"]), ("Page", "saas-dashboard"))
-        self.assertEqual({item["link_to"] for item in links if item["link_type"] == "DocType"}, ALL_SAAS_DOCTYPES)
+        self.assertEqual({item["link_to"] for item in links if item["link_type"] == "DocType"}, ALL_SAAS_DOCTYPES | SEO_AGENT_DOCTYPES)
         self.assertEqual(sidebar["module"], "SaaS Platform")
         self.assertTrue(any(item["type"] == "Section Break" for item in sidebar["items"]))
 
@@ -87,7 +89,7 @@ class SidebarAndWorkspaceTests(unittest.TestCase):
         dashboard = workspace["shortcuts"][0]
         self.assertEqual((dashboard["type"], dashboard["link_to"]), ("Page", "saas-dashboard"))
         doctypes = {row["link_to"] for row in workspace["shortcuts"] if row["type"] == "DocType"}
-        self.assertEqual(doctypes, ALL_SAAS_DOCTYPES)
+        self.assertEqual(doctypes, ALL_SAAS_DOCTYPES | SEO_AGENT_DOCTYPES)
 
     def test_dashboard_page_is_vendor_only(self):
         from pathlib import Path
