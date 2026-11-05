@@ -37,8 +37,14 @@ footer a:hover{text-decoration:underline}
 footer img{display:block;margin-bottom:12px;height:auto;width:150px}
 .brand img{height:40px;width:auto}
 .brand{font-size:19px}
-address.contact{font-style:normal;display:flex;flex-wrap:wrap;gap:8px 28px;margin:24px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
-address.contact strong{margin-right:6px;color:var(--mut);font-weight:700}
+footer.foot .foot-bottom{display:flex;flex-wrap:wrap;align-items:center;gap:20px 40px;margin:24px 0 12px;padding-top:20px;border-top:1px solid var(--line)}
+footer.foot .foot-logo{display:block;line-height:0}
+footer.foot .foot-logo img{display:block;height:64px;width:auto;margin:0}
+address.contact{font-style:normal;display:grid;gap:10px;margin:0}
+address.contact>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+address.contact .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--brand2) 16%,transparent);color:var(--brand);flex:none}
+address.contact .ic svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+address.contact strong{min-width:118px;margin-right:2px;color:var(--mut);font-weight:700}
 address.contact a{font-weight:700}
 .chat{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .chat-fab{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px;min-height:48px;background:#15803d;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}

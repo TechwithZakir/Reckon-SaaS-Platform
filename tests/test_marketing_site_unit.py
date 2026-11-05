@@ -515,6 +515,8 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn('href="mailto:hello@reckon.tech"', html)
         self.assertIn('href="https://wa.me/8801325009955"', html)
         self.assertIn("+8801325-009955", html)
+        self.assertIn('class="foot-logo"', html)
+        self.assertEqual(html.count('<span class="ic">'), 3)
         self.assertIn("data-chat", html)
         self.assertIn("Continue on WhatsApp", html)
         questions = " ".join(q for q, _a in page["faqs"]).lower()

@@ -1,16 +1,19 @@
 <footer class="foot">
   <div class="wrap">
     <div class="cols4">
-      <div><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP" loading="lazy" decoding="async"><h2>ReckonERP</h2><p>Cloud ERP for businesses in Bangladesh, built on ERPNext.</p></div>
+      <div><h2>ReckonERP</h2><p>Cloud ERP for businesses in Bangladesh, built on ERPNext.</p></div>
       <div><h2>Features</h2><ul>{% for f in nav_features %}<li><a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a></li>{% endfor %}</ul></div>
       <div><h2>Modules</h2><ul>{% for m in nav_modules %}<li><a href="{{ m.url|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
       <div><h2>Company</h2><ul><li><a href="/integrations">Integrations</a></li><li><a href="/reckonerp-signup">Sign up</a></li><li><a href="/login">Log in</a></li></ul></div>
     </div>
-    <address class="contact">
-      <div><strong>Website</strong> <a href="{{ company_site|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
-      <div><strong>Mail Address</strong> <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
-      <div><strong>WhatsApp / Cell</strong> <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
-    </address>
+    <div class="foot-bottom">
+      <a class="foot-logo" href="/" aria-label="ReckonERP home"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP" loading="lazy" decoding="async"></a>
+      <address class="contact">
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><strong>Website</strong> <a href="{{ company_site|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v12H3zM3 7l9 7 9-7"/></svg></span><strong>Mail Address</strong> <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h4l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-3z"/></svg></span><strong>WhatsApp / Cell</strong> <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
+      </address>
+    </div>
     <p class="note">&copy; {{ year|e }} {{ publisher|e }}<span class="powered">{{ powered_by|e }}</span></p>
   </div>
 </footer>
