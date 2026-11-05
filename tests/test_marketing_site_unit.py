@@ -629,7 +629,7 @@ class MarketingRenderTests(unittest.TestCase):
         with platform_modules("marketing") as (frappe, (marketing,)):
             frappe.utils.nowdate = Mock(return_value="2026-11-05")
             modules = _modules(marketing, frappe)
-            known = set(marketing.public_paths(modules)) | {"/", "/login", marketing.SIGNUP}
+            known = set(marketing.public_paths(modules)) | {"/", "/login", marketing.SIGNUP, "/blog", "/blog/rss.xml"}
             rendered = []
             for page in all_pages(marketing, modules):
                 if page["path"] == "/":

@@ -114,6 +114,30 @@ site, after the same length and wording checks (no "best", "guaranteed", ...); t
 check then re-runs and, if enabled, search engines are notified. It does nothing
 until enabled and keyed, and stops at the monthly limit.
 
+### Blog and the agent that writes for it
+
+The landing page, header and footer link to **/blog**: articles, tutorials, feature
+guides and weekly updates, each at `/blog/<slug>`, with an RSS feed at
+`/blog/rss.xml`. Posts are **SEO Article** records (`/app/seo-article`). Published
+posts feed the sitemap (with `lastmod`), `llms.txt`, BlogPosting structured data, the
+landing page's "From the blog" section and the related module page. An empty blog is
+`noindex` and stays out of the sitemap.
+
+To have the agent write: in **SaaS Platform Settings > SEO Agent (AI)** enable the agent,
+tick **Write Blog Drafts**, set **Articles per Run** (1-3) and, for the weekly update,
+paste this week's release notes or news into **Blog Notes**. Each run rotates through
+tutorial, feature guide, article and weekly update, and saves **drafts**. Read one,
+edit it, then **Publish**. The agent has no internet access and is told not to state
+news, statistics, dates or competitor claims; it may only describe ReckonERP from the
+site's own text and your notes. Each draft also carries an **Off-page Promotion Kit**:
+a LinkedIn post, a Facebook post and an outreach pitch for blogs and directories. A
+person copies and sends them; nothing is posted or emailed automatically.
+
+Off-page checklist (the agent cannot do these for you): publish the LinkedIn and Facebook
+posts from the kit, send the pitch to relevant blogs, directories and partners, ask
+customers for reviews, and list the company on Google Business Profile, G2, Capterra and
+Crunchbase, then add those links under **Official Profile Links**.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

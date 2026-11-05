@@ -69,6 +69,15 @@
   </div>
 </section>
 
+{% if page.latest_articles %}
+<section aria-labelledby="blog-h">
+  <div class="wrap">
+    <div class="head"><h2 id="blog-h">From the blog</h2><p>Guides, tutorials and weekly updates. <a href="/blog">All articles</a></p></div>
+    {{ m.article_cards(page.latest_articles) }}
+  </div>
+</section>
+{% endif %}
+
 <section aria-labelledby="dep-h">
   <div class="wrap">
     <div class="head"><h2 id="dep-h">Deploy it your way</h2><p>Start on the shared cloud today. Move to a dedicated cloud or your own servers when you need to.</p></div>

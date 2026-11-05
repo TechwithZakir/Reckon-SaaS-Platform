@@ -28,9 +28,12 @@ INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
 MAX_URLS_PER_NOTICE = 100
 
 
-def collect_pages(base: str, modules: list[dict], integrations=None, profiles=None) -> list[dict]:
+def collect_pages(base: str, modules: list[dict], integrations=None, profiles=None, articles=None) -> list[dict]:
+    from reckon_saas_platform import blog
+
+    articles = blog.get_articles() if articles is None else articles
     pages = [
-        marketing.home_page(base, modules, integrations, profiles),
+        marketing.home_page(base, modules, integrations, profiles, articles),
         marketing.features_page(base),
         marketing.modules_page(base, modules),
         marketing.integrations_page(base, integrations),
@@ -38,6 +41,9 @@ def collect_pages(base: str, modules: list[dict], integrations=None, profiles=No
     ]
     pages += [marketing.feature_page(base, feature) for feature in marketing.FEATURE_LIST]
     pages += [marketing.module_page(base, module, modules) for module in modules]
+    if articles:
+        pages.append(blog.blog_page(base, articles))
+        pages += [blog.article_page(base, article, articles) for article in articles]
     return pages
 
 

@@ -12,6 +12,14 @@
 </div>
 {% endmacro %}
 
+{% macro article_cards(items) %}
+<ul class="grid">
+  {% for a in items %}
+  <li><article class="card"><p class="eyebrow" style="margin:0">{{ a.category|e }}</p><h3><a href="{{ a.url|e }}" style="color:inherit;text-decoration:none">{{ a.title|e }}</a></h3><p>{{ a.summary|e }}</p><a class="more" href="{{ a.url|e }}">Read<span class="sr">: {{ a.title|e }}</span></a></article></li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
 {% macro faq(faqs, heading) %}
 {% if faqs %}
 <section aria-labelledby="faq-h"><div class="wrap">

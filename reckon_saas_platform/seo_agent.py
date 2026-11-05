@@ -261,6 +261,12 @@ def run_agent(trigger: str = "weekly") -> dict:
             existing = [q for g in marketing.faq_groups(modules) for q, _a in g["faqs"]]
             faqs = draft_faqs(settings, pages, existing, keywords)
             report.append(f"New suggestions waiting for approval: {drafted} page text, {faqs} FAQ.")
+            from reckon_saas_platform import blog_agent
+
+            week = int(frappe.utils.getdate(frappe.utils.nowdate()).isocalendar()[1])
+            written = blog_agent.write_articles(settings, pages, modules, keywords, week)
+            if written:
+                report.append(f"Blog drafts waiting for review ({len(written)}): " + "; ".join(written))
             if questions:
                 seen = check_visibility(settings, questions)
                 hits = sum(1 for _q, ok in seen if ok)

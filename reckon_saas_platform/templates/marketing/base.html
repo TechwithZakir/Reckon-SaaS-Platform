@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ page.title|e }}</title>
 <meta name="description" content="{{ page.description|e }}">
-<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="robots" content="{% if page.noindex %}noindex,follow{% else %}index,follow,max-image-preview:large{% endif %}">
+<link rel="alternate" type="application/rss+xml" title="ReckonERP blog" href="/blog/rss.xml">
 <meta name="theme-color" content="#0b78ab">
 <link rel="canonical" href="{{ page.canonical|e }}">
 <link rel="alternate" hreflang="en" href="{{ page.canonical|e }}">

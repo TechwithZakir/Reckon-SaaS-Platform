@@ -955,6 +955,8 @@ def make_page(
     faqs=None,
     software: tuple[str, str] | None = None,
     same_as=None,
+    extra_ld=None,
+    noindex: bool = False,
     **extra,
 ) -> dict:
     """Everything a template needs: head tags, JSON-LD and breadcrumbs."""
@@ -969,6 +971,7 @@ def make_page(
         ld.append(software_ld(base, software[0], software[1], path))
     if faqs:
         ld.append(faq_ld(faqs))
+    ld += list(extra_ld or [])
     if len(trail) > 1:
         ld.append(breadcrumb_ld(base, trail))
     return {
@@ -980,13 +983,17 @@ def make_page(
         "og_image": f"{base}{LOGO_SOCIAL}",
         "site_name": SITE_NAME,
         "trail": trail,
+        "noindex": noindex,
         "faqs": list(faqs or []),
         "jsonld": [dumps_ld(item) for item in ld],
         **extra,
     }
 
 
-def home_page(base: str, modules: list[dict], integrations=None, profiles=None) -> dict:
+def home_page(base: str, modules: list[dict], integrations=None, profiles=None, articles=None) -> dict:
+    from reckon_saas_platform import blog
+
+    latest = (blog.get_articles() if articles is None else articles)[:3]
     description = (
         "ReckonERP is a cloud ERP with built-in AI. Invoices, orders, stock and people in one "
         "workspace, in English and Bangla. Start online today."
@@ -1000,6 +1007,7 @@ def home_page(base: str, modules: list[dict], integrations=None, profiles=None) 
         faqs=HOME_FAQS,
         software=(SITE_NAME, description),
         same_as=profiles,
+        latest_articles=latest,
         features=FEATURE_LIST,
         modules=modules,
         integrations=list(integrations or INTEGRATIONS_LIST),
@@ -1050,6 +1058,12 @@ def modules_page(base: str, modules: list[dict]) -> dict:
     )
 
 
+def _articles_for(module_key: str) -> list[dict]:
+    from reckon_saas_platform import blog
+
+    return [a for a in blog.get_articles() if a["module"] == module_key]
+
+
 def module_page(base: str, module: dict, modules: list[dict]) -> dict:
     description = (module["tagline"] + " " + module["description"]).strip()
     if len(description) > 158:
@@ -1064,6 +1078,7 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
         faqs=module["faqs"],
         software=(f"{SITE_NAME} {module['name']}", description),
         module=module,
+        module_articles=[a for a in _articles_for(module["key"])][:3],
         modules=[m for m in modules if m["key"] != module["key"]],
         signup_url=signup_url(module["key"]),
     )
@@ -1128,20 +1143,32 @@ def integrations_page(base: str, integrations=None) -> dict:
 
 
 # --- Machine-readable files --------------------------------------------------------
-def public_paths(modules: list[dict]) -> list[str]:
-    """Every indexable page, in sitemap order."""
+def public_paths(modules: list[dict], articles=None) -> list[str]:
+    """Every indexable page, in sitemap order. The blog appears once it has a published post."""
+    from reckon_saas_platform import blog
+
+    articles = blog.get_articles() if articles is None else articles
     paths = [HOME, FEATURES]
     paths += [feature_url(f["slug"]) for f in FEATURE_LIST]
     paths += [MODULES] + [m["url"] for m in modules]
-    paths += [INTEGRATIONS, FAQ, SIGNUP]
+    paths += [INTEGRATIONS, FAQ]
+    if articles:
+        paths += [blog.BLOG] + [a["url"] for a in articles]
+    paths += [SIGNUP]
     return paths
 
 
 def sitemap_xml(base: str, modules: list[dict]) -> str:
     """Built on every request from the live module registry, so new modules appear by themselves."""
+    from reckon_saas_platform import blog
+
+    articles = blog.get_articles()
     modified = {m["url"]: m.get("modified") for m in modules}
+    modified.update({a["url"]: a["modified"] for a in articles})
+    if articles:
+        modified[blog.BLOG] = articles[0]["modified"]
     rows = []
-    for path in public_paths(modules):
+    for path in public_paths(modules, articles):
         lastmod = modified.get(path)
         stamp = f"<lastmod>{xml_escape(lastmod)}</lastmod>" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", lastmod or "") else ""
         rows.append(f"<url><loc>{xml_escape(base + path)}</loc>{stamp}</url>")
@@ -1156,6 +1183,15 @@ def robots_txt(base: str) -> str:
     agents = "\n".join(f"User-agent: {agent}" for agent in ("*", *CRAWLERS))
     disallow = "\n".join(f"Disallow: {path}" for path in PRIVATE_PATHS)
     return f"{agents}\nAllow: /\n{disallow}\n\nSitemap: {base}/sitemap.xml\n"
+
+
+def _blog_lines(base: str) -> list[str]:
+    from reckon_saas_platform import blog
+
+    posts = blog.get_articles(30)
+    if not posts:
+        return []
+    return ["## Blog", "", *[f"- [{p['title']}]({base}{p['url']}): {p['summary']}" for p in posts], ""]
 
 
 def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
@@ -1186,6 +1222,7 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
         + ", ".join(item["name"] for item in integrations)
         + ".",
         "",
+        *_blog_lines(base),
         "## Answers",
         "",
         f"- [FAQ]({base}{FAQ}): pricing, deployment, implementation cost, licences, AI and "
@@ -1233,6 +1270,7 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
     out += ["## Deployment options", ""]
     out += [f"- {item['title']}: {item['text']}" for item in DEPLOYMENTS] + ["", AI_NOTE, ""]
     out += ["## Integrations and channels", "", ", ".join(item["name"] for item in integrations) + ".", ""]
+    out += _blog_lines(base)
     out += ["## Frequently asked questions", ""]
     for group in faq_groups(modules):
         out += [f"### {group['title']}", ""]

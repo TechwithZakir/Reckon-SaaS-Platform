@@ -73,3 +73,9 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .ai-band .note{color:#b9c9e6}
 .ai-band .btn{border-color:#fff;color:#fff}.ai-band .btn.solid{background:#fff;color:#0b1f3a}
 .hero picture,.hero picture img{display:block;width:100%;height:auto;box-shadow:none;border:0;background:transparent}
+.prose{max-width:760px}
+.prose h2{margin:32px 0 10px;font-size:1.5rem}.prose h3{margin:24px 0 8px;font-size:1.2rem}.prose h4{margin:18px 0 6px}
+.prose p,.prose li{font-size:1.05rem;line-height:1.75}.prose ul,.prose ol{padding-left:1.3em;margin:0 0 16px}
+.prose code{background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.92em}
+.prose pre{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}.prose pre code{background:none;border:0;padding:0}
+.prose a{font-weight:600}.meta{color:var(--mut);font-size:.9rem;margin:0 0 20px}

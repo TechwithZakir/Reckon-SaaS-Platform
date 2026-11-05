@@ -28,6 +28,14 @@
   </div>
 </section>
 {{ m.faq(page.faqs, "Questions about " ~ page.module.name) }}
+{% if page.module_articles %}
+<section aria-labelledby="art-h">
+  <div class="wrap">
+    <div class="head"><h2 id="art-h">Guides for {{ page.module.name|e }}</h2></div>
+    {{ m.article_cards(page.module_articles) }}
+  </div>
+</section>
+{% endif %}
 {% if page.modules %}
 <section class="alt" aria-labelledby="other-h">
   <div class="wrap">

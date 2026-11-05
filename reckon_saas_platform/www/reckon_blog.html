@@ -1,0 +1,45 @@
+{% extends "reckon_saas_platform/templates/marketing/base.html" %}
+
+{% block content %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{{ m.crumbs(page.trail) }}
+{% if page.article %}
+<article class="page-hero">
+  <div class="wrap prose">
+    <p class="eyebrow">{{ page.article.category|e }}</p>
+    <h1>{{ page.h1|e }}</h1>
+    <p class="meta">{% if page.article.published %}<time datetime="{{ page.article.published|e }}">{{ page.article.published|e }}</time> &middot; {% endif %}{{ page.minutes }} min read</p>
+    {{ page.article_html }}
+    <div class="actions" style="margin:28px 0"><a class="btn solid lg" href="/reckonerp-signup">Sign up</a><a class="btn lg" href="/blog">More articles</a></div>
+  </div>
+</article>
+{% if page.related %}
+<section class="alt" aria-labelledby="rel-h">
+  <div class="wrap">
+    <div class="head"><h2 id="rel-h">Keep reading</h2></div>
+    {{ m.article_cards(page.related) }}
+  </div>
+</section>
+{% endif %}
+{% else %}
+<section class="page-hero">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Blog</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">Guides, tutorials, feature explainers and weekly updates. <a href="/blog/rss.xml">RSS feed</a></p>
+    </div>
+    {% if page.articles %}
+    {% for category in page.categories %}
+    <h2 style="margin-top:28px;font-size:1.4rem">{{ category|e }}s</h2>
+    {% set group = [] %}{% for a in page.articles %}{% if a.category == category %}{% if group.append(a) %}{% endif %}{% endif %}{% endfor %}
+    {{ m.article_cards(group) }}
+    {% endfor %}
+    {% else %}
+    <p>Articles are on their way. In the meantime, see the <a href="/features">features</a> and <a href="/modules">modules</a>.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+{{ m.cta("Try ReckonERP", "Create your company workspace in minutes.", "/reckonerp-signup") }}
+{% endblock %}
