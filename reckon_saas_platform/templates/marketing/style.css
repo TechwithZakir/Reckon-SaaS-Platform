@@ -72,4 +72,4 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .ai-band img{border-radius:18px;width:100%;height:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
 .ai-band .note{color:#b9c9e6}
 .ai-band .btn{border-color:#fff;color:#fff}.ai-band .btn.solid{background:#fff;color:#0b1f3a}
-.hero img{box-shadow:none;border-radius:20px;background:#fff}
+.hero picture,.hero picture img{display:block;width:100%;height:auto;box-shadow:none;border:0;background:transparent}

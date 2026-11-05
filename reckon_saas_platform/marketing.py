@@ -39,6 +39,7 @@ LOGO_SIZE = (360, 232)
 LOGO_SOCIAL = "/assets/reckon_saas_platform/images/reckonerp-logo-512.png"
 ICON = "/assets/reckon_saas_platform/images/reckonerp-icon-64.png"
 HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.webp"
+HERO_IMAGE_DARK = "/assets/reckon_saas_platform/images/marketing-hero-dark.webp"
 IMAGE_DIR = "/assets/reckon_saas_platform/images"
 
 # Illustrations drawn for this site: (file, alt text, width, height).
@@ -1110,6 +1111,7 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.glyphs = GLYPHS
     context.icon = ICON
     context.hero_image = HERO_IMAGE
+    context.hero_image_dark = HERO_IMAGE_DARK
     context.showcase = [
         {"title": title, "text": text, "image": illustration(name)} for name, title, text in SHOWCASE
     ]

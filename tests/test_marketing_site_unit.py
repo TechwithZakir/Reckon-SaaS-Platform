@@ -462,7 +462,9 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertEqual(page["h1"], "Your ERP, now with an AI that reads every ledger.")
         self.assertIn("an AI that reads every ledger.", html)
         self.assertIn("Invoices, orders, stock and people", html)
-        for name in ("reckonerp-logo.webp", "reckonerp-logo-512.png", "reckonerp-icon-64.png"):
+        self.assertIn("prefers-color-scheme: dark", html)
+        self.assertIn("marketing-hero-dark.webp", html)
+        for name in ("marketing-hero.webp", "marketing-hero-dark.webp", "reckonerp-logo.webp", "reckonerp-logo-512.png", "reckonerp-icon-64.png"):
             self.assertTrue((asset_root / name).exists(), name)
         self.assertIn("reckonerp-logo.webp", html)
         self.assertIn(f"{BASE}/assets/reckon_saas_platform/images/reckonerp-logo-512.png", html)
