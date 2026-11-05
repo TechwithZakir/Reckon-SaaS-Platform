@@ -98,3 +98,27 @@ footer img{display:block;margin-bottom:12px;height:auto;width:150px}
 .tile h3{margin:10px 6px 4px}.tile p{margin:0 6px;color:var(--mut);font-size:.95rem}
 .card{transition:transform .2s,box-shadow .2s}.card:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(19,155,217,.14)}
 @media(prefers-reduced-motion:reduce){.tile,.card{transition:none}.tile:hover,.card:hover{transform:none}}
+.brand img{height:40px;width:auto}
+.brand{font-size:19px}
+.hero .glass{background:color-mix(in srgb,var(--card) 62%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid color-mix(in srgb,#fff 45%,var(--line));border-radius:20px;padding:18px 20px;margin:0 0 22px;max-width:560px}
+.hero .glass ul{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:.95rem}
+.hero .glass li::before{content:"\2726";color:var(--green);margin-right:8px}
+.ai-band{background:linear-gradient(135deg,#0b1f3a,#1b2f6b 60%,#4c1d95);color:#eaf2ff}
+.ai-band h2,.ai-band h3{color:#fff}
+.ai-band .cols{align-items:center}
+.ai-band ul.tick li::before{border-color:#6bdc3a}
+.ai-band img{border-radius:18px;width:100%;height:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.ai-band .note{color:#b9c9e6}
+.ai-band .btn{border-color:#fff;color:#fff}.ai-band .btn.solid{background:#fff;color:#0b1f3a}
+address.contact{font-style:normal;display:flex;flex-wrap:wrap;gap:8px 28px;margin:24px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+address.contact strong{margin-right:6px;color:var(--mut);font-weight:700}
+address.contact a{font-weight:700}
+.chat{position:fixed;right:16px;bottom:16px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.chat-fab{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 18px;min-height:48px;background:#25a244;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.chat-fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.chat-panel{width:min(340px,calc(100vw - 32px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.chat-panel[hidden]{display:none}
+.chat-panel h2{font-size:1.1rem;margin:0 0 6px}
+.chat-panel p{margin:0 0 10px;font-size:.92rem}
+.chat-panel label{display:grid;gap:4px;font-size:.85rem;font-weight:600;margin-bottom:10px}
+.chat-panel input,.chat-panel textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}

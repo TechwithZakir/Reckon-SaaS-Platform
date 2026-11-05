@@ -13,13 +13,17 @@ domain the page is served from; no domain is written down here.
 from __future__ import annotations
 
 import json
+import re
 from urllib.parse import quote
 from xml.sax.saxutils import escape as xml_escape
 
 import frappe
 
 SITE_NAME = "ReckonERP"
-SUPPORT_EMAIL = "support@reckon.tech"
+SUPPORT_EMAIL = "hello@reckon.tech"
+COMPANY_SITE = "https://www.reckon.tech/"
+WHATSAPP_DISPLAY = "+8801325-009955"
+WHATSAPP_NUMBER = "8801325009955"
 PUBLISHER = "Reckon Technologies Ltd."
 
 HOME = "/"
@@ -28,7 +32,10 @@ MODULES = "/modules"
 INTEGRATIONS = "/integrations"
 SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
-LOGO = "/assets/reckon_saas_platform/images/reckon-tech-logo.png"
+LOGO = "/assets/reckon_saas_platform/images/reckonerp-logo.webp"
+LOGO_SIZE = (360, 232)
+LOGO_SOCIAL = "/assets/reckon_saas_platform/images/reckonerp-logo-512.png"
+ICON = "/assets/reckon_saas_platform/images/reckonerp-icon-64.png"
 HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.svg"
 IMAGE_DIR = "/assets/reckon_saas_platform/images"
 
@@ -476,12 +483,37 @@ SHOWCASE = (
     ("ai", "AI assistance", "AI drafts and researches; a person approves before anything is sent."),
 )
 
+AI_POINTS = (
+    "Reads and summarises invoices, orders, stock and customer records so people find answers faster",
+    "Researches leads from their own websites and keeps the evidence next to every claim",
+    "Drafts replies and follow-ups; a person approves before anything is sent",
+    "Scores leads with fixed rules you can read, then syncs them to Frappe CRM",
+)
+AI_NOTE = "AI and integration tools are billed separately from the module subscription."
+
+DEPLOYMENTS = (
+    {
+        "title": "Shared cloud",
+        "text": "Sign up online and start in your own private company workspace. Fastest way to begin.",
+    },
+    {
+        "title": "Dedicated cloud",
+        "text": "Your own cloud server for isolation and your own release schedule. "
+        "Customisation and set-up are quoted separately.",
+    },
+    {
+        "title": "On-premises",
+        "text": "Installed on your own infrastructure with customisation and support. "
+        "Quoted to your requirements.",
+    },
+)
+
 HOME_FAQS = (
     (
         "What is ReckonERP?",
-        "ReckonERP is a cloud ERP for businesses in Bangladesh, built on ERPNext. You pick "
-        "the modules you need, such as Distribution, Accounts or the Sales AI Agent, and "
-        "each company works in its own private workspace.",
+        "ReckonERP is a cloud ERP for businesses in Bangladesh, built on ERPNext, with AI "
+        "built in. You pick the modules you need, such as Distribution, Accounts or the "
+        "Sales AI Agent, and each company works in its own private workspace.",
     ),
     (
         "How do I start?",
@@ -489,9 +521,55 @@ HOME_FAQS = (
         "Your workspace is created once verification is done.",
     ),
     (
+        "How is ReckonERP deployed?",
+        "Three ways: the shared cloud, where you sign up and start at once; a dedicated cloud "
+        "installation for your company alone; or on-premises on your own infrastructure. "
+        "Dedicated and on-premises installations are customised to your needs and quoted "
+        "separately.",
+    ),
+    (
+        "How does pricing work?",
+        "Each module has its own subscription plan, with its price, billing cycle and any "
+        "trial days shown when you sign up. Implementation, customisation, AI and "
+        "integration tools are additional.",
+    ),
+    (
+        "What does implementation cost?",
+        "Self-serve signup needs no implementation. Guided set-up, data migration, training "
+        "and custom work are additional and quoted after we understand your business. Message "
+        "us on WhatsApp or email for an estimate.",
+    ),
+    (
+        "Do AI and integration tools cost extra?",
+        "Yes. AI features and channel integrations such as WhatsApp, SMS, voice and email "
+        "services are charged in addition to the module subscription, because they depend on "
+        "usage and on third-party providers.",
+    ),
+    (
+        "Can you customise it, or install it on our own servers?",
+        "Yes. We support customisation, dedicated cloud installation and on-premises "
+        "installation. Tell us about your requirements and we will quote.",
+    ),
+    (
+        "What about licences?",
+        "ReckonERP is a subscription service: your subscription lets your company use the "
+        "modules you subscribed to. The platform is built on open-source ERPNext and Frappe. "
+        "Licence terms for dedicated and on-premises installations are agreed in the quote.",
+    ),
+    (
+        "How do I get help?",
+        "Email us, or chat on WhatsApp using the chat button on this page. Existing customers "
+        "can also write to the same address from their workspace.",
+    ),
+    (
         "Is my data separate from other companies?",
         "Yes. Every customer has its own Company and permission rules keep each tenant's "
         "records apart.",
+    ),
+    (
+        "Can I move my existing data in?",
+        "Data migration from spreadsheets or other software is available as an additional "
+        "service. Ask us for an estimate.",
     ),
     (
         "Which channels and services can I connect?",
@@ -548,27 +626,39 @@ def get_feature(slug: str) -> dict | None:
 
 
 def get_modules() -> list[dict]:
-    """Modules installed on this site and on sale, from the real registry."""
+    """Modules installed on this site and on sale.
+
+    The registry (``reckon_saas_modules`` hooks) says which apps are installed.
+    Each module's **SaaS Module** record, which the vendor can edit, supplies the
+    name, description and feature list when it has them, and switches the module
+    off for sale.
+    """
     from reckon_saas_platform.module_registry import MODULE_DOCTYPE, get_saas_modules
 
-    switched_off: set[str] = set()
+    records: dict[str, dict] = {}
     if frappe.db.exists("DocType", MODULE_DOCTYPE):
-        switched_off = set(
-            frappe.get_all(
-                MODULE_DOCTYPE, filters={"enabled": 0}, pluck="name", ignore_permissions=True
-            )
-        )
+        for row in frappe.get_all(
+            MODULE_DOCTYPE,
+            fields=["name", "module_name", "description", "features", "enabled"],
+            ignore_permissions=True,
+        ):
+            records[row.get("name")] = row
 
     modules = []
     seen = set()
     for definition in get_saas_modules():
         key = definition.get("key")
-        if not key or key in seen or key in switched_off:
+        record = records.get(key)
+        if not key or key in seen or (record is not None and not record.get("enabled")):
             continue
         seen.add(key)
+        record = record or {}
         copy = MODULE_COPY.get(key, {})
-        label = definition.get("label") or humanise(key)
-        description = definition.get("description") or ""
+        label = record.get("module_name") or definition.get("label") or humanise(key)
+        description = record.get("description") or definition.get("description") or ""
+        feature_keys = [
+            line.strip() for line in (record.get("features") or "").splitlines() if line.strip()
+        ] or list(definition.get("subscription_features") or [])
         modules.append(
             {
                 "key": key,
@@ -577,13 +667,46 @@ def get_modules() -> list[dict]:
                 "tagline": copy.get("tagline") or description,
                 "audience": copy.get("audience") or "",
                 "benefits": list(copy.get("benefits") or []),
-                "features": [feature_label(k) for k in definition.get("subscription_features") or []],
+                "features": [feature_label(k) for k in feature_keys],
                 "faqs": list(copy.get("faqs") or []),
                 "url": module_url(key),
                 "image": illustration(MODULE_ILLUSTRATION.get(key, "erp")),
             }
         )
     return modules
+
+
+def get_integrations() -> list[dict]:
+    """The built-in channel list plus anything product apps publish.
+
+    An app may add a ``reckon_saas_integrations`` hook returning dicts with
+    ``name`` and optionally ``group``, ``glyph`` or ``mark``, and ``color``.
+    """
+    items = [dict(item) for item in INTEGRATIONS_LIST]
+    names = {item["name"].lower() for item in items}
+    groups = {key for key, _label in INTEGRATION_GROUPS}
+    for app in frappe.get_installed_apps():
+        for entry in frappe.get_hooks("reckon_saas_integrations", app_name=app) or []:
+            if isinstance(entry, str):
+                entry = frappe.get_attr(entry)()
+            for raw in entry if isinstance(entry, (list, tuple)) else [entry]:
+                name = str((raw or {}).get("name") or "").strip()
+                if not name or name.lower() in names:
+                    continue
+                color = str(raw.get("color") or "")
+                item = {
+                    "name": name,
+                    "group": raw.get("group") if raw.get("group") in groups else "platform",
+                    "color": color if re.fullmatch(r"#[0-9a-fA-F]{6}", color) else "#475569",
+                }
+                mark = str(raw.get("mark") or "")[:2]
+                if mark:
+                    item["mark"] = mark
+                else:
+                    item["glyph"] = raw.get("glyph") if raw.get("glyph") in GLYPHS else "plug"
+                names.add(name.lower())
+                items.append(item)
+    return items
 
 
 def get_module(modules: list[dict], key: str | None) -> dict | None:
@@ -603,7 +726,7 @@ def organization_ld(base: str) -> dict:
         "name": SITE_NAME,
         "legalName": PUBLISHER,
         "url": f"{base}/",
-        "logo": f"{base}{LOGO}",
+        "logo": f"{base}{LOGO_SOCIAL}",
         "email": SUPPORT_EMAIL,
         "contactPoint": {
             "@type": "ContactPoint",
@@ -682,7 +805,7 @@ def make_page(
         "description": description,
         "h1": h1,
         "canonical": f"{base}{path}",
-        "og_image": f"{base}{LOGO}",
+        "og_image": f"{base}{LOGO_SOCIAL}",
         "site_name": SITE_NAME,
         "trail": trail,
         "faqs": list(faqs or []),
@@ -691,22 +814,22 @@ def make_page(
     }
 
 
-def home_page(base: str, modules: list[dict]) -> dict:
+def home_page(base: str, modules: list[dict], integrations=None) -> dict:
     description = (
-        "ReckonERP is a cloud ERP for Bangladesh built on ERPNext. Choose Distribution, "
-        "Accounts or the Sales AI Agent and sign up in minutes."
+        "ReckonERP is a cloud ERP with built-in AI for Bangladesh. Invoices, orders, stock and "
+        "people in one workspace. Sign up for Distribution, Accounts or Sales AI."
     )
     return make_page(
         base,
         path=HOME,
-        title="ReckonERP: cloud ERP for Bangladesh businesses",
+        title="ReckonERP: cloud ERP with built-in AI for Bangladesh",
         description=description,
-        h1="Run your whole business on one AI-powered cloud ERP",
+        h1="Your ERP, now with an AI that reads every ledger.",
         faqs=HOME_FAQS,
         software=(SITE_NAME, description),
         features=FEATURE_LIST,
         modules=modules,
-        integrations=INTEGRATIONS_LIST,
+        integrations=list(integrations or INTEGRATIONS_LIST),
     )
 
 
@@ -771,7 +894,8 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
     )
 
 
-def integrations_page(base: str) -> dict:
+def integrations_page(base: str, integrations=None) -> dict:
+    integrations = list(integrations or INTEGRATIONS_LIST)
     return make_page(
         base,
         path=INTEGRATIONS,
@@ -780,9 +904,9 @@ def integrations_page(base: str) -> dict:
         "Twilio, SMS gateways, Brevo, SendGrid, Google services and AI providers.",
         h1="Channels and services you can connect",
         trail=[("Home", HOME), ("Integrations", INTEGRATIONS)],
-        integrations=INTEGRATIONS_LIST,
+        integrations=integrations,
         groups=[
-            {"key": key, "label": label, "items": [i for i in INTEGRATIONS_LIST if i["group"] == key]}
+            {"key": key, "label": label, "items": [i for i in integrations if i["group"] == key]}
             for key, label in INTEGRATION_GROUPS
         ],
         trademark_note=TRADEMARK_NOTE,
@@ -813,7 +937,8 @@ def robots_txt(base: str) -> str:
     return f"{agents}\nAllow: /\n{disallow}\n\nSitemap: {base}/sitemap.xml\n"
 
 
-def llms_txt(base: str, modules: list[dict]) -> str:
+def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
+    integrations = list(integrations or INTEGRATIONS_LIST)
     lines = [
         f"# {SITE_NAME}",
         "",
@@ -834,7 +959,7 @@ def llms_txt(base: str, modules: list[dict]) -> str:
         "## Integrations",
         "",
         f"- [Integrations]({base}{INTEGRATIONS}): "
-        + ", ".join(item["name"] for item in INTEGRATIONS_LIST)
+        + ", ".join(item["name"] for item in integrations)
         + ".",
         "",
         "## Start",
@@ -862,6 +987,14 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.publisher = PUBLISHER
     context.year = frappe.utils.nowdate()[:4]
     context.logo = LOGO
+    context.logo_width, context.logo_height = LOGO_SIZE
+    context.icon = ICON
+    context.company_site = COMPANY_SITE
+    context.whatsapp_number = WHATSAPP_NUMBER
+    context.whatsapp_display = WHATSAPP_DISPLAY
+    context.ai_points = AI_POINTS
+    context.ai_note = AI_NOTE
+    context.deployments = DEPLOYMENTS
     context.hero_image = HERO_IMAGE
     context.showcase = [
         {"title": title, "text": text, "image": illustration(name)} for name, title, text in SHOWCASE

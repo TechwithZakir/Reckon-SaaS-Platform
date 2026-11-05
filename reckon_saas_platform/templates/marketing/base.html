@@ -8,7 +8,8 @@
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#0b78ab">
 <link rel="canonical" href="{{ page.canonical|e }}">
-<link rel="icon" href="/assets/reckon_saas_platform/images/reckon-saas-platform-icon.svg" type="image/svg+xml">
+<link rel="icon" href="{{ icon|e }}" type="image/png">
+<link rel="apple-touch-icon" href="{{ icon|e }}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ page.site_name|e }}">
 <meta property="og:title" content="{{ page.title|e }}">
@@ -27,7 +28,7 @@
 <header class="top">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="ReckonERP home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#139bd9"/><path d="M10 24V8h7a5 5 0 0 1 1.4 9.8L23 24h-3.6l-4-5.8H13V24z M13 11v5h4a2.5 2.5 0 0 0 0-5z" fill="#fff" fill-rule="evenodd"/></svg>
+      <img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="" decoding="async" fetchpriority="high">
       <span>ReckonERP</span>
     </a>
     <nav class="main" aria-label="Main">
@@ -57,19 +58,49 @@
 <footer class="foot">
   <div class="wrap">
     <div class="cols4">
-      <div><img src="{{ logo|e }}" width="150" height="54" alt="Reckon Technologies" loading="lazy" decoding="async"><h2>ReckonERP</h2><p>Cloud ERP for businesses in Bangladesh, built on ERPNext.</p><p><a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></p></div>
+      <div><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP" loading="lazy" decoding="async"><h2>ReckonERP</h2><p>Cloud ERP for businesses in Bangladesh, built on ERPNext.</p></div>
       <div><h2>Features</h2><ul>{% for f in nav_features %}<li><a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a></li>{% endfor %}</ul></div>
       <div><h2>Modules</h2><ul>{% for m in nav_modules %}<li><a href="{{ m.url|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
       <div><h2>Company</h2><ul><li><a href="/integrations">Integrations</a></li><li><a href="/reckonerp-signup">Sign up</a></li><li><a href="/login">Log in</a></li></ul></div>
     </div>
+    <address class="contact">
+      <div><strong>Website</strong> <a href="{{ company_site|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
+      <div><strong>Mail Address</strong> <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
+      <div><strong>WhatsApp / Cell</strong> <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
+    </address>
     <p class="note">&copy; {{ year|e }} {{ publisher|e }}</p>
   </div>
 </footer>
+<div class="chat" data-chat data-wa="{{ whatsapp_number|e }}">
+  <div class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-h" hidden>
+    <h2 id="chat-h">Chat with ReckonERP</h2>
+    <p>Ask about modules, pricing, deployment or AI. We reply on WhatsApp.</p>
+    <form data-chat-form>
+      <label>Your name<input name="n" autocomplete="name" maxlength="60"></label>
+      <label>Message<textarea name="m" rows="3" maxlength="500" required></textarea></label>
+      <button class="btn solid" type="submit">Continue on WhatsApp</button>
+    </form>
+    <p class="note">Nothing is sent until you press the button; WhatsApp then opens with your message ready. Prefer email? <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></p>
+  </div>
+  <button type="button" class="chat-fab" aria-expanded="false" aria-controls="chat-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Chat</span></button>
+</div>
 <script>
 (function(){
   var d=document;
   d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});
   d.addEventListener('keydown',function(e){if(e.key==='Escape')d.querySelectorAll('nav.main details[open]').forEach(function(x){x.open=false})});
+  var chat=d.querySelector('[data-chat]');
+  if(chat){
+    var fab=chat.querySelector('.chat-fab'),panel=chat.querySelector('.chat-panel'),form=chat.querySelector('form');
+    function show(open){panel.hidden=!open;fab.setAttribute('aria-expanded',open);if(open)form.m.focus()}
+    fab.addEventListener('click',function(){show(panel.hidden)});
+    d.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden){show(false);fab.focus()}});
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      var who=form.n.value.trim(),text=(who?'Hi, I am '+who+'. ':'Hi. ')+form.m.value.trim()+' (from '+location.href+')';
+      window.open('https://wa.me/'+chat.dataset.wa+'?text='+encodeURIComponent(text),'_blank','noopener');
+    });
+  }
   var rows=d.querySelectorAll('[data-marquee]');
   var b=d.querySelector('[data-marquee-toggle]');
   if(b){b.addEventListener('click',function(){

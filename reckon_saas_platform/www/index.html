@@ -6,8 +6,9 @@
   <div class="wrap">
     <div>
       <p class="eyebrow"><span class="pill">ERP</span><span class="pill">CRM</span><span class="pill">Automation</span><span class="pill">AI</span></p>
-      <h1>Run your whole business on <span class="grad">one AI-powered cloud ERP</span></h1>
-      <p class="lead">Pick the modules you need, verify your company and start in your own private workspace. Distribution, accounts and AI-assisted sales run on one platform, in Bangla or English.</p>
+      <h1>Your ERP, now with <span class="grad">an AI that reads every ledger.</span></h1>
+      <p class="lead">Invoices, orders, stock and people &mdash; one calm, glass-clear workspace.</p>
+      <div class="glass"><ul><li>AI built into ERP, CRM and automation</li><li>Private workspace for every company, in Bangla or English</li><li>Start online, or deploy on a dedicated cloud or on-premises</li></ul></div>
       <div class="actions">
         <a class="btn solid lg" href="/reckonerp-signup">Sign up</a>
         <a class="btn lg" href="/login">Log in</a>
@@ -15,6 +16,21 @@
       </div>
     </div>
     <img src="{{ hero_image|e }}" width="640" height="480" alt="Dashboard with sales, stock and collection cards" fetchpriority="high" decoding="async">
+  </div>
+</section>
+
+<section class="ai-band" aria-labelledby="ai-h">
+  <div class="wrap cols">
+    <div>
+      <p class="eyebrow">AI inside every module</p>
+      <h2 id="ai-h">AI that works on your own records, with a person in charge</h2>
+      <ul class="tick">
+        {% for point in ai_points %}<li>{{ point|e }}</li>{% endfor %}
+      </ul>
+      <p class="note">{{ ai_note|e }}</p>
+      <div class="actions"><a class="btn solid lg" href="/features/ai-assisted-selling">See AI features</a><a class="btn lg" href="/reckonerp-signup">Sign up</a></div>
+    </div>
+    <img src="/assets/reckon_saas_platform/images/illus-ai.svg" width="480" height="320" alt="AI assistant drafting a reply that waits for a person to approve" loading="lazy" decoding="async">
   </div>
 </section>
 
@@ -50,6 +66,16 @@
       <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
+  </div>
+</section>
+
+<section aria-labelledby="dep-h">
+  <div class="wrap">
+    <div class="head"><h2 id="dep-h">Deploy it your way</h2><p>Start on the shared cloud today. Move to a dedicated cloud or your own servers when you need to.</p></div>
+    <ul class="grid">
+      {% for d in deployments %}<li><article class="card"><h3>{{ d.title|e }}</h3><p>{{ d.text|e }}</p></article></li>{% endfor %}
+    </ul>
+    <p class="note">Customisation, implementation, data migration, AI and integration tools are additional. <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">Ask us for a quote on WhatsApp</a>.</p>
   </div>
 </section>
 

@@ -41,11 +41,14 @@ DEFINITIONS = [
 ]
 
 
-def _modules(marketing, frappe, definitions=DEFINITIONS, disabled=()):
+def _modules(marketing, frappe, definitions=DEFINITIONS, disabled=(), records=()):
+    """Modules as the site would list them; ``records`` are SaaS Module rows."""
     frappe.get_installed_apps = Mock(return_value=["app"])
     frappe.get_hooks = Mock(return_value=[dict(d) for d in definitions])
     frappe.db.exists = Mock(return_value=True)
-    frappe.get_all = Mock(return_value=list(disabled))
+    rows = [_Dict(name=name, enabled=0) for name in disabled]
+    rows += [_Dict({"enabled": 1, **row}) for row in records]
+    frappe.get_all = Mock(return_value=rows)
     return marketing.get_modules()
 
 
@@ -92,6 +95,37 @@ class MarketingDataTests(unittest.TestCase):
             modules = _modules(marketing, frappe, disabled=["accounts"])
         self.assertEqual([m["key"] for m in modules], ["distribution", "sales_agent"])
 
+    def test_vendor_edited_module_record_wins_over_the_hook(self):
+        record = {
+            "name": "accounts",
+            "module_name": "Reckon Books",
+            "description": "Edited by the vendor.",
+            "features": "stock_and_warehouses\ncustom_thing",
+        }
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe, records=[record])
+        accounts = modules[1]
+        self.assertEqual(accounts["name"], "Reckon Books")
+        self.assertEqual(accounts["description"], "Edited by the vendor.")
+        self.assertEqual(accounts["features"], ["Stock and warehouses", "Custom thing"])
+
+    def test_apps_can_publish_integrations(self):
+        published = [
+            {"name": "Acme Pay", "group": "email", "glyph": "billing", "color": "#123456"},
+            {"name": "whatsapp", "group": "messaging"},
+            {"name": "Odd", "group": "nope", "glyph": "bad", "color": "red", "mark": "ab"},
+        ]
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_installed_apps = Mock(return_value=["app"])
+            frappe.get_hooks = Mock(return_value=[published])
+            items = marketing.get_integrations()
+            builtin = len(marketing.INTEGRATIONS_LIST)
+        self.assertEqual(len(items), builtin + 2)
+        acme = next(i for i in items if i["name"] == "Acme Pay")
+        self.assertEqual((acme["group"], acme["glyph"], acme["color"]), ("email", "billing", "#123456"))
+        odd = next(i for i in items if i["name"] == "Odd")
+        self.assertEqual((odd["group"], odd["mark"], odd["color"]), ("platform", "ab", "#475569"))
+
     def test_module_without_written_copy_still_gets_a_page(self):
         extra = {"key": "payroll", "label": "Payroll", "description": "Pay your team."}
         with platform_modules("marketing") as (frappe, (marketing,)):
@@ -120,6 +154,7 @@ class MarketingDataTests(unittest.TestCase):
             features = marketing.features_page(BASE)
         kinds = lambda page: [json.loads(b)["@type"] for b in page["jsonld"]]  # noqa: E731
         self.assertEqual(kinds(home), ["Organization", "SoftwareApplication", "FAQPage"])
+        self.assertEqual(json.loads(home["jsonld"][0])["email"], "hello@reckon.tech")
         self.assertEqual(kinds(module), ["SoftwareApplication", "FAQPage", "BreadcrumbList"])
         self.assertEqual(kinds(features), ["BreadcrumbList"])
         crumbs = json.loads(module["jsonld"][-1])["itemListElement"]
@@ -224,6 +259,8 @@ class MarketingWiringTests(unittest.TestCase):
             if path.suffix not in (".py", ".html", ".css", ".txt", ".xml"):
                 continue
             text = path.read_text(encoding="utf-8")
+            # The company's own website is a deliberate outbound link, not this site's address.
+            text = text.replace("https://www.reckon.tech/", "").replace("hello@reckon.tech", "")
             self.assertNotRegex(text, r"https?://[a-z0-9.-]*reckon", path.name)
             self.assertNotIn("distribution.reckon", text, path.name)
             self.assertNotIn("app.reckon", text, path.name)
@@ -268,7 +305,7 @@ class MarketingRenderTests(unittest.TestCase):
             self.assertIn("application/ld+json", html)
             self.assertEqual(html.count("<title>"), 1)
             for href in parser.hrefs:
-                if href.startswith(("#", "mailto:")):
+                if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/")):
                     continue
                 if href.startswith("/assets/reckon_saas_platform/"):
                     target = asset_root / href.removeprefix("/assets/reckon_saas_platform/")
@@ -292,6 +329,34 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn('loading="lazy"', html)
         for name in ("WhatsApp", "Facebook Messenger", "Brevo", "Twilio SendGrid"):
             self.assertIn(name, html)
+
+    def test_branding_contact_footer_faqs_and_chat(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-05")
+            modules = _modules(marketing, frappe)
+            page = marketing.home_page(BASE, modules)
+            html = self._render("index", page, modules, marketing)
+            asset_root = PKG / "public" / "images"
+        self.assertEqual(page["h1"], "Your ERP, now with an AI that reads every ledger.")
+        self.assertIn("an AI that reads every ledger.", html)
+        self.assertIn("Invoices, orders, stock and people", html)
+        for name in ("reckonerp-logo.webp", "reckonerp-logo-512.png", "reckonerp-icon-64.png"):
+            self.assertTrue((asset_root / name).exists(), name)
+        self.assertIn("reckonerp-logo.webp", html)
+        self.assertIn(f"{BASE}/assets/reckon_saas_platform/images/reckonerp-logo-512.png", html)
+        self.assertIn('href="https://www.reckon.tech/"', html)
+        self.assertIn('href="mailto:hello@reckon.tech"', html)
+        self.assertIn('href="https://wa.me/8801325009955"', html)
+        self.assertIn("+8801325-009955", html)
+        self.assertIn("data-chat", html)
+        self.assertIn("Continue on WhatsApp", html)
+        questions = " ".join(q for q, _a in page["faqs"]).lower()
+        for topic in ("deployed", "pricing", "implementation", "ai and integration", "on our own servers", "licences", "help"):
+            self.assertIn(topic, questions)
+        faq_text = " ".join(a for _q, a in page["faqs"])
+        self.assertIn("dedicated", faq_text)
+        self.assertIn("on-premises", faq_text)
+        self.assertIn("additional", faq_text)
 
     def test_text_from_modules_is_escaped(self):
         hostile = [{"key": "x1", "label": "<script>alert(1)</script>", "description": "d"}]
