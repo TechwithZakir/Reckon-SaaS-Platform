@@ -1135,6 +1135,46 @@ def requested(name: str) -> str:
     return str(value or "").strip().lower()
 
 
+HOME_HOOK = "reckon_saas_platform.marketing.website_user_home_page"
+
+
+def website_user_home_page(user: str):
+    """``get_website_user_home_page`` hook: where Frappe sends a signed-in user after login.
+
+    Without it Frappe falls back to the site's ``home_page`` (the marketing page).
+    Module apps chain to every other registered hook, so this one may be called
+    from inside theirs; the flag stops the loop.
+    """
+    if getattr(frappe.flags, "reckon_saas_home_chain", False):
+        return None
+    frappe.flags.reckon_saas_home_chain = True
+    try:
+        return landing_for_user(user)
+    finally:
+        frappe.flags.reckon_saas_home_chain = False
+
+
+def redirect_signed_in_home(response, request) -> None:
+    """``after_request`` hook: signed-in people never stay on ``/`` or ``/index``.
+
+    Sends a 302 that browsers do not cache, so signing out shows the marketing
+    page again.
+    """
+    try:
+        path = (getattr(request, "path", "") or "").rstrip("/") or "/"
+        if response is None or path not in ("/", "/index") or getattr(request, "method", "GET") != "GET":
+            return
+        destination = landing_for_user(frappe.session.user)
+        if not destination or destination.strip("/") in ("", "index"):
+            return
+        response.status_code = 302
+        response.headers["Location"] = destination
+        response.headers["Cache-Control"] = "no-store"
+        response.set_data(b"")
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Signed-in home redirect")
+
+
 def _as_route(route: str) -> str:
     route = str(route).strip()
     return route if route.startswith(("/", "http://", "https://")) else f"/{route}"
@@ -1152,6 +1192,8 @@ def landing_for_user(user: str | None) -> str | None:
     if not user or user == "Guest":
         return None
     for hook in frappe.get_hooks("get_website_user_home_page") or []:
+        if hook == HOME_HOOK:
+            continue
         route = frappe.get_attr(hook)(user)
         if route:
             return _as_route(route)

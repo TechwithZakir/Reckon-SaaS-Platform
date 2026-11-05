@@ -1,0 +1,12 @@
+/* /login: same name, logo and footer line as the landing page. */
+body[data-path="login"] .page-card-head .app-logo,
+body[data-path="login"] .page-card-head img {
+  height: 64px; width: auto; max-width: 220px; object-fit: contain;
+}
+body[data-path="login"] .reckon-powered {
+  text-align: center; margin: 24px auto 16px; padding: 0 16px; font-size: 13px; color: #51627a;
+}
+body[data-path="login"] .reckon-powered strong { font-weight: 700; }
+@media (prefers-color-scheme: dark) {
+  body[data-path="login"] .reckon-powered { color: #a3b3c9; }
+}

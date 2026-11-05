@@ -31,7 +31,16 @@ after_app_install = "reckon_saas_platform.install.after_app_install"
 # Tenant users may use Desk and the API only while their company is provisioned
 # and subscribed. See reckon_saas_platform.saas_gate.
 before_request = ["reckon_saas_platform.saas_gate.enforce_operational_access"]
-after_request = ["reckon_saas_platform.saas_gate.redirect_blocked_response"]
+after_request = [
+    "reckon_saas_platform.saas_gate.redirect_blocked_response",
+    "reckon_saas_platform.marketing.redirect_signed_in_home",
+]
+
+# Signed-in users go to their module, not the marketing home page; /login carries
+# the same name, logo and "powered by" as the landing page.
+get_website_user_home_page = "reckon_saas_platform.marketing.website_user_home_page"
+web_include_css = ["/assets/reckon_saas_platform/css/reckon_login.css"]
+web_include_js = ["/assets/reckon_saas_platform/js/reckon_login.js"]
 
 # Keep subscription statuses in step with trial, paid-period and grace dates.
 # Access itself is decided from the dates, so the gate never waits for this job.

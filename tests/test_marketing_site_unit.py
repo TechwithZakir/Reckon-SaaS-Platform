@@ -150,7 +150,7 @@ class MarketingDataTests(unittest.TestCase):
                 module.get_context(_Dict())
             self.assertEqual(frappe.local.flags.redirect_location, "/desk/distribution")
 
-    def test_login_branding_matches_the_landing_page_and_keeps_custom_values(self):
+    def test_login_branding_matches_the_landing_page_unless_kept_by_hand(self):
         with platform_modules("install", "marketing") as (frappe, (install, marketing)):
             stored = {
                 ("Website Settings", "app_name"): "Frappe",
@@ -158,46 +158,78 @@ class MarketingDataTests(unittest.TestCase):
                 ("Website Settings", "footer_logo"): "",
                 ("Website Settings", "footer_powered"): "Powered by ERPNext",
                 ("Website Settings", "copyright"): "My Own Company",
+                ("Website Settings", "favicon"): "",
                 ("System Settings", "app_name"): "ERPNext",
             }
             frappe.db.exists = Mock(return_value=True)
             frappe.get_meta = Mock(return_value=Mock(has_field=Mock(return_value=True)))
             frappe.db.get_single_value = Mock(side_effect=lambda dt, field: stored[(dt, field)])
             frappe.db.set_single_value = Mock(side_effect=lambda dt, field, value: stored.update({(dt, field): value}))
+
+            frappe.conf = _Dict(reckon_saas_keep_branding=1)
+            install.ensure_site_branding()
+            frappe.db.set_single_value.assert_not_called()
+
+            frappe.conf = _Dict()
             install.ensure_site_branding()
             self.assertEqual(stored[("Website Settings", "app_name")], "ReckonERP")
             self.assertEqual(stored[("System Settings", "app_name")], "ReckonERP")
             self.assertEqual(stored[("Website Settings", "app_logo")], marketing.LOGO)
             self.assertEqual(stored[("Website Settings", "footer_logo")], marketing.LOGO)
             self.assertEqual(stored[("Website Settings", "footer_powered")], "Powered by ReckonERP")
-            self.assertEqual(stored[("Website Settings", "copyright")], "My Own Company")
+            self.assertEqual(stored[("Website Settings", "copyright")], "Reckon Technologies Ltd.")
+            self.assertEqual(stored[("Website Settings", "favicon")], marketing.ICON)
             frappe.db.set_single_value.reset_mock()
             install.ensure_site_branding()
             frappe.db.set_single_value.assert_not_called()
 
-    def test_signup_page_shares_the_landing_page_theme_and_chrome(self):
-        signup = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
-        for part in ("chrome.css", "header.html", "footer.html", "chat.html", "chrome_js.html"):
-            self.assertIn(f"reckon_saas_platform/templates/marketing/{part}", signup)
-        for token in ("--rk-ink: var(--ink)", "--rk-card: var(--card)", "--rk-blue-dark: var(--brand)"):
-            self.assertIn(token, signup)
-        self.assertNotIn('class="rk-footer"', signup)
-        self.assertNotIn("rk-whatsapp-fab\"", signup)
-        base = (PKG / "templates" / "marketing" / "base.html").read_text(encoding="utf-8")
-        for part in ("header.html", "footer.html", "chat.html", "chrome_js.html"):
-            self.assertIn(part, base)
-        style = (PKG / "templates" / "marketing" / "style.css").read_text(encoding="utf-8")
-        self.assertIn("chrome.css", style)
+    def test_login_page_script_uses_the_landing_page_brand(self):
+        script = (PKG / "public" / "js" / "reckon_login.js").read_text(encoding="utf-8")
+        for expected in ("ReckonERP", "reckonerp-logo.webp", "Powered by ReckonERP", "Reckon Technologies Ltd."):
+            self.assertIn(expected, script)
+        self.assertTrue((PKG / "public" / "css" / "reckon_login.css").exists())
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        for expected in ("reckon_login.js", "reckon_login.css", "website_user_home_page", "redirect_signed_in_home"):
+            self.assertIn(expected, hooks)
 
-    def test_signup_context_gets_site_chrome_even_if_modules_fail(self):
-        with platform_modules("www.reckonerp_signup", "marketing") as (frappe, (page, marketing)):
-            frappe.utils.nowdate = Mock(return_value="2026-11-05")
-            context = _Dict()
-            frappe.get_installed_apps = Mock(side_effect=RuntimeError("no registry"))
-            page._add_site_chrome(context)
-        self.assertEqual(context.nav_modules, [])
-        self.assertEqual(context.support_email, "hello@reckon.tech")
-        self.assertEqual(context.powered_by, "Powered by ReckonERP")
+    def test_home_hook_returns_the_module_page_and_does_not_loop(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            marketing.landing_for_user = Mock(return_value="/desk/distribution")
+            self.assertEqual(marketing.website_user_home_page("owner@example.test"), "/desk/distribution")
+            self.assertFalse(frappe.flags.reckon_saas_home_chain)
+            frappe.flags.reckon_saas_home_chain = True
+            self.assertIsNone(marketing.website_user_home_page("owner@example.test"))
+
+    def test_signed_in_visit_to_the_root_gets_an_uncached_302(self):
+        class Response:
+            status_code = 200
+            headers = {}
+            body = b"page"
+
+            def set_data(self, data):
+                self.body = data
+
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.session = _Dict(user="owner@example.test")
+            marketing.landing_for_user = Mock(return_value="/desk/distribution")
+            for path in ("/", "/index"):
+                response = Response()
+                response.headers = {}
+                marketing.redirect_signed_in_home(response, _Dict(path=path, method="GET"))
+                self.assertEqual(response.status_code, 302, path)
+                self.assertEqual(response.headers["Location"], "/desk/distribution")
+                self.assertEqual(response.headers["Cache-Control"], "no-store")
+            # Other pages, other methods and guests are left alone.
+            for request in (_Dict(path="/features", method="GET"), _Dict(path="/", method="POST")):
+                response = Response()
+                response.headers = {}
+                marketing.redirect_signed_in_home(response, request)
+                self.assertEqual(response.status_code, 200)
+            marketing.landing_for_user = Mock(return_value=None)
+            response = Response()
+            response.headers = {}
+            marketing.redirect_signed_in_home(response, _Dict(path="/", method="GET"))
+            self.assertEqual(response.status_code, 200)
 
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
