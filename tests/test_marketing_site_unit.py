@@ -93,7 +93,7 @@ class MarketingDataTests(unittest.TestCase):
             llms = marketing.llms_txt(BASE, modules)
             slugs = {f["slug"] for f in marketing.FEATURE_LIST}
         names = [a["name"] for a in page["family"]]
-        for expected in ("Reckon AI assistant", "Reckon CRM", "Reckon Constructions", "Reckon HRMS"):
+        for expected in ("Reckon AI assistant", "Reckon CRM", "Reckon Constructions", "Reckon Real Estate", "Reckon HRMS"):
             self.assertIn(expected, names)
             self.assertIn(expected, llms)
         for app in page["family"]:

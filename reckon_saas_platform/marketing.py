@@ -567,6 +567,12 @@ FAMILY_APPS = (
         "analysis, procurement, site execution, variations and progress certificates.",
     },
     {
+        "name": "Reckon Real Estate",
+        "text": "Property development and sales: projects, buildings and units, bookings, "
+        "installment plans, land and joint-venture agreements, handovers, collections, "
+        "contractor bills and budgets.",
+    },
+    {
         "name": "Reckon HRMS",
         "text": "Simple HR for small teams: employees, attendance, salary and bulk salary payment, "
         "payslip PDFs and HR reports.",
