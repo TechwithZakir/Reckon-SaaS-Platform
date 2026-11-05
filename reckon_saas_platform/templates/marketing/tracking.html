@@ -1,0 +1,45 @@
+{% if tracking and tracking.enabled %}
+<div class="consent" data-consent role="region" aria-label="Cookie notice" hidden>
+  <p>We use cookies for analytics and advertising measurement. Accept to allow them, or decline to browse without them.</p>
+  <div class="actions"><button type="button" class="btn solid" data-consent-yes>Accept</button><button type="button" class="btn" data-consent-no>Decline</button></div>
+</div>
+<script>
+(function(){
+  var T={{ tracking|tojson }},KEY='reckon_consent',loaded=false;
+  function stored(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+  function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+  function load(){
+    if(loaded)return;loaded=true;
+    var w=window,d=document;
+    w.dataLayer=w.dataLayer||[];
+    if(T.gtm){
+      w.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+      var g=d.createElement('script');g.async=true;g.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(T.gtm);d.head.appendChild(g);
+    }else if(T.ga4){
+      w.gtag=function(){w.dataLayer.push(arguments)};
+      w.gtag('js',new Date());w.gtag('config',T.ga4);
+      var a=d.createElement('script');a.async=true;a.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(T.ga4);d.head.appendChild(a);
+    }
+    if(T.pixel){
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(w,d,'script','https://connect.facebook.net/en_US/fbevents.js');
+      w.fbq('init',T.pixel);w.fbq('track','PageView');
+    }
+    // Conversion signals: people heading to signup, and people opening the WhatsApp chat.
+    d.addEventListener('click',function(e){
+      var a=e.target.closest&&e.target.closest('a[href^="/reckonerp-signup"]');
+      if(a){w.dataLayer.push({event:'signup_click'});if(w.fbq)w.fbq('track','Lead')}
+    });
+    d.addEventListener('submit',function(e){
+      if(e.target&&e.target.matches&&e.target.matches('[data-chat-form]')){w.dataLayer.push({event:'whatsapp_chat'});if(w.fbq)w.fbq('track','Contact')}
+    },true);
+  }
+  var box=document.querySelector('[data-consent]');
+  var saved=stored();
+  if(!T.consent||saved==='yes'){load();return}
+  if(saved==='no')return;
+  box.hidden=false;
+  box.querySelector('[data-consent-yes]').addEventListener('click',function(){store('yes');box.hidden=true;load()});
+  box.querySelector('[data-consent-no]').addEventListener('click',function(){store('no');box.hidden=true});
+})();
+</script>
+{% endif %}

@@ -66,6 +66,26 @@ The site root `/` is a server-rendered marketing website (`www/index`), with
   a value of `login`, `index` or `home` is cleared so the root shows this site;
   any other value is left alone.
 
+## SEO, Google and Meta tracking
+
+Open **SaaS Platform Settings** (`/app/saas-platform-settings`), section
+**Website SEO and Tracking**. Nothing is added to any page until an ID is entered.
+
+- **Google Tag Manager ID** (`GTM-XXXXXXX`): recommended. Manage Google Analytics,
+  Google Ads and the Meta Pixel from Tag Manager.
+- **Google Analytics 4 Measurement ID** (`G-XXXXXXXXXX`): loads Analytics directly
+  when no Tag Manager ID is set. Leave empty if Analytics lives in Tag Manager.
+- **Meta Pixel ID**: loads the Meta Pixel with a PageView; clicks to signup send
+  `Lead` and the WhatsApp chat sends `Contact`. The same moments are pushed to the
+  Tag Manager `dataLayer` as `signup_click` and `whatsapp_chat`.
+- **Tracking Consent**: *Ask visitors first* (default) shows an Accept / Decline
+  notice and loads the tags only after Accept; *Load immediately* skips the notice.
+- **Search Console, Bing and Meta domain verification**: paste only the content
+  value of each verification tag; it is added to the home page head.
+
+After saving, submit `/sitemap.xml` in Google Search Console and Bing Webmaster
+Tools. IDs are checked against their expected format before they reach a page.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

@@ -244,6 +244,32 @@ class MarketingDataTests(unittest.TestCase):
         for selector in (".rk-chip", ".rk-alert.is-error", ".rk-alert.is-info"):
             self.assertIn(selector, dark)
 
+    def test_tracking_ids_are_validated_and_unset_means_off(self):
+        good = _Dict(
+            google_tag_manager_id="GTM-ABC1234", google_analytics_id="G-ABCDEF1234", meta_pixel_id="123456789012345",
+            google_site_verification="abcDEF_123-xyz9", bing_site_verification="A1B2C3D4E5F6A7B8", meta_domain_verification="x" * 12,
+            tracking_consent="Ask visitors first",
+        )
+        evil = _Dict(
+            google_tag_manager_id="GTM-X'><script>", google_analytics_id="UA-1", meta_pixel_id="12ab",
+            google_site_verification='x"><script>alert(1)</script>', bing_site_verification="", meta_domain_verification=None,
+            tracking_consent="Load immediately",
+        )
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=good)
+            tracking = marketing.get_tracking()
+            self.assertEqual((tracking["gtm"], tracking["ga4"], tracking["pixel"]), ("GTM-ABC1234", "G-ABCDEF1234", "123456789012345"))
+            self.assertTrue(tracking["enabled"] and tracking["consent"])
+            frappe.get_cached_doc = Mock(return_value=evil)
+            tracking = marketing.get_tracking()
+            self.assertFalse(tracking["enabled"])
+            self.assertEqual([tracking[k] for k in ("gtm", "ga4", "pixel", "verify_google", "verify_bing", "verify_meta")], [""] * 6)
+            self.assertFalse(tracking["consent"])  # "Load immediately"
+            frappe.get_cached_doc = Mock(side_effect=RuntimeError("no settings"))
+            tracking = marketing.get_tracking()
+            self.assertFalse(tracking["enabled"])
+            self.assertTrue(tracking["consent"])  # unsaved settings still ask first
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)
@@ -530,6 +556,30 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn("dedicated", faq_text)
         self.assertIn("on-premises", faq_text)
         self.assertIn("additional", faq_text)
+
+    def test_tracking_tags_appear_only_when_configured_and_wait_for_consent(self):
+        settings = _Dict(
+            google_tag_manager_id="GTM-ABC1234", google_analytics_id="", meta_pixel_id="123456789012345",
+            google_site_verification="abcDEF_123-xyz9", bing_site_verification="", meta_domain_verification="",
+            tracking_consent="Ask visitors first",
+        )
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-05")
+            modules = _modules(marketing, frappe)
+            frappe.get_cached_doc = Mock(return_value=_Dict())
+            off = self._render("index", marketing.home_page(BASE, modules), modules, marketing)
+            frappe.get_cached_doc = Mock(return_value=settings)
+            on = self._render("index", marketing.home_page(BASE, modules), modules, marketing)
+        for needle in ("googletagmanager", "fbevents", "google-site-verification", "data-consent"):
+            self.assertNotIn(needle, off, needle)
+        self.assertIn('<meta name="google-site-verification" content="abcDEF_123-xyz9">', on)
+        self.assertIn("GTM-ABC1234", on)
+        self.assertIn("123456789012345", on)
+        self.assertIn("data-consent", on)
+        self.assertIn("Decline", on)
+        # The loaders are inside a function that only runs after consent.
+        self.assertLess(on.index("function load()"), on.index("googletagmanager.com/gtm.js"))
+        self.assertIn("if(!T.consent||saved===", on)
 
     def test_text_from_modules_is_escaped(self):
         hostile = [{"key": "x1", "label": "<script>alert(1)</script>", "description": "d"}]

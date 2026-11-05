@@ -1089,8 +1089,41 @@ def site_base() -> str:
     return frappe.utils.get_url().rstrip("/")
 
 
+TRACKING_PATTERNS = {
+    "gtm": ("google_tag_manager_id", r"GTM-[A-Z0-9]{4,12}"),
+    "ga4": ("google_analytics_id", r"G-[A-Z0-9]{6,14}"),
+    "pixel": ("meta_pixel_id", r"[0-9]{8,20}"),
+    "verify_google": ("google_site_verification", r"[A-Za-z0-9_-]{10,100}"),
+    "verify_bing": ("bing_site_verification", r"[A-Za-z0-9_-]{10,100}"),
+    "verify_meta": ("meta_domain_verification", r"[A-Za-z0-9_-]{10,100}"),
+}
+
+
+def get_tracking() -> dict:
+    """Analytics, pixel and site-verification IDs from SaaS Platform Settings.
+
+    Each value must look like the real thing before it reaches a page, so a stray
+    character in Settings can never inject markup. Empty means "not configured".
+    """
+    try:
+        settings = frappe.get_cached_doc("SaaS Platform Settings")
+    except Exception:
+        settings = None
+    result = {key: "" for key in TRACKING_PATTERNS}
+    if settings is not None:
+        for key, (field, pattern) in TRACKING_PATTERNS.items():
+            value = str(settings.get(field) or "").strip()
+            if re.fullmatch(pattern, value):
+                result[key] = value
+    # An unsaved Single reads blank, which must still mean "ask first".
+    result["consent"] = (settings.get("tracking_consent") if settings is not None else None) != "Load immediately"
+    result["enabled"] = bool(result["gtm"] or result["ga4"] or result["pixel"])
+    return result
+
+
 def shared_context(context, modules: list[dict]) -> None:
     """Header, footer and chat data used by every public page, signup included."""
+    context.tracking = get_tracking()
     context.nav_features = FEATURE_LIST
     context.nav_modules = modules
     context.support_email = SUPPORT_EMAIL

@@ -57,3 +57,6 @@ address.contact a{font-weight:700}
 .chat-panel input,.chat-panel textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
 @media(max-width:820px){.bar{gap:8px}nav.main{order:3;width:100%}.dd .panel{position:static;box-shadow:none}.dd[open]{width:100%}}
 footer.foot .powered{margin-left:12px;font-weight:700}
+.consent{position:fixed;left:16px;bottom:16px;z-index:40;max-width:min(520px,calc(100vw - 32px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.consent[hidden]{display:none}
+.consent p{margin:0 0 12px;font-size:.92rem}

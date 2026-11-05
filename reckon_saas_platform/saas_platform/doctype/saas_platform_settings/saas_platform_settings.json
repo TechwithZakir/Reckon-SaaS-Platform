@@ -3,7 +3,7 @@
  "creation": "2026-10-18 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour"],
+ "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour", "section_marketing", "google_tag_manager_id", "google_analytics_id", "meta_pixel_id", "tracking_consent", "column_break_marketing", "google_site_verification", "bing_site_verification", "meta_domain_verification"],
  "fields": [
   {"fieldname": "section_sms", "fieldtype": "Section Break", "label": "Signup Verification (Email and SMS)"},
   {"fieldname": "require_email_verification", "fieldtype": "Check", "label": "Require Email Verification", "default": "1", "description": "Signups must open the emailed link before the tenant is created. Applies only when an outgoing Email Account is set up. When off (or with no Email Account), no email is sent: the address is trusted as typed and the owner chooses a password on the signup form."},
@@ -23,13 +23,25 @@
   {"fieldname": "section_rate_limit", "fieldtype": "Section Break", "label": "Signup Rate Limits", "description": "Requests allowed per IP address per hour; failed attempts count too. Set 0 to fall back to site config or the built-in default (signup 5, verification 20). Use Reset Rate Limits to clear the current counters."},
   {"fieldname": "signup_rate_limit_per_hour", "fieldtype": "Int", "label": "Signup Attempts per Hour", "default": "5", "non_negative": 1, "description": "Each completed signup creates a Company, so keep this low on a public site."},
   {"fieldname": "column_break_rate_limit", "fieldtype": "Column Break"},
-  {"fieldname": "verify_rate_limit_per_hour", "fieldtype": "Int", "label": "Verification Requests per Hour", "default": "20", "non_negative": 1, "description": "Email link, SMS code and resend requests."}
+  {"fieldname": "verify_rate_limit_per_hour", "fieldtype": "Int", "label": "Verification Requests per Hour", "default": "20", "non_negative": 1, "description": "Email link, SMS code and resend requests."},
+  {"fieldname": "section_marketing", "fieldtype": "Section Break", "label": "Website SEO and Tracking", "description": "Used by the public website and signup page. Nothing is added to a page until you enter an ID."},
+  {"fieldname": "google_tag_manager_id", "fieldtype": "Data", "label": "Google Tag Manager ID", "description": "Looks like GTM-XXXXXXX. Use this to manage Google Analytics, Google Ads and Meta tags in one place."},
+  {"fieldname": "google_analytics_id", "fieldtype": "Data", "label": "Google Analytics 4 Measurement ID", "description": "Looks like G-XXXXXXXXXX. Leave empty if Google Analytics is set up inside Tag Manager, to avoid counting twice."},
+  {"fieldname": "meta_pixel_id", "fieldtype": "Data", "label": "Meta Pixel ID", "description": "The numeric Pixel ID from Meta Events Manager."},
+  {"fieldname": "tracking_consent", "fieldtype": "Select", "label": "Tracking Consent", "options": "Ask visitors first\nLoad immediately", "default": "Ask visitors first", "description": "Ask visitors first shows an Accept / Decline notice and loads Google and Meta tags only after Accept."},
+  {"fieldname": "column_break_marketing", "fieldtype": "Column Break"},
+  {"fieldname": "google_site_verification", "fieldtype": "Data", "label": "Google Search Console Verification", "description": "Only the content value of the google-site-verification tag."},
+  {"fieldname": "bing_site_verification", "fieldtype": "Data", "label": "Bing Webmaster Verification", "description": "Only the content value of the msvalidate.01 tag."},
+  {"fieldname": "meta_domain_verification", "fieldtype": "Data", "label": "Meta Domain Verification", "description": "Only the content value of the facebook-domain-verification tag."}
  ],
  "issingle": 1,
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-11-05 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Platform Settings",
- "permissions": [{"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "create": 1}, {"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+ "permissions": [
+  {"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "create": 1},
+  {"role": "System Manager", "read": 1, "write": 1, "create": 1}
+ ],
  "sort_field": "modified",
  "sort_order": "DESC"
 }
