@@ -78,6 +78,28 @@ class _Links(HTMLParser):
 
 
 class MarketingDataTests(unittest.TestCase):
+    def test_site_never_names_the_framework(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe)
+            pages = all_pages(marketing, modules)
+            text = json.dumps(pages, default=str) + marketing.llms_txt(BASE, modules)
+            text += marketing.robots_txt(BASE) + marketing.sitemap_xml(BASE, modules)
+        self.assertNotIn("frappe", text.lower())
+
+    def test_family_products_are_listed_on_the_modules_page(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            modules = _modules(marketing, frappe)
+            page = marketing.modules_page(BASE, modules)
+            llms = marketing.llms_txt(BASE, modules)
+            slugs = {f["slug"] for f in marketing.FEATURE_LIST}
+        names = [a["name"] for a in page["family"]]
+        for expected in ("Reckon AI assistant", "Reckon CRM", "Reckon Constructions", "Reckon HRMS"):
+            self.assertIn(expected, names)
+            self.assertIn(expected, llms)
+        for app in page["family"]:
+            if app.get("url"):
+                self.assertIn(app["url"].rsplit("/", 1)[1], slugs)
+
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
             modules = _modules(marketing, frappe)
@@ -304,6 +326,7 @@ class MarketingRenderTests(unittest.TestCase):
             self.assertIn('name="twitter:card"', html)
             self.assertIn("application/ld+json", html)
             self.assertEqual(html.count("<title>"), 1)
+            self.assertNotIn("frappe", html.lower(), page["path"])
             for href in parser.hrefs:
                 if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/")):
                     continue

@@ -56,6 +56,17 @@
     </ul>
   </div>
 </section>
+<section class="alt" aria-labelledby="fam-h">
+  <div class="wrap">
+    <div class="head"><h2 id="fam-h">More from Reckon, on request</h2><p>{{ page.family_note|e }}</p></div>
+    <ul class="grid">
+      {% for app in page.family %}
+      <li><article class="card"><h3>{{ app.name|e }}</h3><p>{{ app.text|e }}</p>{% if app.url %}<a class="more" href="{{ app.url|e }}">Learn more<span class="sr"> about {{ app.name|e }}</span></a>{% endif %}</article></li>
+      {% endfor %}
+    </ul>
+    <p class="note"><a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">Ask about these on WhatsApp</a> or write to <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a>.</p>
+  </div>
+</section>
 {{ m.cta("Pick a module and start", "Sign up, verify, and your workspace is created.", "/reckonerp-signup") }}
 {% endif %}
 {% endblock %}

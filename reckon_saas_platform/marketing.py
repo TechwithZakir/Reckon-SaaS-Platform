@@ -62,6 +62,8 @@ FEATURE_ILLUSTRATION = {
     "roles-and-security": "crm",
     "integrations-and-channels": "automation",
     "ai-assisted-selling": "ai",
+    "reckon-ai-assistant": "ai",
+    "field-sales-and-visits": "crm",
 }
 
 # Crawlers that fetch pages for search and AI answers. All are welcome on the
@@ -363,6 +365,63 @@ FEATURE_LIST = (
         ],
     },
     {
+        "slug": "reckon-ai-assistant",
+        "title": "Reckon AI assistant",
+        "icon": "spark",
+        "summary": "Ask questions about your own records and approve the actions it suggests.",
+        "description": "Reckon AI answers questions from your own ERP records, raises insights, "
+        "alerts and forecasts, and changes data only after you review and approve.",
+        "intro": "Reckon AI sits inside the ERP. It works from the records the signed-in person "
+        "is allowed to see, explains what needs attention, and proposes actions that the "
+        "person reviews before anything is applied.",
+        "points": [
+            "Answers questions from your own records, limited to what you may open",
+            "Insights, alerts, forecasting and anomaly detection for the numbers you track",
+            "A catalogue of suggested actions that learns from your feedback",
+            "Preview first: you review the values and approve, permissions are checked again "
+            "and every confirmed action is logged",
+        ],
+        "faqs": [
+            (
+                "Can Reckon AI change my data on its own?",
+                "No. It shows a preview of the target and values. Nothing is applied until you "
+                "approve, and the server checks your permissions again at that moment.",
+            ),
+            (
+                "Can it see other people's records?",
+                "It works inside the permissions of the person asking, so it cannot read what "
+                "that person cannot open.",
+            ),
+            (
+                "Is Reckon AI included in the subscription?",
+                "AI and integration tools are additional. Ask us for pricing for your usage.",
+            ),
+        ],
+    },
+    {
+        "slug": "field-sales-and-visits",
+        "title": "Field sales visits",
+        "icon": "route",
+        "summary": "Schedule customer visits, check in with GPS and keep a history of every visit.",
+        "description": "Plan field visits against leads, deals and customers, check in and out "
+        "with GPS, see visits on a map and keep outcomes and follow-ups.",
+        "intro": "Reckon CRM adds field sales to your customer records: managers schedule visits, "
+        "reps check in on site, and every completed visit keeps its outcome and next step.",
+        "points": [
+            "Schedule visits for several team members against a lead, deal or organisation",
+            "Interactive map with the customer's location and a geofence",
+            "GPS check-in and check-out at the time of the visit",
+            "Completed visits keep their outcome, notes, duration and follow-up date",
+        ],
+        "faqs": [
+            (
+                "Is field sales part of self-serve signup?",
+                "Reckon CRM is offered on request, on a dedicated cloud or on-premises. Message "
+                "us and we will set it up with you.",
+            ),
+        ],
+    },
+    {
         "slug": "ai-assisted-selling",
         "title": "AI-assisted selling",
         "icon": "spark",
@@ -377,7 +436,7 @@ FEATURE_LIST = (
             "Discovery campaigns that find businesses to contact",
             "Website research that keeps its evidence next to each claim",
             "Deterministic lead scoring you can read and explain",
-            "Frappe CRM sync and email sequences that wait for approval",
+            "CRM sync and email sequences that wait for approval",
         ],
         "faqs": [
             (
@@ -435,7 +494,7 @@ MODULE_COPY = {
         "benefits": [
             "Run discovery campaigns to find businesses worth contacting",
             "Research each lead from its website and keep the evidence",
-            "Score leads with fixed rules, then sync them to Frappe CRM",
+            "Score leads with fixed rules, then sync them to your CRM",
             "Send email, SMS and WhatsApp follow-ups only after a person approves",
         ],
         "faqs": [
@@ -469,7 +528,7 @@ FEATURE_LABELS = {
     "lead_discovery_campaigns": "Lead discovery campaigns",
     "website_research_with_evidence": "Website research with evidence",
     "deterministic_lead_scoring": "Rule-based lead scoring",
-    "frappe_crm_sync": "Frappe CRM sync",
+    "frappe_crm_sync": "CRM sync",
     "email_sequences_with_approval": "Email sequences with approval",
     "claude_ai_research_and_drafting": "AI research and drafting",
 }
@@ -484,11 +543,50 @@ SHOWCASE = (
 )
 
 AI_POINTS = (
-    "Reads and summarises invoices, orders, stock and customer records so people find answers faster",
+    "Reckon AI reads and summarises invoices, orders, stock and customer records so people find answers faster",
     "Researches leads from their own websites and keeps the evidence next to every claim",
     "Drafts replies and follow-ups; a person approves before anything is sent",
-    "Scores leads with fixed rules you can read, then syncs them to Frappe CRM",
+    "Scores leads with fixed rules you can read, then syncs them to your CRM",
 )
+FAMILY_APPS = (
+    {
+        "name": "Reckon AI assistant",
+        "text": "Ask questions about your own records, get insights and alerts, and approve "
+        "suggested actions.",
+        "url": "/features/reckon-ai-assistant",
+    },
+    {
+        "name": "Reckon CRM",
+        "text": "Field sales on your CRM: visit scheduling, GPS check-in and check-out, customer "
+        "maps and visit history.",
+        "url": "/features/field-sales-and-visits",
+    },
+    {
+        "name": "Reckon Constructions",
+        "text": "Construction projects from estimate to bill: BOQ revisions, measurements, rate "
+        "analysis, procurement, site execution, variations and progress certificates.",
+    },
+    {
+        "name": "Reckon HRMS",
+        "text": "Simple HR for small teams: employees, attendance, salary and bulk salary payment, "
+        "payslip PDFs and HR reports.",
+    },
+    {
+        "name": "Reckon HR Policy",
+        "text": "Configurable attendance consequences and payroll additions that follow your own "
+        "company policy.",
+    },
+    {
+        "name": "Restaurant and central kitchen",
+        "text": "Branches that share a central store and kitchen: requisition, stock movement, "
+        "production, delivery and branch-wise sales.",
+    },
+)
+FAMILY_NOTE = (
+    "These products are offered on request, on a dedicated cloud or on-premises, and are not on "
+    "self-serve signup yet. Customisation and implementation are quoted separately."
+)
+
 AI_NOTE = "AI and integration tools are billed separately from the module subscription."
 
 DEPLOYMENTS = (
@@ -511,7 +609,7 @@ DEPLOYMENTS = (
 HOME_FAQS = (
     (
         "What is ReckonERP?",
-        "ReckonERP is a cloud ERP for businesses in Bangladesh, built on ERPNext, with AI "
+        "ReckonERP is a cloud ERP for businesses in Bangladesh, built on ERPNext, with Reckon AI "
         "built in. You pick the modules you need, such as Distribution, Accounts or the "
         "Sales AI Agent, and each company works in its own private workspace.",
     ),
@@ -553,7 +651,7 @@ HOME_FAQS = (
     (
         "What about licences?",
         "ReckonERP is a subscription service: your subscription lets your company use the "
-        "modules you subscribed to. The platform is built on open-source ERPNext and Frappe. "
+        "modules you subscribed to. The platform is built on open-source ERP technology. "
         "Licence terms for dedicated and on-premises installations are agreed in the quote.",
     ),
     (
@@ -872,6 +970,8 @@ def modules_page(base: str, modules: list[dict]) -> dict:
         h1="Choose the modules your business needs",
         trail=[("Home", HOME), ("Modules", MODULES)],
         modules=modules,
+        family=FAMILY_APPS,
+        family_note=FAMILY_NOTE,
     )
 
 
@@ -951,6 +1051,9 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     ]
     for module in modules:
         lines.append(f"- [{module['name']}]({base}{module['url']}): {module['tagline']}")
+    lines += ["", "## More from Reckon (on request)", ""]
+    for app in FAMILY_APPS:
+        lines.append(f"- {app['name']}: {app['text']}")
     lines += ["", "## Features", ""]
     for feature in FEATURE_LIST:
         lines.append(f"- [{feature['title']}]({base}{feature_url(feature['slug'])}): {feature['summary']}")
@@ -978,7 +1081,7 @@ def site_base() -> str:
 
 
 def apply_context(context, page: dict, modules: list[dict]) -> None:
-    """Put a page description and the shared header/footer data on a Frappe web context."""
+    """Put a page description and the shared header/footer data on a web context."""
     context.page = page
     context.glyphs = GLYPHS
     context.nav_features = FEATURE_LIST
