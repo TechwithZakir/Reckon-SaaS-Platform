@@ -44,5 +44,17 @@ class DeskPathTests(unittest.TestCase):
         self.assertTrue(is_allowed("other", None, [], []))
 
 
+
+
+class DeskHomeTests(unittest.TestCase):
+    def test_desk_home_detected(self):
+        from desk_paths import is_desk_home
+
+        self.assertTrue(is_desk_home(*classify("/app")))
+        self.assertTrue(is_desk_home(*classify("/desk/home")))
+        self.assertFalse(is_desk_home(*classify("/app/employee")))
+        self.assertFalse(is_desk_home(*classify("/api/resource/Employee")))
+
+
 if __name__ == "__main__":
     unittest.main()

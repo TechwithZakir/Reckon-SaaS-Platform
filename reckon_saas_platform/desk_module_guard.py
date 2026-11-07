@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import frappe
 
-from reckon_saas_platform.desk_paths import classify, is_allowed
+from reckon_saas_platform.desk_paths import classify, is_allowed, is_desk_home
 from reckon_saas_platform.module_registry import get_saas_modules
 from reckon_saas_platform.tenant_security import get_user_companies, user_can_bypass_tenant
 
@@ -40,6 +40,11 @@ def enforce_module_desk_access() -> None:
         return
     request = frappe.local.request
     kind, value = classify(request.path)
+    if is_desk_home(kind, value):
+        # The Desk home lists every app. A single-module tenant goes to its module instead.
+        from werkzeug.routing import RequestRedirect
+
+        raise RequestRedirect(module.get("home_route") or "/")
     if is_allowed(kind, value, module.get("desk_doctypes"), module.get("desk_workspaces")):
         return
     # An HTTPException is returned as a real 403 response (a PermissionError from

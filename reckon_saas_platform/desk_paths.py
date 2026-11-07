@@ -42,3 +42,8 @@ def is_allowed(kind: str, value: str | None, allowed_doctypes, allowed_workspace
         return True
     routes = {slugify(d) for d in doctypes} | {slugify(w) for w in (allowed_workspaces or [])}
     return value in routes
+
+
+def is_desk_home(kind: str, value: str | None) -> bool:
+    """The Desk home page (the app tiles), which a single-module tenant is sent away from."""
+    return kind == "desk" and value in ("", "home")
