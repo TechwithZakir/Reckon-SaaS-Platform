@@ -59,6 +59,11 @@ doc_events = {
     "User": {
         "validate": "reckon_saas_platform.tenant_security.validate_user_tenant_roles",
     },
+    # Team and module access follow every assignment, for every tenant module.
+    "Tenant User Assignment": {
+        "after_insert": "reckon_saas_platform.team.sync_tenant_user_access",
+        "on_update": "reckon_saas_platform.team.sync_tenant_user_access",
+    },
 }
 
 # Google reCAPTCHA and BulkSMSBD are configured in SaaS Platform Settings. Other
