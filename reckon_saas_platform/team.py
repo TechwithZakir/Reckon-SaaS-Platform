@@ -196,6 +196,10 @@ def add_team_member(
     offered = {key for module in tenant_modules() for key in (module.get("tenant_role_map") or {})}
     if module_role and module_role not in offered:
         frappe.throw(_("Unknown module role."))
+    if module_role == "Employee Self Service" and frappe.db.exists("DocType", "Employee"):
+        # Frappe HRMS grants self-service only to a login linked to an Employee record of this company.
+        if not frappe.db.exists("Employee", {"user_id": email, "company": company}):
+            frappe.throw(_("Create the employee record for this user first, then give them self-service access."))
     if not validate_email_address(email):
         frappe.throw(_("Enter a valid email address."))
     if role_profile not in ALLOWED_PROFILES:
