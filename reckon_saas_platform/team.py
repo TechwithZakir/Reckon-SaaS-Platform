@@ -55,6 +55,21 @@ def ensure_tenant_roles(module: dict, company: str) -> dict:
     return roles
 
 
+def shared_roles_for(module: dict, row) -> set[str]:
+    """Shared Frappe roles a module grants for one assignment: the chosen module role, or the default.
+
+    Company Admin also gets the module's admin shared role (for example HR Manager). Shared roles carry no
+    company rights of their own; company scoping comes from the platform's tenant rules.
+    """
+    role_map = module.get("tenant_role_map") or {}
+    if not role_map:
+        return set()
+    if row.role_profile == "Company Admin":
+        return {role_map[module["tenant_admin_map"]]} if module.get("tenant_admin_map") in role_map else set()
+    chosen = row.get("module_role") or module.get("tenant_default_role")
+    return {role_map[chosen]} if chosen in role_map else set()
+
+
 def sync_company_permission(user: str, companies: list[str]) -> None:
     """One standard Company User Permission per company the user is actively assigned to."""
     existing = frappe.get_all(
@@ -92,7 +107,7 @@ def _reconcile(user: str) -> None:
     from reckon_saas_platform.saas import is_subscription_active
 
     rows = frappe.get_all(
-        "Tenant User Assignment", filters={"user": user, "active": 1}, fields=["company", "role_profile"]
+        "Tenant User Assignment", filters={"user": user, "active": 1}, fields=["company", "role_profile", "module_role"]
     )
     modules = tenant_modules()
     desired = set()
@@ -102,6 +117,7 @@ def _reconcile(user: str) -> None:
                 continue
             roles = ensure_tenant_roles(module, row.company)
             desired.add(roles[role_kind_for_profile(row.role_profile)])
+            desired.update(shared_roles_for(module, row))
             # A module may also need a shared role for its workspace access (no data rights of its own).
             shared = module.get("tenant_shared_role")
             if shared:
@@ -116,6 +132,7 @@ def _reconcile(user: str) -> None:
         role for role in frappe.get_all("Role", pluck="name")
         if prefixes and role.startswith(prefixes) and " - " in role
     }
+    managed |= {role for module in modules for role in (module.get("tenant_role_map") or {}).values()}
     managed |= {module["tenant_shared_role"] for module in modules if module.get("tenant_shared_role")}
     doc = frappe.get_doc("User", user)
     current = set(frappe.get_roles(user))
@@ -168,9 +185,17 @@ def list_team_members() -> list[dict]:
 
 
 @frappe.whitelist(methods=["POST"])
-def add_team_member(email: str, full_name: str | None = None, role_profile: str = "Company Manager") -> dict:
+def add_team_member(
+    email: str,
+    full_name: str | None = None,
+    role_profile: str = "Company Manager",
+    module_role: str | None = None,
+) -> dict:
     company = _admin_company(frappe.session.user)
     email = (email or "").strip().lower()
+    offered = {key for module in tenant_modules() for key in (module.get("tenant_role_map") or {})}
+    if module_role and module_role not in offered:
+        frappe.throw(_("Unknown module role."))
     if not validate_email_address(email):
         frappe.throw(_("Enter a valid email address."))
     if role_profile not in ALLOWED_PROFILES:
@@ -193,15 +218,16 @@ def add_team_member(email: str, full_name: str | None = None, role_profile: str 
     existing = frappe.db.get_value("Tenant User Assignment", {"user": email, "company": company}, "name")
     if existing:
         doc = frappe.get_doc("Tenant User Assignment", existing)
-        doc.db_set({"active": 1, "role_profile": role_profile})
+        doc.db_set({"active": 1, "role_profile": role_profile, "module_role": module_role or ""})
         doc.reload()
         doc.run_method("on_update")  # db_set skips hooks
     else:
         doc = frappe.get_doc({
             "doctype": "Tenant User Assignment", "user": email, "company": company,
-            "role_profile": role_profile, "active": 1, "is_default": 1,
+            "role_profile": role_profile, "module_role": module_role or "", "active": 1, "is_default": 1,
         }).insert(ignore_permissions=True)
-    return {"user": email, "company": company, "role_profile": role_profile, "assignment": doc.name}
+    return {"user": email, "company": company, "role_profile": role_profile, "module_role": module_role or "",
+            "assignment": doc.name}
 
 
 @frappe.whitelist(methods=["POST"])

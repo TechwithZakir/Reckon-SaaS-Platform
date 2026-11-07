@@ -50,6 +50,13 @@
    "description": "Company Admin and Company Manager apply to every module. Accountant, Sales User, Purchase User and Stock User are Accounts module profiles; SR, DSR and Master Data Manager are Distribution profiles."
   },
   {
+   "fieldname": "module_role",
+   "fieldtype": "Select",
+   "label": "Module Role",
+   "options": "\nHR Manager\nPayroll Manager\nTalent Admin\nEmployee Self Service",
+   "description": "Role in the company's modules (Company Admin always gets the admin role)."
+  },
+  {
    "default": "1",
    "fieldname": "active",
    "fieldtype": "Check",
