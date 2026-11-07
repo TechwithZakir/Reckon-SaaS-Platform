@@ -102,12 +102,21 @@ def _reconcile(user: str) -> None:
                 continue
             roles = ensure_tenant_roles(module, row.company)
             desired.add(roles[role_kind_for_profile(row.role_profile)])
+            # A module may also need a shared role for its workspace access (no data rights of its own).
+            shared = module.get("tenant_shared_role")
+            if shared:
+                if not frappe.db.exists("Role", shared):
+                    frappe.get_doc({"doctype": "Role", "role_name": shared, "desk_access": 1}).insert(
+                        ignore_permissions=True
+                    )
+                desired.add(shared)
 
     prefixes = tuple(module["tenant_role_prefix"] + " " for module in modules)
     managed = {
         role for role in frappe.get_all("Role", pluck="name")
         if prefixes and role.startswith(prefixes) and " - " in role
     }
+    managed |= {module["tenant_shared_role"] for module in modules if module.get("tenant_shared_role")}
     doc = frappe.get_doc("User", user)
     current = set(frappe.get_roles(user))
     for role in sorted(desired - current):
