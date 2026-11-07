@@ -66,7 +66,9 @@ class ShippedFilesTests(unittest.TestCase):
 
 class AfterMigrateUsesTheFilesTests(unittest.TestCase):
     def test_workspace_doc_is_the_file(self):
-        with platform_modules("install") as (_frappe, (install,)):
+        with platform_modules("install") as (frappe, (install,)):
+            # With the CRM apps installed nothing is dropped; test_saas_crm_unit covers a site without them.
+            frappe.get_installed_apps.return_value = ["frappe", "erpnext", "crm", "reckon_crm"]
             shipped = read(install.WORKSPACE_FILE)
             created = install._workspace_doc()
             updated = install._workspace_doc(update=True)

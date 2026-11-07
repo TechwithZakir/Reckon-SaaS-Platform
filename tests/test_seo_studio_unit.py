@@ -23,7 +23,7 @@ def read(path):
 class StudioInsideSaasAdminTests(unittest.TestCase):
     def test_module_is_registered_and_owns_the_agent_doctypes(self):
         modules = (APP / "modules.txt").read_text(encoding="utf-8").splitlines()
-        self.assertEqual(modules, ["SaaS Platform", NAME])
+        self.assertEqual(modules[:2], ["SaaS Platform", NAME])
         self.assertTrue((APP / scrub(NAME) / "__init__.py").exists())
         for doctype in ("seo_suggestion", "seo_article"):
             folder = APP / scrub(NAME) / "doctype" / doctype
@@ -84,7 +84,7 @@ class StudioInsideSaasAdminTests(unittest.TestCase):
 
     def test_ci_expects_both_modules(self):
         workflow = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
-        self.assertIn('["SaaS", "Platform", "SEO", "Agent", "Studio"]', workflow)
+        self.assertIn('["SaaS", "Platform", "SEO", "Agent", "Studio", "SaaS", "CRM"]', workflow)
 
 
 if __name__ == "__main__":

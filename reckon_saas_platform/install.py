@@ -42,6 +42,7 @@ def after_migrate() -> None:
     ensure_signup_settings()
     ensure_marketing_home()
     ensure_site_branding()
+    ensure_saas_crm()
     refresh_site_seo()
     audit_tenant_roles()
 
@@ -101,7 +102,32 @@ def refresh_site_seo() -> None:
 
 def after_app_install(app_name: str | None = None) -> None:
     setup_modules()
+    setup_workspace()
     ensure_workspace_sidebar()
+    ensure_saas_crm()
+
+
+def ensure_saas_crm() -> None:
+    """Add the SaaS link fields to Reckon CRM's leads and deals once Frappe CRM is installed."""
+    from reckon_saas_platform.crm_sync import ensure_crm_custom_fields
+
+    ensure_crm_custom_fields()
+
+
+# Shortcuts and rail links into an app's own UI appear only while that app is installed.
+APP_ROUTES = {"/crm/visits": "reckon_crm", "/crm": "crm"}
+
+
+def _route_app(url: str | None) -> str | None:
+    for prefix, app in APP_ROUTES.items():
+        if url and (url == prefix or url.startswith(prefix + "/")):
+            return app
+    return None
+
+
+def _app_link_available(url: str | None) -> bool:
+    app = _route_app(url)
+    return app is None or app in frappe.get_installed_apps()
 
 
 def setup_modules() -> None:
@@ -171,6 +197,13 @@ def _workspace_doc(update: bool = False) -> dict:
     """
     data = _read_shipped(WORKSPACE_FILE)
     data["title"] = _(data["title"])
+    dropped = {s["label"] for s in data["shortcuts"] if s.get("type") == "URL" and not _app_link_available(s.get("url"))}
+    if dropped:
+        data["shortcuts"] = [s for s in data["shortcuts"] if s["label"] not in dropped]
+        blocks = json.loads(data["content"])
+        data["content"] = json.dumps(
+            [b for b in blocks if b["type"] != "shortcut" or b["data"].get("shortcut_name") not in dropped]
+        )
     # Frappe v16 requires a workspace type; a fresh install failed on "[Workspace, Reckon SaaS Admin]: type".
     data.setdefault("type", "Workspace")
     if update:

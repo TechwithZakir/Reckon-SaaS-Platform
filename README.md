@@ -154,6 +154,36 @@ posts from the kit, send the pitch to relevant blogs, directories and partners, 
 customers for reviews, and list the company on Google Business Profile, G2, Capterra and
 Crunchbase, then add those links under **Official Profile Links**.
 
+## SaaS CRM (built on Reckon CRM)
+
+The **SaaS CRM** module follows the platform's own customers in
+[Reckon CRM](https://github.com/TechwithZakir/reckon_crm), which extends Frappe CRM
+at `/crm`. It adds no lead or deal doctypes of its own: it writes into CRM Lead,
+CRM Deal and CRM Organization, so the sales team works in CRM as usual, including
+Reckon CRM's field visits on those leads and deals.
+
+- Every **SaaS Registration** becomes a CRM Lead (source *SaaS Signup*), linked
+  back through the *SaaS Registration* field. A lead the team created earlier with
+  the same email is reused instead of duplicated.
+- When the workspace is provisioned the lead is converted and a **CRM Deal** opens
+  for the subscription, with its yearly value and the tenant company.
+- The deal follows the subscription: a paid *Active* subscription moves it to the
+  first **Won** stage, *Cancelled* or *Expired* to the first **Lost** stage, and a
+  restart reopens it. Stages are chosen by their CRM status type, not their name,
+  so renamed stages keep working; trial and grace periods leave the stage the team
+  chose. A rejected or cancelled registration closes its lead as lost.
+- **CRM Pipeline** (`/desk/saas-crm`, also in Reckon SaaS Admin) shows signup leads
+  and subscription deals by stage, field visits due, and recent deals, with
+  **Sync Signups to CRM** to bring in registrations from before the sync.
+- Leads and deals that came from the platform are visible to vendor users only, so
+  a tenant user with a CRM role cannot read the vendor's pipeline.
+
+Configure it in **SaaS Platform Settings > SaaS CRM (Reckon CRM)**: *Send Signups
+to CRM* (on by default), *Lead Owner* and *Lead Source*. Frappe CRM is optional:
+without it the module does nothing, and the CRM links stay hidden until it (and
+Reckon CRM, for field visits) is installed. A sync problem is written to the Error
+Log and never stops a signup, provisioning or a subscription update.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

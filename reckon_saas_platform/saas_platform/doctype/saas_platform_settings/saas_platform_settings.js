@@ -24,6 +24,17 @@ frappe.ui.form.on("SaaS Platform Settings", {
 					frm.reload_doc();
 				});
 		});
+		frm.add_custom_button(__("Sync Signups to CRM"), () => {
+			frappe
+				.call({ method: "reckon_saas_platform.crm_sync.sync_now", freeze: true })
+				.then((r) => {
+					const m = r.message || {};
+					frappe.show_alert({
+						message: __("{0} lead(s) and {1} deal(s) synced, {2} error(s).", [m.leads || 0, m.deals || 0, m.errors || 0]),
+						indicator: m.errors ? "orange" : "green",
+					});
+				});
+		});
 		frm.add_custom_button(__("Reset Rate Limits"), () => {
 			frappe.confirm(
 				__("Clear the signup and verification counters for every IP address now?"),

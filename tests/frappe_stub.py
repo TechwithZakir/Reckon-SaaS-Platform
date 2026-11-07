@@ -130,6 +130,7 @@ def build_frappe() -> ModuleType:
     frappe.get_all = Mock(return_value=[])
     frappe.get_doc = Mock()
     frappe.get_hooks = Mock(return_value=[])
+    frappe.get_installed_apps = Mock(return_value=["frappe", "erpnext", "reckon_saas_platform"])
     frappe.get_attr = Mock()
     frappe.log_error = Mock()
     frappe.get_traceback = Mock(return_value="traceback")

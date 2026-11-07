@@ -158,6 +158,38 @@
    "show_arrow": 0
   },
   {
+   "label": "SaaS CRM",
+   "type": "Section Break",
+   "icon": "handshake",
+   "child": 0,
+   "indent": 0,
+   "collapsible": 1,
+   "keep_closed": 0,
+   "show_arrow": 0
+  },
+  {
+   "label": "CRM Pipeline",
+   "link_to": "saas-crm",
+   "link_type": "Page",
+   "type": "Link",
+   "icon": "kanban",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
+   "label": "CRM Settings",
+   "link_to": "SaaS Platform Settings",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "settings",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
    "label": "SEO Agent Studio",
    "type": "Section Break",
    "icon": "search",

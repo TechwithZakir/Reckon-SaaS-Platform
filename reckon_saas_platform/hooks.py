@@ -56,6 +56,15 @@ doc_events = {
     "User": {
         "validate": "reckon_saas_platform.tenant_security.validate_user_tenant_roles",
     },
+    # SaaS CRM: signups and subscriptions feed Reckon CRM's leads and deals when
+    # Frappe CRM is installed. See reckon_saas_platform.crm_sync.
+    "SaaS Registration": {
+        "after_insert": "reckon_saas_platform.crm_sync.on_registration_insert",
+        "on_update": "reckon_saas_platform.crm_sync.on_registration_update",
+    },
+    "SaaS Subscription": {
+        "on_update": "reckon_saas_platform.crm_sync.on_subscription_update",
+    },
 }
 
 # Google reCAPTCHA and BulkSMSBD are configured in SaaS Platform Settings. Other
@@ -95,6 +104,9 @@ permission_query_conditions = {
     "SaaS Subscription": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "Tenant User Assignment": "reckon_saas_platform.tenant_security.get_tenant_user_assignment_query",
+    # Leads and deals that came from SaaS signups are the vendor's own pipeline.
+    "CRM Lead": "reckon_saas_platform.crm_sync.get_lead_query",
+    "CRM Deal": "reckon_saas_platform.crm_sync.get_deal_query",
 }
 
 has_permission = {
@@ -107,6 +119,8 @@ has_permission = {
     "SaaS Subscription": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant User Assignment": "reckon_saas_platform.tenant_security.has_tenant_user_assignment_permission",
+    "CRM Lead": "reckon_saas_platform.crm_sync.has_lead_permission",
+    "CRM Deal": "reckon_saas_platform.crm_sync.has_deal_permission",
 }
 
 fixtures = [

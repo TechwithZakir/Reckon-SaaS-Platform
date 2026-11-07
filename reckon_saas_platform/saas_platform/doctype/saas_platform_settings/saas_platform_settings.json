@@ -3,7 +3,7 @@
  "creation": "2026-10-18 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour", "section_marketing", "public_website_url", "google_tag_manager_id", "google_analytics_id", "meta_pixel_id", "tracking_consent", "column_break_marketing", "google_site_verification", "bing_site_verification", "meta_domain_verification", "social_profiles", "section_seo_status", "seo_last_checked", "seo_url_count", "seo_status", "seo_content_hash", "column_break_seo", "indexnow_enabled", "indexnow_key", "seo_last_notified", "section_seo_agent", "seo_agent_enabled", "seo_agent_provider", "seo_agent_model", "seo_agent_api_key", "seo_agent_base_url", "seo_agent_monthly_call_cap", "column_break_seo_agent", "seo_target_keywords", "seo_visibility_questions", "seo_blog_enabled", "seo_blog_frequency", "seo_agent_articles_per_run", "seo_blog_notes", "seo_agent_last_run", "seo_agent_report", "seo_agent_calls", "seo_agent_month"],
+ "field_order": ["section_sms", "require_email_verification", "require_phone_verification", "bulksmsbd_api_key", "bulksmsbd_sender_id", "column_break_sms", "otp_validity_minutes", "otp_max_attempts", "otp_resend_cooldown_seconds", "section_captcha", "require_captcha", "recaptcha_type", "recaptcha_min_score", "recaptcha_site_key", "recaptcha_secret_key", "section_rate_limit", "signup_rate_limit_per_hour", "column_break_rate_limit", "verify_rate_limit_per_hour", "section_marketing", "public_website_url", "google_tag_manager_id", "google_analytics_id", "meta_pixel_id", "tracking_consent", "column_break_marketing", "google_site_verification", "bing_site_verification", "meta_domain_verification", "social_profiles", "section_seo_status", "seo_last_checked", "seo_url_count", "seo_status", "seo_content_hash", "column_break_seo", "indexnow_enabled", "indexnow_key", "seo_last_notified", "section_seo_agent", "seo_agent_enabled", "seo_agent_provider", "seo_agent_model", "seo_agent_api_key", "seo_agent_base_url", "seo_agent_monthly_call_cap", "column_break_seo_agent", "seo_target_keywords", "seo_visibility_questions", "seo_blog_enabled", "seo_blog_frequency", "seo_agent_articles_per_run", "seo_blog_notes", "seo_agent_last_run", "seo_agent_report", "seo_agent_calls", "seo_agent_month", "section_saas_crm", "crm_sync_enabled", "crm_lead_owner", "column_break_saas_crm", "crm_lead_source"],
  "fields": [
   {"fieldname": "section_sms", "fieldtype": "Section Break", "label": "Signup Verification (Email and SMS)"},
   {"fieldname": "require_email_verification", "fieldtype": "Check", "label": "Require Email Verification", "default": "1", "description": "Signups must open the emailed link before the tenant is created. Applies only when an outgoing Email Account is set up. When off (or with no Email Account), no email is sent: the address is trusted as typed and the owner chooses a password on the signup form."},
@@ -61,10 +61,15 @@
   {"fieldname": "seo_agent_last_run", "fieldtype": "Datetime", "label": "Last Run", "read_only": 1},
   {"fieldname": "seo_agent_report", "fieldtype": "Small Text", "label": "Last Report", "read_only": 1},
   {"fieldname": "seo_agent_calls", "fieldtype": "Int", "label": "Calls This Month", "read_only": 1},
-  {"fieldname": "seo_agent_month", "fieldtype": "Data", "label": "Call Month", "read_only": 1, "hidden": 1}
+  {"fieldname": "seo_agent_month", "fieldtype": "Data", "label": "Call Month", "read_only": 1, "hidden": 1},
+  {"fieldname": "section_saas_crm", "fieldtype": "Section Break", "label": "SaaS CRM (Reckon CRM)", "collapsible": 1, "description": "Signups become CRM Leads and subscriptions become CRM Deals in Reckon CRM (/crm). Needs the Frappe CRM app; Reckon CRM adds field visits on those leads and deals."},
+  {"fieldname": "crm_sync_enabled", "fieldtype": "Check", "label": "Send Signups to CRM", "default": "1"},
+  {"fieldname": "crm_lead_owner", "fieldtype": "Link", "label": "Lead Owner", "options": "User", "description": "Owns every new signup lead and its deal. Leave empty to assign them in CRM."},
+  {"fieldname": "column_break_saas_crm", "fieldtype": "Column Break"},
+  {"fieldname": "crm_lead_source", "fieldtype": "Data", "label": "Lead Source", "default": "SaaS Signup", "description": "CRM Lead Source given to signup leads. Created in CRM if it does not exist."}
  ],
  "issingle": 1,
- "modified": "2026-11-05 18:00:00.000000",
+ "modified": "2026-11-07 00:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Platform Settings",
  "permissions": [

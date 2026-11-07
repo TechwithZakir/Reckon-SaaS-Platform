@@ -17,7 +17,7 @@
    "role": "System Manager"
   }
  ],
- "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"Reckon SaaS Admin\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Modules, plans, registrations, subscriptions, payments and tenant provisioning.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Modules\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plans\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Registrations\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Subscriptions\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payments\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Provisioning Jobs\", \"col\": 3}}, {\"id\": \"shortcut-7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant User Assignments\", \"col\": 3}}, {\"id\": \"shortcut-8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Companies\", \"col\": 3}}, {\"id\": \"shortcut-9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Signup Settings\", \"col\": 3}}, {\"id\": \"shortcut-10\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Vendor SaaS Admin\", \"col\": 3}}, {\"id\": \"shortcut-11\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Public Signup\", \"col\": 3}}, {\"id\": \"shortcut-12\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Subscription\", \"col\": 3}}, {\"id\": \"seo-header\", \"type\": \"header\", \"data\": {\"text\": \"SEO Agent Studio\", \"col\": 12}}, {\"id\": \"seo-summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Ask the agent in plain words. It proposes; you approve. Nothing goes live until you do.\", \"col\": 12}}, {\"id\": \"seo-seo-agent\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent\", \"col\": 3}}, {\"id\": \"seo-seo-agent-settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent Settings\", \"col\": 3}}]",
+ "content": "[{\"id\": \"intro\", \"type\": \"header\", \"data\": {\"text\": \"Reckon SaaS Admin\", \"col\": 12}}, {\"id\": \"summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Modules, plans, registrations, subscriptions, payments and tenant provisioning.\", \"col\": 12}}, {\"id\": \"shortcut-0\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Dashboard\", \"col\": 3}}, {\"id\": \"shortcut-1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Modules\", \"col\": 3}}, {\"id\": \"shortcut-2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Plans\", \"col\": 3}}, {\"id\": \"shortcut-3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Registrations\", \"col\": 3}}, {\"id\": \"shortcut-4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Subscriptions\", \"col\": 3}}, {\"id\": \"shortcut-5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Payments\", \"col\": 3}}, {\"id\": \"shortcut-6\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Provisioning Jobs\", \"col\": 3}}, {\"id\": \"shortcut-7\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant User Assignments\", \"col\": 3}}, {\"id\": \"shortcut-8\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Companies\", \"col\": 3}}, {\"id\": \"shortcut-9\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Signup Settings\", \"col\": 3}}, {\"id\": \"shortcut-10\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Vendor SaaS Admin\", \"col\": 3}}, {\"id\": \"shortcut-11\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Public Signup\", \"col\": 3}}, {\"id\": \"shortcut-12\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Tenant Subscription\", \"col\": 3}}, {\"id\": \"crm-header\", \"type\": \"header\", \"data\": {\"text\": \"SaaS CRM\", \"col\": 12}}, {\"id\": \"crm-summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Signups and subscriptions as leads and deals in Reckon CRM, with field visits on each.\", \"col\": 12}}, {\"id\": \"crm-crm-pipeline\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"CRM Pipeline\", \"col\": 3}}, {\"id\": \"crm-crm-leads\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"CRM Leads\", \"col\": 3}}, {\"id\": \"crm-crm-deals\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"CRM Deals\", \"col\": 3}}, {\"id\": \"crm-field-visits\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Field Visits\", \"col\": 3}}, {\"id\": \"seo-header\", \"type\": \"header\", \"data\": {\"text\": \"SEO Agent Studio\", \"col\": 12}}, {\"id\": \"seo-summary\", \"type\": \"paragraph\", \"data\": {\"text\": \"Ask the agent in plain words. It proposes; you approve. Nothing goes live until you do.\", \"col\": 12}}, {\"id\": \"seo-seo-agent\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent\", \"col\": 3}}, {\"id\": \"seo-seo-agent-settings\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"SEO Agent Settings\", \"col\": 3}}]",
  "shortcuts": [
   {
    "label": "Dashboard",
@@ -95,6 +95,30 @@
    "label": "Tenant Subscription",
    "type": "URL",
    "url": "/reckonerp-subscription",
+   "color": "Blue"
+  },
+  {
+   "label": "CRM Pipeline",
+   "type": "Page",
+   "link_to": "saas-crm",
+   "color": "Green"
+  },
+  {
+   "label": "CRM Leads",
+   "type": "URL",
+   "url": "/crm/leads",
+   "color": "Blue"
+  },
+  {
+   "label": "CRM Deals",
+   "type": "URL",
+   "url": "/crm/deals",
+   "color": "Blue"
+  },
+  {
+   "label": "Field Visits",
+   "type": "URL",
+   "url": "/crm/visits",
    "color": "Blue"
   },
   {

@@ -1,0 +1,10 @@
+{
+ "doctype":"Page",
+ "icon":"users",
+ "module":"SaaS CRM",
+ "name":"saas-crm",
+ "page_name":"saas-crm",
+ "roles":[{"role":"Reckon Vendor Superuser"},{"role":"System Manager"}],
+ "standard":"Yes",
+ "title":"CRM Pipeline"
+}
