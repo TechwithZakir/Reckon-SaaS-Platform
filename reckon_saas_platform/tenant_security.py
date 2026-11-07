@@ -305,3 +305,21 @@ def has_tenant_user_assignment_permission(doc, user: str | None = None, permissi
         return False
 
     return getattr(doc, "user", None) == user
+
+
+def _load_module_overrides() -> None:
+    """Apply module overrides of CRM's company rules when those modules are installed.
+
+    Reckon CRM replaces CRM's owner-only lead and deal rules for tenant users. Importing it here
+    makes that override apply in every process that loads tenant rules, not only web requests.
+    """
+    try:
+        import importlib
+
+        if "reckon_crm" in frappe.get_installed_apps():
+            importlib.import_module("reckon_crm")
+    except Exception:  # no site, or the module is not installed: nothing to override
+        return
+
+
+_load_module_overrides()
