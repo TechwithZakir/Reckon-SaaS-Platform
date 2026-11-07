@@ -30,7 +30,10 @@ after_app_install = "reckon_saas_platform.install.after_app_install"
 
 # Tenant users may use Desk and the API only while their company is provisioned
 # and subscribed. See reckon_saas_platform.saas_gate.
-before_request = ["reckon_saas_platform.saas_gate.enforce_operational_access"]
+before_request = [
+    "reckon_saas_platform.saas_gate.enforce_operational_access",
+    "reckon_saas_platform.desk_module_guard.enforce_module_desk_access",
+]
 after_request = [
     "reckon_saas_platform.saas_gate.redirect_blocked_response",
     "reckon_saas_platform.marketing.redirect_signed_in_home",
