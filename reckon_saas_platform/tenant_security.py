@@ -223,8 +223,12 @@ def get_tenant_owned_query(user: str | None = None, doctype: str | None = None) 
     if user_can_bypass_tenant(user):
         return ""
 
-    tenant = require_tenant(user=user)
     doctype = doctype or "Tenant Security Test Record"
+    try:
+        tenant = require_tenant(user=user)
+    except TenantResolutionError:
+        # Fail closed: a user without one resolvable Company sees no rows, not an error.
+        return "1=0"
     return f"`tab{doctype}`.`company` = {frappe.db.escape(tenant.company)}"
 
 
