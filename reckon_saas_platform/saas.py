@@ -1557,16 +1557,25 @@ def _operational_access_cache_key(company: str) -> str:
 
 
 def get_company_subscription(company: str, saas_module: str | None = None):
-    filters = {"company": company}
-    if saas_module:
-        filters["saas_module"] = saas_module
-    name = frappe.db.get_value(
+    """The company's latest subscription, or the latest one covering ``saas_module``.
+
+    A subscription covers its primary module and any listed in ``covered_modules``.
+    """
+    if not saas_module:
+        name = frappe.db.get_value("SaaS Subscription", {"company": company}, "name", order_by="creation desc")
+        return frappe.get_doc("SaaS Subscription", name) if name else None
+    from reckon_saas_platform.entitlements import subscription_covers
+
+    rows = frappe.get_all(
         "SaaS Subscription",
-        filters,
-        "name",
+        filters={"company": company},
+        fields=["name", "saas_module", "covered_modules"],
         order_by="creation desc",
     )
-    return frappe.get_doc("SaaS Subscription", name) if name else None
+    for row in rows:
+        if subscription_covers(saas_module, row.saas_module, row.covered_modules):
+            return frappe.get_doc("SaaS Subscription", row.name)
+    return None
 
 
 def _assert_signup_identity_available(
