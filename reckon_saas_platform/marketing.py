@@ -56,7 +56,7 @@ ILLUSTRATIONS = {
     "ai": ("illus-ai.svg", "AI assistant drafting a reply that waits for a person to approve", 480, 320),
 }
 # Which illustration describes a module or feature best.
-MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm"}
+MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm", "crm": "crm"}
 FEATURE_ILLUSTRATION = {
     "self-serve-signup": "automation",
     "separate-company-workspaces": "erp",

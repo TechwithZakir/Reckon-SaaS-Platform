@@ -9,8 +9,9 @@ the theme without changing CRM or Reckon CRM source.
 
 It applies only while Reckon Aura Theme is installed and enabled, and
 SaaS Platform Settings > *CRM Follows Aura Theme* is on. The script sets the
-same ``data-aura-*`` attributes as the Desk theme (accent, aurora), honours the
-viewer's own accent from the Desk theme when user override is allowed, and
+same ``data-aura-*`` attributes as the Desk theme (accent, density, aurora),
+honours the viewer's own accent and density from the Desk theme when user
+override is allowed, and
 leaves light and dark mode to CRM's own switch (frappe-ui's ``data-theme``).
 """
 
@@ -24,6 +25,7 @@ import frappe
 STYLESHEET = "/assets/reckon_saas_platform/css/saas_crm_theme.css"
 MARKER = 'data-reckon-crm-theme="aura"'
 ACCENTS = frozenset({"violet", "cyan", "ember", "custom"})
+DENSITIES = frozenset({"comfortable", "compact"})
 COLOR = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
 
@@ -57,6 +59,7 @@ def theme_config() -> dict | None:
         "accent": accent if accent in ACCENTS else "violet",
         "custom_accent": _color(config.get("custom_accent")),
         "custom_accent_2": _color(config.get("custom_accent_2")),
+        "density": density if (density := (config.get("density") or "").lower()) in DENSITIES else "comfortable",
         "aurora": 0 if config.get("aurora_background") == 0 else 1,
         "allow_user_override": 1 if config.get("allow_user_override") else 0,
     }
@@ -74,6 +77,8 @@ def snippet(config: dict) -> str:
         "var a=p.accent||c.accent;if(a==='custom'&&!c.custom_accent)a='violet';"
         "r.setAttribute('data-reckon-theme','aura');r.setAttribute('data-aura-accent',a);"
         "r.setAttribute('data-aura-aurora',c.aurora?'on':'off');"
+        "var d=p.density==='compact'||p.density==='comfortable'?p.density:c.density;"
+        "r.setAttribute('data-aura-density',d);"
         "if(a==='custom'){r.style.setProperty('--aura-accent',c.custom_accent);"
         "r.style.setProperty('--aura-accent-2',c.custom_accent_2||c.custom_accent)}"
         f"}}catch(e){{}}}})({data});</script>"

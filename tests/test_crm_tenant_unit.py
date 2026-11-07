@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from frappe_stub import REPO_ROOT, _Dict, platform_modules
 
@@ -139,6 +139,69 @@ class DocumentTests(unittest.TestCase):
         self.assertNotIn("insert_after", fields["CRM Field Visit"][0])
 
 
+class ContactAndSubscriptionTests(unittest.TestCase):
+    def test_contacts_are_untouched_without_crm(self):
+        with platform_modules("crm_tenant") as (frappe, (tenant,)):
+            tenancy(frappe, tenant)
+            frappe.get_installed_apps = Mock(return_value=["frappe", "erpnext"])
+            self.assertEqual(tenant.contact_query(TENANT), "")
+            self.assertIsNone(tenant.has_permission(_Dict(doctype="Contact", company="Other Co"), TENANT, "read"))
+
+    def test_contacts_are_scoped_once_crm_is_installed(self):
+        with platform_modules("crm_tenant") as (frappe, (tenant,)):
+            tenancy(frappe, tenant, stored={("CRM Lead", "CRM-LEAD-1"): "Acme Traders"})
+            frappe.get_installed_apps = Mock(return_value=["frappe", "erpnext", "crm"])
+            self.assertEqual(tenant.contact_query(TENANT), "`tabContact`.`company` in ('Acme Traders')")
+            self.assertFalse(tenant.has_permission(_Dict(doctype="Contact", company="Other Co"), TENANT, "read"))
+            frappe.session.user = "Administrator"
+            contact = CrmDoc("Contact", links=[_Dict(link_doctype="CRM Lead", link_name="CRM-LEAD-1")])
+            tenant.bind_company(contact)
+            self.assertEqual(contact.company, "Acme Traders")  # follows the CRM lead it belongs to
+
+    def _sold(self, frappe, saas, active):
+        frappe.db.exists = Mock(side_effect=lambda doctype, name=None: doctype == "SaaS Module" and name == "crm")
+        return patch.object(saas, "is_subscription_active", Mock(side_effect=lambda c, saas_module=None: c in active))
+
+    def test_once_crm_is_sold_only_subscribed_companies_reach_it(self):
+        with platform_modules("crm_tenant", "saas") as (frappe, (tenant, saas)):
+            tenancy(frappe, tenant, companies={TENANT: ["Acme Traders", "Acme Retail"]})
+            with self._sold(frappe, saas, active={"Acme Retail"}):
+                self.assertEqual(tenant.lead_query(TENANT), "`tabCRM Lead`.`company` in ('Acme Retail')")
+                self.assertFalse(tenant.has_permission(_Dict(doctype="CRM Deal", company="Acme Traders"), TENANT, "read"))
+
+    def test_without_a_crm_subscription_crm_is_closed_but_contacts_are_not(self):
+        with platform_modules("crm_tenant", "saas") as (frappe, (tenant, saas)):
+            tenancy(frappe, tenant)
+            frappe.get_installed_apps = Mock(return_value=["frappe", "erpnext", "crm"])
+            with self._sold(frappe, saas, active=set()):
+                self.assertEqual(tenant.deal_query(TENANT), "1 = 0")
+                frappe.session.user = TENANT
+                with self.assertRaises(frappe.PermissionError):
+                    tenant.bind_company(CrmDoc("CRM Lead"))
+                contact = CrmDoc("Contact")
+                tenant.bind_company(contact)
+                self.assertEqual(contact.company, "Acme Traders")
+
+    def test_backfill_gives_older_records_their_company(self):
+        with platform_modules("crm_tenant") as (frappe, (tenant,)):
+            tenancy(frappe, tenant)
+            frappe.get_installed_apps = Mock(return_value=["frappe", "crm"])
+            frappe.db.exists = Mock(side_effect=lambda doctype, name=None: doctype == "DocType" and name == "CRM Lead")
+            frappe.get_all = Mock(return_value=[
+                _Dict(user="a@acme.test", company="Acme Traders"),
+                _Dict(user="b@acme.test", company="Acme Traders"),
+                _Dict(user="multi@x.test", company="One"),
+                _Dict(user="multi@x.test", company="Two"),
+            ])
+            frappe.db.sql = Mock()
+            tenant.backfill_companies()
+        self.assertEqual(frappe.db.sql.call_count, 1)  # the two-company user is left for the vendor
+        query, values = frappe.db.sql.call_args.args
+        self.assertIn("update `tabCRM Lead`", query)
+        self.assertIn("ifnull(`company`, '') = ''", query)
+        self.assertEqual(values, ("Acme Traders", ("a@acme.test", "b@acme.test")))
+
+
 class Response:
     def __init__(self, html, content_type="text/html; charset=utf-8", status=200):
         self.data = html
@@ -209,6 +272,15 @@ class ThemeTests(unittest.TestCase):
         self.assertNotIn("alert(1)", html)
         self.assertIn('"custom_accent":""', html)
         self.assertIn('"custom_accent_2":"#00ff88"', html)
+
+    def test_density_follows_the_theme(self):
+        html, _frappe = self._inject(config={"density": "compact"})
+        self.assertIn('"density":"compact"', html)
+        self.assertIn("data-aura-density", html)
+        html, _frappe = self._inject(config={"density": "huge"})
+        self.assertIn('"density":"comfortable"', html)
+        css = (APP / "public" / "css" / "saas_crm_theme.css").read_text(encoding="utf-8")
+        self.assertIn('[data-aura-density="compact"]', css)
 
     def test_stylesheet_covers_both_frappe_ui_token_sets_and_dark_mode(self):
         css = (APP / "public" / "css" / "saas_crm_theme.css").read_text(encoding="utf-8")

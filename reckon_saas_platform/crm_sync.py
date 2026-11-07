@@ -126,6 +126,9 @@ def ensure_crm_custom_fields() -> bool:
             fields.setdefault(doctype, []).extend(rows)
         create_custom_fields(fields, ignore_validate=True, update=True)
         _ensure_lead_source()
+        from reckon_saas_platform.crm_tenant import backfill_companies
+
+        backfill_companies()
         return True
     except Exception:
         frappe.log_error(frappe.get_traceback(), "SaaS CRM custom fields")

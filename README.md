@@ -185,12 +185,23 @@ Reckon CRM's field visits on those leads and deals.
   company belong to the vendor. Vendor users see everything; the vendor's own CRM
   staff see vendor records only, and the signup pipeline stays vendor-only. These
   rules only narrow access: Frappe CRM's roles and Reckon CRM's visit permissions
-  still apply. Contacts are core Frappe records and are not company-scoped here.
+  still apply.
+- **Contacts** follow the same rule once Frappe CRM is installed (a site without
+  CRM keeps its contacts as they are). A contact takes the company of a CRM record
+  it links to, and needs no CRM subscription, since ERPNext uses contacts too.
+- **CRM subscription.** Once Reckon CRM is sold as a plan (its app registers the
+  `crm` module), a tenant company reaches its CRM records only while it has an
+  active CRM subscription, like every other module. Owners of a CRM subscription
+  get Frappe CRM's *Sales Manager* role and land on `/crm`.
+- **Older records.** After every migrate, records that a tenant user created
+  before the Company field existed get that user's company, when the user belongs
+  to exactly one company. Records of multi-company users stay with the vendor to
+  assign by hand.
 - **Aura theme in `/crm`.** Frappe CRM is a separately built app, so the Desk
   theme never reaches it. While Reckon Aura Theme is installed and enabled, the
   platform adds `saas_crm_theme.css` to the `/crm` page: Aura's colours, fonts,
-  accent (violet, cyan, ember or custom, including the viewer's own choice when
-  the theme allows it) and aurora backdrop, mapped onto frappe-ui's tokens for
+  accent (violet, cyan, ember or custom) and density (comfortable or compact),
+  including the viewer's own choices when the theme allows it, and aurora backdrop, mapped onto frappe-ui's tokens for
   both 0.1 and 1.0 CRM builds. Light and dark follow CRM's own switch. Turn it off
   with *CRM Follows Aura Theme*.
 

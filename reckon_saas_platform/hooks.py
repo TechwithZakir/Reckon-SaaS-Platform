@@ -72,7 +72,7 @@ doc_events = {
         doctype: {"validate": "reckon_saas_platform.crm_tenant.bind_company"}
         for doctype in (
             "CRM Lead", "CRM Deal", "CRM Organization", "CRM Task", "FCRM Note",
-            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location",
+            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location", "Contact",
         )
     },
 }
@@ -124,6 +124,8 @@ permission_query_conditions = {
     "CRM Product": "reckon_saas_platform.crm_tenant.product_query",
     "CRM Field Visit": "reckon_saas_platform.crm_tenant.field_visit_query",
     "CRM Customer Location": "reckon_saas_platform.crm_tenant.customer_location_query",
+    # Contacts only once Frappe CRM is installed; see crm_tenant.
+    "Contact": "reckon_saas_platform.crm_tenant.contact_query",
 }
 
 has_permission = {
@@ -140,7 +142,7 @@ has_permission = {
         doctype: "reckon_saas_platform.crm_tenant.has_permission"
         for doctype in (
             "CRM Lead", "CRM Deal", "CRM Organization", "CRM Task", "FCRM Note",
-            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location",
+            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location", "Contact",
         )
     },
 }
