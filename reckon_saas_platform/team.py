@@ -116,7 +116,18 @@ def _reconcile(user: str) -> None:
         doc.remove_roles(role)
     # Keep permissions for every company the user is still assigned to, in any module.
     sync_company_permission(user, sorted({row.company for row in rows}))
+    _sync_landing_app(user)
     frappe.clear_cache(user=user)
+
+
+def _sync_landing_app(user: str) -> None:
+    """A user whose companies subscribe to exactly one guarded module lands on that module's app."""
+    from reckon_saas_platform.desk_module_guard import guarded_module_for_user
+
+    module = guarded_module_for_user(user)
+    target = module.get("app") if module else None
+    if target and frappe.db.get_value("User", user, "default_app") != target:
+        frappe.db.set_value("User", user, "default_app", target, update_modified=False)
 
 
 def sync_tenant_user_access(doc, method=None) -> None:
