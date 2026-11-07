@@ -42,7 +42,8 @@ def enforce_module_desk_access() -> None:
     kind, value = classify(request.path)
     if is_allowed(kind, value, module.get("desk_doctypes"), module.get("desk_workspaces")):
         return
-    frappe.throw(
-        frappe._("Your subscription covers {0} only.").format(module.get("label") or module.get("key")),
-        frappe.PermissionError,
-    )
+    # An HTTPException is returned as a real 403 response (a PermissionError from
+    # before_request is rendered as a normal page with status 200).
+    from werkzeug.exceptions import Forbidden
+
+    raise Forbidden(f"Your subscription covers {module.get('label') or module.get('key')} only.")
