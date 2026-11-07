@@ -180,10 +180,16 @@ def add_team_member(email: str, full_name: str | None = None, role_profile: str 
     ):
         frappe.throw(_("This user already belongs to another company."))
     if not frappe.db.exists("User", email):
-        frappe.get_doc({
-            "doctype": "User", "email": email, "first_name": full_name or email,
-            "enabled": 1, "send_welcome_email": 0,
-        }).insert(ignore_permissions=True)
+        # Created as the system: Frappe also creates the user's contact, which belongs to no one tenant.
+        caller = frappe.session.user
+        frappe.set_user("Administrator")
+        try:
+            frappe.get_doc({
+                "doctype": "User", "email": email, "first_name": full_name or email,
+                "enabled": 1, "send_welcome_email": 0,
+            }).insert(ignore_permissions=True)
+        finally:
+            frappe.set_user(caller)
     existing = frappe.db.get_value("Tenant User Assignment", {"user": email, "company": company}, "name")
     if existing:
         doc = frappe.get_doc("Tenant User Assignment", existing)
