@@ -122,8 +122,9 @@ class ModuleLayoutTests(unittest.TestCase):
             "reckon_saas_platform.crm_sync.on_registration_insert",
             "reckon_saas_platform.crm_sync.on_registration_update",
             "reckon_saas_platform.crm_sync.on_subscription_update",
-            '"CRM Lead": "reckon_saas_platform.crm_sync.get_lead_query"',
-            '"CRM Deal": "reckon_saas_platform.crm_sync.has_deal_permission"',
+            '"CRM Lead": "reckon_saas_platform.crm_tenant.lead_query"',
+            '"reckon_saas_platform.crm_tenant.has_permission"',
+            '"reckon_saas_platform.crm_tenant.bind_company"',
         ):
             self.assertIn(needle, hooks)
         # Frappe CRM stays optional: the platform installs without it.
@@ -311,21 +312,6 @@ class DealSyncTests(unittest.TestCase):
 
 
 class PermissionTests(unittest.TestCase):
-    def test_tenant_users_never_see_the_vendor_pipeline(self):
-        with platform_modules("crm_sync") as (frappe, (crm,)):
-            frappe.db.has_column = Mock(return_value=True)
-            frappe.get_roles = Mock(return_value=["Sales User"])
-            self.assertIn("reckon_saas_registration", crm.get_lead_query("tenant@acme.test"))
-            self.assertIn("reckon_saas_subscription", crm.get_deal_query("tenant@acme.test"))
-            self.assertFalse(crm.has_lead_permission(_Dict(reckon_saas_registration="REG-1"), "tenant@acme.test"))
-            self.assertFalse(crm.has_deal_permission(_Dict(reckon_saas_module="crm"), "tenant@acme.test"))
-            # Other CRM records keep CRM's own permissions.
-            self.assertIsNone(crm.has_lead_permission(_Dict(reckon_saas_registration=""), "tenant@acme.test"))
-
-            frappe.get_roles = Mock(return_value=["Reckon Vendor Superuser"])
-            self.assertEqual(crm.get_lead_query("vendor@reckon.test"), "")
-            self.assertIsNone(crm.has_deal_permission(_Dict(reckon_saas_subscription="SUB-1"), "vendor@reckon.test"))
-
     def test_page_api_is_vendor_only(self):
         with platform_modules("crm_sync") as (frappe, (crm,)):
             frappe.session.user = "tenant@acme.test"

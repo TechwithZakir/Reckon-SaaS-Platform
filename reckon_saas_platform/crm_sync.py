@@ -17,8 +17,8 @@ followed up in CRM like any other customer:
 
 Nothing here is required: without the ``crm`` app every hook returns at once,
 and a sync problem is logged and never stops a signup, provisioning or a
-subscription update. SaaS-linked leads and deals are visible to vendor users
-only, so a tenant user holding a CRM role cannot read the vendor's pipeline.
+subscription update. Who sees which CRM record (tenant companies, and the
+vendor-only signup pipeline) is decided in ``crm_tenant``.
 """
 
 from __future__ import annotations
@@ -119,7 +119,12 @@ def ensure_crm_custom_fields() -> bool:
     try:
         from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
-        create_custom_fields(CUSTOM_FIELDS, ignore_validate=True, update=True)
+        from reckon_saas_platform.crm_tenant import tenant_custom_fields
+
+        fields = {doctype: list(rows) for doctype, rows in CUSTOM_FIELDS.items()}
+        for doctype, rows in tenant_custom_fields().items():
+            fields.setdefault(doctype, []).extend(rows)
+        create_custom_fields(fields, ignore_validate=True, update=True)
         _ensure_lead_source()
         return True
     except Exception:
@@ -399,38 +404,6 @@ def sync_subscription(subscription) -> str | None:
         deal.update(changed)
         deal.save(ignore_permissions=True)
     return deal_name
-
-
-# ---------------------------------------------------------------- permissions
-
-
-def _saas_linked_condition(doctype: str, fieldname: str) -> str:
-    return f"ifnull(`tab{doctype}`.`{fieldname}`, '') = ''"
-
-
-def get_lead_query(user: str | None = None) -> str:
-    """Non-vendor users never list the leads that came from SaaS signups."""
-    if is_vendor_user(user) or not frappe.db.has_column(LEAD, LEAD_REGISTRATION):
-        return ""
-    return _saas_linked_condition(LEAD, LEAD_REGISTRATION)
-
-
-def get_deal_query(user: str | None = None) -> str:
-    if is_vendor_user(user) or not frappe.db.has_column(DEAL, DEAL_SUBSCRIPTION):
-        return ""
-    return f"({_saas_linked_condition(DEAL, DEAL_SUBSCRIPTION)} and {_saas_linked_condition(DEAL, DEAL_MODULE)})"
-
-
-def has_lead_permission(doc, user: str | None = None, permission_type: str | None = None):
-    if doc.get(LEAD_REGISTRATION) and not is_vendor_user(user):
-        return False
-    return None  # CRM's own role permissions decide everything else.
-
-
-def has_deal_permission(doc, user: str | None = None, permission_type: str | None = None):
-    if (doc.get(DEAL_SUBSCRIPTION) or doc.get(DEAL_MODULE)) and not is_vendor_user(user):
-        return False
-    return None
 
 
 # ---------------------------------------------------------------- vendor API

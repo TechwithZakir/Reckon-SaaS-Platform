@@ -175,11 +175,27 @@ Reckon CRM's field visits on those leads and deals.
 - **CRM Pipeline** (`/desk/saas-crm`, also in Reckon SaaS Admin) shows signup leads
   and subscription deals by stage, field visits due, and recent deals, with
   **Sync Signups to CRM** to bring in registrations from before the sync.
-- Leads and deals that came from the platform are visible to vendor users only, so
-  a tenant user with a CRM role cannot read the vendor's pipeline.
+- **Company-wise tenancy.** Every Reckon CRM record (CRM Lead, Deal,
+  Organization, Task, Note, Call Log, Product, Field Visit and Customer Location)
+  gets a *Company* field, with the same rule as the platform's other tenant-owned
+  doctypes: a tenant user lists, opens and writes only records of the companies in
+  their Tenant User Assignment; a new record gets their default company; a task,
+  note, call log, visit or deal takes the company of the lead, deal or organization
+  it belongs to; and the company cannot change after insert. Records without a
+  company belong to the vendor. Vendor users see everything; the vendor's own CRM
+  staff see vendor records only, and the signup pipeline stays vendor-only. These
+  rules only narrow access: Frappe CRM's roles and Reckon CRM's visit permissions
+  still apply. Contacts are core Frappe records and are not company-scoped here.
+- **Aura theme in `/crm`.** Frappe CRM is a separately built app, so the Desk
+  theme never reaches it. While Reckon Aura Theme is installed and enabled, the
+  platform adds `saas_crm_theme.css` to the `/crm` page: Aura's colours, fonts,
+  accent (violet, cyan, ember or custom, including the viewer's own choice when
+  the theme allows it) and aurora backdrop, mapped onto frappe-ui's tokens for
+  both 0.1 and 1.0 CRM builds. Light and dark follow CRM's own switch. Turn it off
+  with *CRM Follows Aura Theme*.
 
 Configure it in **SaaS Platform Settings > SaaS CRM (Reckon CRM)**: *Send Signups
-to CRM* (on by default), *Lead Owner* and *Lead Source*. Frappe CRM is optional:
+to CRM* (on by default), *Lead Owner*, *Lead Source* and *CRM Follows Aura Theme*. Frappe CRM is optional:
 without it the module does nothing, and the CRM links stay hidden until it (and
 Reckon CRM, for field visits) is installed. A sync problem is written to the Error
 Log and never stops a signup, provisioning or a subscription update.

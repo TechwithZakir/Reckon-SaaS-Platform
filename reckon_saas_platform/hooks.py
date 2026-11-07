@@ -34,6 +34,8 @@ before_request = ["reckon_saas_platform.saas_gate.enforce_operational_access"]
 after_request = [
     "reckon_saas_platform.saas_gate.redirect_blocked_response",
     "reckon_saas_platform.marketing.redirect_signed_in_home",
+    # Reckon CRM's /crm app is built apart from Desk; this gives it the Aura theme.
+    "reckon_saas_platform.crm_theme.inject_theme",
 ]
 
 # Signed-in users go to their module, not the marketing home page; /login carries
@@ -64,6 +66,14 @@ doc_events = {
     },
     "SaaS Subscription": {
         "on_update": "reckon_saas_platform.crm_sync.on_subscription_update",
+    },
+    # Company-wise tenancy for Reckon CRM records. See reckon_saas_platform.crm_tenant.
+    **{
+        doctype: {"validate": "reckon_saas_platform.crm_tenant.bind_company"}
+        for doctype in (
+            "CRM Lead", "CRM Deal", "CRM Organization", "CRM Task", "FCRM Note",
+            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location",
+        )
     },
 }
 
@@ -104,9 +114,16 @@ permission_query_conditions = {
     "SaaS Subscription": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "Tenant User Assignment": "reckon_saas_platform.tenant_security.get_tenant_user_assignment_query",
-    # Leads and deals that came from SaaS signups are the vendor's own pipeline.
-    "CRM Lead": "reckon_saas_platform.crm_sync.get_lead_query",
-    "CRM Deal": "reckon_saas_platform.crm_sync.get_deal_query",
+    # Reckon CRM: tenant users see their company's records; the signup pipeline is vendor-only.
+    "CRM Lead": "reckon_saas_platform.crm_tenant.lead_query",
+    "CRM Deal": "reckon_saas_platform.crm_tenant.deal_query",
+    "CRM Organization": "reckon_saas_platform.crm_tenant.organization_query",
+    "CRM Task": "reckon_saas_platform.crm_tenant.task_query",
+    "FCRM Note": "reckon_saas_platform.crm_tenant.note_query",
+    "CRM Call Log": "reckon_saas_platform.crm_tenant.call_log_query",
+    "CRM Product": "reckon_saas_platform.crm_tenant.product_query",
+    "CRM Field Visit": "reckon_saas_platform.crm_tenant.field_visit_query",
+    "CRM Customer Location": "reckon_saas_platform.crm_tenant.customer_location_query",
 }
 
 has_permission = {
@@ -119,8 +136,13 @@ has_permission = {
     "SaaS Subscription": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "Tenant User Assignment": "reckon_saas_platform.tenant_security.has_tenant_user_assignment_permission",
-    "CRM Lead": "reckon_saas_platform.crm_sync.has_lead_permission",
-    "CRM Deal": "reckon_saas_platform.crm_sync.has_deal_permission",
+    **{
+        doctype: "reckon_saas_platform.crm_tenant.has_permission"
+        for doctype in (
+            "CRM Lead", "CRM Deal", "CRM Organization", "CRM Task", "FCRM Note",
+            "CRM Call Log", "CRM Product", "CRM Field Visit", "CRM Customer Location",
+        )
+    },
 }
 
 fixtures = [

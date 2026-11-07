@@ -1,0 +1,140 @@
+/* ==========================================================================
+   Reckon Aura Theme for Reckon CRM (/crm)
+   Added by reckon_saas_platform.crm_theme only while the Aura theme is on.
+   Everything is scoped to html[data-reckon-theme="aura"], so if the small
+   script does not run, CRM keeps its own look.
+
+   frappe-ui renamed its colour tokens between 0.1 (surface-white, menu-bar,
+   modal, cards) and 1.0 (surface-base, sidebar, elevation-*, gray-10). Both
+   sets are set here; a name a CRM version does not use is simply ignored.
+   Gray scales are mixes of the Aura text colour into the Aura surface, so the
+   same formula gives a light scale in light mode and a dark one in dark mode.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Geist:wght@400;500;600;700&display=swap");
+
+/* ------------------------------------------------------------ Aura tokens */
+html[data-reckon-theme="aura"] {
+	--aura-accent: #6d4cff;
+	--aura-accent-2: #00a7d1;
+	--aura-bg: #f4f3fb;
+	--aura-solid: #ffffff;
+	--aura-text: #15132b;
+	--aura-muted: #5a5780;
+	--aura-font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--aura-font-head: "Sora", var(--aura-font);
+}
+html[data-reckon-theme="aura"][data-theme="dark"] {
+	--aura-accent: #8b6dff;
+	--aura-accent-2: #00c8f0;
+	--aura-bg: #07070f;
+	--aura-solid: #15132b;
+	--aura-text: #eceaff;
+	--aura-muted: #a9a5d6;
+}
+html[data-reckon-theme="aura"][data-aura-accent="cyan"] { --aura-accent: #0088a8; --aura-accent-2: #1fbf8f; }
+html[data-reckon-theme="aura"][data-aura-accent="ember"] { --aura-accent: #e8483a; --aura-accent-2: #f29a1f; }
+html[data-reckon-theme="aura"][data-theme="dark"][data-aura-accent="cyan"] { --aura-accent: #00b4d8; --aura-accent-2: #34e3aa; }
+html[data-reckon-theme="aura"][data-theme="dark"][data-aura-accent="ember"] { --aura-accent: #ff6a5a; --aura-accent-2: #ffb347; }
+
+/* ------------------------------------------------- frappe-ui token map
+   html[..] (0,1,1) beats frappe-ui's :root and [data-theme="dark"] (0,1,0). */
+html[data-reckon-theme="aura"] {
+	--aura-grad: linear-gradient(135deg, var(--aura-accent), var(--aura-accent-2));
+	--aura-tint: color-mix(in srgb, var(--aura-accent) 12%, var(--aura-solid));
+	--aura-sidebar: color-mix(in srgb, var(--aura-accent) 5%, var(--aura-bg));
+
+	/* surfaces: page, cards, menus, dialogs */
+	--surface-white: var(--aura-solid);
+	--surface-base: var(--aura-solid);
+	--surface-cards: var(--aura-solid);
+	--surface-modal: var(--aura-solid);
+	--surface-elevation-1: var(--aura-solid);
+	--surface-elevation-2: var(--aura-solid);
+	--surface-elevation-3: var(--aura-solid);
+	--surface-menu-bar: var(--aura-sidebar);
+	--surface-sidebar: var(--aura-sidebar);
+	--surface-selected: var(--aura-tint);
+	--surface-gray-1: color-mix(in srgb, var(--aura-text) 3%, var(--aura-solid));
+	--surface-gray-2: color-mix(in srgb, var(--aura-text) 6%, var(--aura-solid));
+	--surface-gray-3: color-mix(in srgb, var(--aura-text) 10%, var(--aura-solid));
+	--surface-gray-4: color-mix(in srgb, var(--aura-text) 16%, var(--aura-solid));
+	--surface-gray-5: color-mix(in srgb, var(--aura-text) 28%, var(--aura-solid));
+	--surface-gray-6: color-mix(in srgb, var(--aura-text) 42%, var(--aura-solid));
+	--surface-gray-7: color-mix(in srgb, var(--aura-text) 58%, var(--aura-solid));
+	--surface-gray-8: color-mix(in srgb, var(--aura-text) 70%, var(--aura-solid));
+	--surface-gray-9: color-mix(in srgb, var(--aura-text) 82%, var(--aura-solid));
+	--surface-gray-10: color-mix(in srgb, var(--aura-text) 92%, var(--aura-solid));
+
+	/* text */
+	--ink-gray-1: color-mix(in srgb, var(--aura-text) 22%, var(--aura-solid));
+	--ink-gray-2: color-mix(in srgb, var(--aura-text) 32%, var(--aura-solid));
+	--ink-gray-3: color-mix(in srgb, var(--aura-muted) 70%, var(--aura-solid));
+	--ink-gray-4: color-mix(in srgb, var(--aura-muted) 85%, var(--aura-solid));
+	--ink-gray-5: var(--aura-muted);
+	--ink-gray-6: color-mix(in srgb, var(--aura-text) 60%, var(--aura-muted));
+	--ink-gray-7: color-mix(in srgb, var(--aura-text) 80%, var(--aura-muted));
+	--ink-gray-8: color-mix(in srgb, var(--aura-text) 92%, var(--aura-muted));
+	--ink-gray-9: var(--aura-text);
+
+	/* borders */
+	--outline-gray-modals: color-mix(in srgb, var(--aura-text) 10%, var(--aura-solid));
+	--outline-gray-modal: color-mix(in srgb, var(--aura-text) 10%, var(--aura-solid));
+	--outline-gray-1: color-mix(in srgb, var(--aura-text) 9%, var(--aura-solid));
+	--outline-gray-2: color-mix(in srgb, var(--aura-text) 14%, var(--aura-solid));
+	--outline-gray-3: color-mix(in srgb, var(--aura-text) 22%, var(--aura-solid));
+	--outline-gray-4: color-mix(in srgb, var(--aura-text) 34%, var(--aura-solid));
+	--outline-gray-5: color-mix(in srgb, var(--aura-text) 48%, var(--aura-solid));
+}
+
+/* ------------------------------------------------------------ type */
+html[data-reckon-theme="aura"],
+html[data-reckon-theme="aura"] body {
+	font-family: var(--aura-font);
+	background: var(--aura-bg);
+}
+html[data-reckon-theme="aura"] h1,
+html[data-reckon-theme="aura"] h2,
+html[data-reckon-theme="aura"] h3 {
+	font-family: var(--aura-font-head);
+}
+
+/* ---------------------------------------------- primary (solid) buttons
+   frappe-ui draws them with the darkest gray surface: gray-10 in 1.0,
+   gray-7 in 0.1. In Aura they carry the accent gradient instead. */
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-10"],
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-7"] {
+	background: var(--aura-grad);
+	color: #fff;
+	border-color: transparent;
+	box-shadow: 0 6px 18px color-mix(in srgb, var(--aura-accent) 30%, transparent);
+}
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-10"]:hover,
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-7"]:hover {
+	filter: brightness(1.06);
+}
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-10"] *,
+html[data-reckon-theme="aura"] button[class~="bg-surface-gray-7"] * {
+	color: inherit;
+}
+
+/* ------------------------------------------------------------ focus */
+html[data-reckon-theme="aura"] :focus-visible {
+	outline: 2px solid color-mix(in srgb, var(--aura-accent) 70%, transparent);
+	outline-offset: 1px;
+}
+html[data-reckon-theme="aura"] input:focus,
+html[data-reckon-theme="aura"] textarea:focus,
+html[data-reckon-theme="aura"] select:focus {
+	--tw-ring-color: color-mix(in srgb, var(--aura-accent) 45%, transparent);
+	border-color: var(--aura-accent);
+}
+
+/* ------------------------------------------------------- aurora backdrop */
+html[data-reckon-theme="aura"][data-aura-aurora="on"] body {
+	background:
+		radial-gradient(900px 600px at 0% -10%, color-mix(in srgb, var(--aura-accent) 14%, transparent), transparent 70%),
+		radial-gradient(800px 640px at 105% 110%, color-mix(in srgb, var(--aura-accent-2) 10%, transparent), transparent 70%),
+		var(--aura-bg);
+	background-attachment: fixed;
+}
