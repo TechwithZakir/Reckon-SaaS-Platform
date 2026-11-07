@@ -541,9 +541,13 @@ FEATURE_LABELS = {
     "frappe_crm_sync": "CRM sync",
     "email_sequences_with_approval": "Email sequences with approval",
     "claude_ai_research_and_drafting": "AI research and drafting",
+    "crm_leads_and_deals": "Leads and deals pipeline",
+    "field_visit_scheduling": "Field visit scheduling",
+    "gps_visit_check_in": "GPS check-in and check-out",
+    "customer_locations_on_map": "Customer locations on a map",
 }
 
-ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl", "ai"})
+ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl", "ai", "gps"})
 
 SHOWCASE = (
     ("erp", "ERP", "Sales, stock, collections and books for your company, in one place."),

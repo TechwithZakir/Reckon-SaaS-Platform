@@ -331,3 +331,16 @@ class PermissionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CrmFeatureLabelTests(unittest.TestCase):
+    """Reckon CRM's ``reckon_saas_modules`` features read well on the public pages."""
+
+    def test_marketing_labels(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            self.assertEqual(marketing.feature_label("gps_visit_check_in"), "GPS check-in and check-out")
+            self.assertEqual(marketing.feature_label("crm_leads_and_deals"), "Leads and deals pipeline")
+
+    def test_signup_page_spells_gps(self):
+        with platform_modules("www.reckonerp_signup") as (_frappe, (page,)):
+            self.assertEqual(page._feature_label("gps_visit_check_in"), "GPS visit check in")

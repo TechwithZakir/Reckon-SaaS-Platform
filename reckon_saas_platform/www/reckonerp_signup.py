@@ -139,7 +139,7 @@ def get_signup_modules() -> list[dict]:
     return modules
 
 
-ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl"})
+ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl", "gps"})
 
 
 def _feature_label(key: str) -> str:
