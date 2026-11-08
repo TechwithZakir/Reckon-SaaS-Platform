@@ -29,6 +29,13 @@ COMPANY_SITE = "https://www.reckon.tech/"
 WHATSAPP_DISPLAY = "+8801325-009955"
 WHATSAPP_NUMBER = "8801325009955"
 PUBLISHER = "Reckon Technologies Ltd."
+LEGAL_NAME = "ReckonERP by Reckon Technologies Ltd."
+FACEBOOK_URL = "https://www.facebook.com/reckontechnologies/"
+ADDRESS_TEXT = "Uttara, Dhaka, Bangladesh"
+MAP_URL = "https://share.google/TPBZbPvw4CzCOQBtI"
+OPEN_HOURS_TEXT = "9 am - 7 pm"
+# Opening days were not stated; every day is assumed. Change here if the office closes on some days.
+OPEN_HOURS_SPEC = {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "09:00", "closes": "19:00"}
 
 HOME = "/"
 FEATURES = "/features"
@@ -825,6 +832,18 @@ HOME_FAQS = (
         "your ERP and CRM data, quoted after requirement analysis.",
     ),
     (
+        "What technology is ReckonERP built on?",
+        "ReckonERP runs on open-source ERP technology written in Python, with a MariaDB "
+        "database, Redis-backed background workers, real-time updates over WebSockets and "
+        "a REST API for integrations. AI features use a hosted AI provider or an "
+        "OpenAI-compatible model server, and custom agents can use RAG and MCP connections.",
+    ),
+    (
+        "Where is Reckon Technologies based?",
+        "Reckon Technologies Ltd. is in Uttara, Dhaka, Bangladesh, open 9 am to 7 pm. Reach "
+        "us by email or WhatsApp, and we serve companies in Bangladesh and worldwide.",
+    ),
+    (
         "Can I use it in Bangla?",
         "Signup is available in Bangla and English, and the Distribution module is "
         "designed Bangla-first for field teams.",
@@ -1062,6 +1081,33 @@ def organization_ld(base: str, same_as=None) -> dict:
     return data
 
 
+def local_business_ld(base: str, same_as=None) -> dict:
+    """The office in Uttara, Dhaka, with phone, hours and a map link, for local search."""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "name": LEGAL_NAME,
+        "legalName": PUBLISHER,
+        "url": f"{base}/",
+        "image": f"{base}{LOGO_SOCIAL}",
+        "logo": f"{base}{LOGO_SOCIAL}",
+        "email": SUPPORT_EMAIL,
+        "telephone": WHATSAPP_DISPLAY,
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Uttara",
+            "addressLocality": "Dhaka",
+            "addressCountry": "BD",
+        },
+        "areaServed": ["Bangladesh", "Worldwide"],
+        "openingHoursSpecification": OPEN_HOURS_SPEC,
+        "hasMap": MAP_URL,
+    }
+    if same_as:
+        data["sameAs"] = list(same_as)
+    return data
+
+
 def software_ld(base: str, name: str, description: str, path: str, offers=None) -> dict:
     data = {
         "@context": "https://schema.org",
@@ -1169,6 +1215,7 @@ def make_page(
     ld = []
     if path == HOME:
         ld.append(organization_ld(base, same_as))
+        ld.append(local_business_ld(base, same_as))
     if software:
         ld.append(software_ld(base, software[0], software[1], path, software[2] if len(software) > 2 else None))
     if faqs:
@@ -1641,7 +1688,8 @@ def get_profiles() -> list[str]:
     except Exception:
         return []
     links = [line.strip() for line in str(text).splitlines()]
-    return [link for link in links if re.fullmatch(r"https://[^\s\"'<>]{4,200}", link)][:12]
+    found = [link for link in links if re.fullmatch(r"https://[^\s\"'<>]{4,200}", link)]
+    return list(dict.fromkeys([FACEBOOK_URL, *found]))[:12]
 
 
 def shared_context(context, modules: list[dict]) -> None:
@@ -1656,6 +1704,10 @@ def shared_context(context, modules: list[dict]) -> None:
     context.logo = LOGO
     context.logo_width, context.logo_height = LOGO_SIZE
     context.company_site = COMPANY_SITE
+    context.address_text = ADDRESS_TEXT
+    context.map_url = MAP_URL
+    context.open_hours = OPEN_HOURS_TEXT
+    context.social_profiles = get_profiles()
     context.whatsapp_number = WHATSAPP_NUMBER
     context.whatsapp_display = WHATSAPP_DISPLAY
 

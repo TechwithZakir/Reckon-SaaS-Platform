@@ -325,7 +325,7 @@ class MarketingDataTests(unittest.TestCase):
             frappe.get_cached_doc = Mock(return_value=_Dict(social_profiles="https://www.linkedin.com/company/x\njavascript:alert(1)\nhttps://a.b/c d"))
             profiles = marketing.get_profiles()
             home = marketing.home_page(BASE, _modules(marketing, frappe), None, profiles)
-        self.assertEqual(profiles, ["https://www.linkedin.com/company/x"])
+        self.assertEqual(profiles, ["https://www.facebook.com/reckontechnologies/", "https://www.linkedin.com/company/x"])
         self.assertEqual(json.loads(home["jsonld"][0])["sameAs"], profiles)
 
     def test_seo_check_flags_problems_and_fingerprints_content(self):
@@ -504,7 +504,7 @@ class MarketingDataTests(unittest.TestCase):
             module = marketing.module_page(BASE, modules[0], modules)
             features = marketing.features_page(BASE)
         kinds = lambda page: [json.loads(b)["@type"] for b in page["jsonld"]]  # noqa: E731
-        self.assertEqual(kinds(home), ["Organization", "SoftwareApplication", "FAQPage"])
+        self.assertEqual(kinds(home), ["Organization", "ProfessionalService", "SoftwareApplication", "FAQPage"])
         self.assertEqual(json.loads(home["jsonld"][0])["email"], "hello@reckon.tech")
         self.assertEqual(kinds(module), ["SoftwareApplication", "FAQPage", "BreadcrumbList"])
         self.assertEqual(kinds(features), ["BreadcrumbList"])
@@ -662,7 +662,7 @@ class MarketingRenderTests(unittest.TestCase):
             self.assertEqual(html.count("<title>"), 1)
             self.assertNotIn("frappe", html.lower(), page["path"])
             for href in parser.hrefs:
-                if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/")):
+                if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/", "https://share.google/", "https://www.facebook.com/")):
                     continue
                 if href.startswith("/assets/reckon_saas_platform/"):
                     target = asset_root / href.removeprefix("/assets/reckon_saas_platform/")
@@ -708,7 +708,9 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn('href="https://wa.me/8801325009955"', html)
         self.assertIn("+8801325-009955", html)
         self.assertIn('class="foot-logo"', html)
-        self.assertEqual(html.count('<span class="ic">'), 3)
+        self.assertEqual(html.count('<span class="ic">'), 5)  # website, mail, WhatsApp, address, Facebook
+        self.assertIn("Uttara, Dhaka, Bangladesh", html)
+        self.assertIn('rel="me noopener"', html)
         self.assertNotIn("<strong>Mail Address</strong>", html)  # icon-only; the label is for screen readers
         self.assertIn('<span class="sr">Mail Address: </span>', html)
         self.assertIn("data-chat", html)
@@ -754,6 +756,27 @@ class MarketingRenderTests(unittest.TestCase):
             html = self._render("reckon_modules", marketing.module_page(BASE, modules[0], modules), modules, marketing)
         self.assertNotIn("alert(1)</script>", html)
         self.assertIn("&lt;script&gt;alert(1)", html)
+
+class LocalSeoTests(unittest.TestCase):
+    def test_local_business_data_has_address_phone_hours_map_and_profile(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(social_profiles=""))
+            home = marketing.home_page(BASE, _modules(marketing, frappe), None, marketing.get_profiles())
+        local = next(json.loads(b) for b in home["jsonld"] if '"ProfessionalService"' in b)
+        self.assertEqual(local["name"], "ReckonERP by Reckon Technologies Ltd.")
+        self.assertEqual(local["address"]["addressLocality"], "Dhaka")
+        self.assertEqual(local["address"]["streetAddress"], "Uttara")
+        self.assertEqual(local["telephone"], "+8801325-009955")
+        self.assertEqual((local["openingHoursSpecification"]["opens"], local["openingHoursSpecification"]["closes"]), ("09:00", "19:00"))
+        self.assertTrue(local["hasMap"].startswith("https://share.google/"))
+        self.assertIn("https://www.facebook.com/reckontechnologies/", local["sameAs"])
+
+    def test_technology_question_names_no_framework_vendor(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            answer = dict(marketing.HOME_FAQS)["What technology is ReckonERP built on?"]
+        self.assertIn("Python", answer)
+        self.assertNotIn("frappe", answer.lower())
+
 
 class ImageAltTests(unittest.TestCase):
     def test_no_marketing_template_ships_an_image_with_empty_alt(self):
