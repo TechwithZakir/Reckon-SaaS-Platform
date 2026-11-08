@@ -1144,6 +1144,13 @@ def _provision_registration(registration: str):
         }
     )
     _forget_registration_password(doc)
+    # The invoice goes out in the background, so a mail or SMS problem never touches the signup.
+    frappe.enqueue(
+        "reckon_saas_platform.invoices.issue_and_send",
+        subscription=subscription.name,
+        queue="short",
+        enqueue_after_commit=True,
+    )
     run_tenant_seed_job(company.name)
     return doc
 
@@ -1299,7 +1306,25 @@ def verify_payment(payment: str, reference: str | None = None):
     subscription.status = "Active"
     subscription.grace_until = None
     subscription.save(ignore_permissions=True)
+    _settle_invoice(subscription.name, payment_doc.name)
     return subscription
+
+
+def _settle_invoice(subscription: str, payment: str) -> None:
+    """Mark the invoice paid and email the receipt. Never lets an invoice problem undo a payment."""
+    try:
+        from reckon_saas_platform.invoices import mark_paid
+
+        invoice = mark_paid(subscription, payment)
+        if invoice:
+            frappe.enqueue(
+                "reckon_saas_platform.invoices.send_receipt",
+                invoice=invoice.name,
+                queue="short",
+                enqueue_after_commit=True,
+            )
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Settle invoice for {subscription}")
 
 
 def is_subscription_active(company: str, saas_module: str | None = None) -> bool:

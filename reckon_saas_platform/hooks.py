@@ -86,6 +86,7 @@ website_route_rules = [
     {"from_route": "/llms.txt", "to_route": "reckon_llms.txt"},
     {"from_route": "/llms-full.txt", "to_route": "reckon_llms_full.txt"},
     {"from_route": "/faq", "to_route": "reckon_faq"},
+    {"from_route": "/invoice/<key>", "to_route": "reckon_invoice"},
     {"from_route": "/blog", "to_route": "reckon_blog"},
     {"from_route": "/blog/rss.xml", "to_route": "reckon_blog_rss.xml"},
     {"from_route": "/blog/<slug>", "to_route": "reckon_blog"},
@@ -97,6 +98,7 @@ website_route_rules = [
 
 permission_query_conditions = {
     "SaaS Payment": "reckon_saas_platform.saas_security.get_vendor_only_query",
+    "SaaS Invoice": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SEO Article": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SEO Suggestion": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Plan": "reckon_saas_platform.saas_security.get_vendor_only_query",
@@ -108,6 +110,7 @@ permission_query_conditions = {
 
 has_permission = {
     "SaaS Payment": "reckon_saas_platform.saas_security.has_vendor_only_permission",
+    "SaaS Invoice": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SEO Article": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SEO Suggestion": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Plan": "reckon_saas_platform.saas_security.has_vendor_only_permission",

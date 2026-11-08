@@ -1,0 +1,13 @@
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#0d2240;max-width:560px">
+  <p>Hello {{ invoice.customer_name|e }},</p>
+  {% if receipt %}
+  <p>We received your payment. Invoice <strong>{{ invoice.name|e }}</strong> for <strong>{{ amount_text|e }}</strong> is now marked paid. The PDF is attached for your records.</p>
+  {% else %}
+  <p>Thank you for choosing ReckonERP. Your invoice <strong>{{ invoice.name|e }}</strong> for <strong>{{ description|e }}</strong> is attached as a PDF.</p>
+  <p><strong>Amount:</strong> {{ amount_text|e }}<br><strong>Due:</strong> {{ invoice.due_date|e }}</p>
+  <p>{{ instructions|e }}</p>
+  <p><a href="{{ subscription_url|e }}" style="display:inline-block;background:#0b78ab;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-weight:bold">Open your Subscription page</a></p>
+  {% endif %}
+  <p>You can also view the invoice online: <a href="{{ public_url|e }}">{{ public_url|e }}</a></p>
+  <p style="color:#51627a">{{ seller.name|e }} &middot; {{ seller.email|e }} &middot; WhatsApp {{ seller.phone|e }}</p>
+</div>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Invoice {{ invoice.name|e }} | ReckonERP</title>
+<style>
+body{margin:0;background:{% if pdf %}#fff{% else %}#f4f8fc{% endif %};color:#0d2240;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5}
+.sheet{max-width:780px;margin:{% if pdf %}0{% else %}24px auto{% endif %};background:#fff;padding:32px;{% if not pdf %}border:1px solid #dbe4ef;border-radius:12px{% endif %}}
+h1{font-size:26px;margin:0 0 4px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 6px;vertical-align:top;text-align:left}
+.head td{padding:0}
+.right{text-align:right}
+.muted{color:#51627a}
+.lines th{border-bottom:2px solid #0d2240;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.lines td{border-bottom:1px solid #dbe4ef}
+.total td{font-size:18px;font-weight:bold;border-top:2px solid #0d2240}
+.badge{display:inline-block;padding:3px 12px;border-radius:12px;font-weight:bold;font-size:12px;text-transform:uppercase}
+.paid{background:#dcfce7;color:#166534}.unpaid{background:#fff4e0;color:#9a5b00}
+.box{background:#f4f8fc;border:1px solid #dbe4ef;border-radius:8px;padding:12px 14px;margin-top:18px}
+.bar a{display:inline-block;margin:0 8px 8px 0;padding:9px 16px;border-radius:20px;background:#0b78ab;color:#fff;text-decoration:none;font-weight:bold}
+.bar a.alt{background:#fff;color:#0b78ab;border:2px solid #0b78ab}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <table class="head"><tr>
+    <td><h1>Invoice</h1><div class="muted">{{ invoice.name|e }}</div></td>
+    <td class="right"><strong>{{ seller.name|e }}</strong><br><span class="muted">{{ seller.email|e }}<br>{{ seller.phone|e }}<br>{{ seller.website|e }}</span></td>
+  </tr></table>
+
+  <table style="margin-top:18px"><tr>
+    <td><span class="muted">Billed to</span><br><strong>{{ invoice.customer_name|e }}</strong>{% if invoice.company %}<br>{{ invoice.company|e }}{% endif %}<br>{{ invoice.customer_email|e }}{% if invoice.customer_phone %}<br>{{ invoice.customer_phone|e }}{% endif %}</td>
+    <td class="right"><span class="muted">Issued</span> {{ invoice.issue_date|e }}<br><span class="muted">Due</span> {{ invoice.due_date|e }}<br>
+      <span class="badge {% if paid %}paid{% else %}unpaid{% endif %}">{% if paid %}Paid{% else %}Unpaid{% endif %}</span></td>
+  </tr></table>
+
+  <table class="lines" style="margin-top:22px">
+    <tr><th>Description</th><th>Period</th><th class="right">Amount</th></tr>
+    <tr><td>{{ description|e }}<br><span class="muted">{{ billing_cycle|e }} subscription</span></td>
+        <td>{{ invoice.period_start|e }} to {{ invoice.period_end|e }}</td>
+        <td class="right">{{ amount_text|e }}</td></tr>
+    <tr class="total"><td colspan="2" class="right">Total</td><td class="right">{{ amount_text|e }}</td></tr>
+  </table>
+
+  {% if paid %}
+  <div class="box"><strong>Paid</strong>{% if invoice.paid_on %} on {{ invoice.paid_on|e }}{% endif %}. Thank you.</div>
+  {% else %}
+  <div class="box"><strong>How to pay</strong><br>{{ instructions|e }}<br><span class="muted">Subscription page: {{ subscription_url|e }}</span></div>
+  {% endif %}
+  {% if note %}<p class="muted">{{ note|e }}</p>{% endif %}
+  <p class="muted">Questions? {{ seller.email|e }} or WhatsApp {{ seller.phone|e }}.</p>
+
+  {% if not pdf %}
+  <div class="bar" style="margin-top:16px">
+    <a href="{{ pdf_url|e }}">Download PDF</a>
+    {% if not paid %}<a href="{{ subscription_url|e }}" class="alt">Report your payment</a>{% endif %}
+    <a href="{{ whatsapp_url|e }}" class="alt" rel="noopener">Share on WhatsApp</a>
+    <a href="{{ vendor_whatsapp_url|e }}" class="alt" rel="noopener">Ask us on WhatsApp</a>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
