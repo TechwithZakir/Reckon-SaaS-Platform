@@ -29,6 +29,7 @@ THEMES = {
     "Tutorial": ((11, 120, 171), (19, 155, 217)),
     "Feature Guide": ((76, 29, 149), (19, 155, 217)),
     "Article": ((11, 31, 58), (14, 116, 144)),
+    "Comparison": ((131, 24, 67), (217, 119, 6)),
     "Weekly Update": ((11, 100, 80), (19, 155, 217)),
 }
 
@@ -81,6 +82,14 @@ def _motif(draw, kind: str, x: int, y: int) -> None:
             for c in range(2):
                 fill = (107, 220, 58, 235) if (r, c) == (0, 1) else soft
                 draw.rounded_rectangle((x + c * 170, y + 40 + r * 170, x + c * 170 + 150, y + 40 + r * 170 + 150), 28, fill=fill)
+    elif kind == "Comparison":
+        for i, x0 in enumerate((20, 190)):
+            lit = i == 1
+            draw.rounded_rectangle((x + x0, y + 20, x + x0 + 150, y + 330), 26, fill=(255, 255, 255, 120) if lit else soft)
+            for j in range(4):
+                draw.rounded_rectangle((x + x0 + 22, y + 120 + j * 48, x + x0 + 128 - j * 10, y + 136 + j * 48), 8, fill=ink if lit and j == 0 else (255, 255, 255, 150))
+            draw.ellipse((x + x0 + 45, y + 36, x + x0 + 105, y + 96), fill=(107, 220, 58, 240) if lit else (255, 255, 255, 200))
+        draw.polygon([(x + 172, y + 160), (x + 188, y + 175), (x + 172, y + 190)], fill=ink)
     elif kind == "Weekly Update":
         for i, h in enumerate((90, 160, 120, 230, 190)):
             draw.rounded_rectangle((x + i * 72, y + 340 - h, x + i * 72 + 50, y + 340), 12, fill=ink if i == 3 else soft)

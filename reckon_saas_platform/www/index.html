@@ -88,6 +88,15 @@
   </div>
 </section>
 
+<section aria-labelledby="svc-h">
+  <div class="wrap">
+    <div class="head"><h2 id="svc-h">Our services</h2><p>Multi-currency, multi-language and easy to customise for enterprise packages.</p></div>
+    <ul class="grid">
+      {% for title, text in services %}<li><article class="card"><h3>{{ title|e }}</h3><p>{{ text|e }}</p></article></li>{% endfor %}
+    </ul>
+  </div>
+</section>
+
 <section class="alt" aria-labelledby="feat-h">
   <div class="wrap">
     <div class="head"><h2 id="feat-h">What the platform gives you</h2><p>Each feature has its own page.</p></div>

@@ -658,6 +658,27 @@ DEPLOYMENTS = (
     },
 )
 
+SERVICES = (
+    ("Cloud ERP modules", "Distribution, Accounts, HRMS, CRM and Sales AI, each in a private company workspace."),
+    ("Multi-currency", "Quote, invoice and keep books in more than one currency, with plans priced in BDT, USD, EUR or INR."),
+    ("Multi-language", "Screens in English and Bangla today, and more languages through translation on request."),
+    ("Easy to customise", "The enterprise package shapes fields, workflows, reports, print formats and integrations to how you work."),
+    ("Dedicated cloud or on-premises", "Your own server or ours, with your release schedule, backups and access rules."),
+    ("Reckon AI and integrations", "AI that works on your own records with approval, plus WhatsApp, SMS and email channels. Usage is billed separately."),
+    ("Implementation and training", "Requirement analysis, data migration, setup and team training, quoted for your business."),
+    ("Support", "Help by email and WhatsApp, with faster or dedicated support available on request."),
+)
+COMPANY_SUMMARY = (
+    "Reckon Technologies Ltd. builds ReckonERP, a cloud ERP with built-in AI on open-source ERP technology. "
+    "It covers distribution, accounting and inventory, HR and payroll, CRM and AI-assisted sales, and it serves "
+    "growing businesses worldwide with deep support for Bangladesh. We design the solution around how your "
+    "business works, so you get a system that fits instead of a template to bend."
+)
+EXPERTISE = (
+    "We bring one team to the whole job: choosing the right modules, analysing your requirements, configuring or "
+    "customising the system, moving your data, training your people and supporting you afterwards."
+)
+
 HOME_FAQS = (
     (
         "What is ReckonERP?",
@@ -1531,6 +1552,9 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.ai_points = AI_POINTS
     context.ai_note = AI_NOTE
     context.deployments = DEPLOYMENTS
+    context.services = SERVICES
+    context.company_summary = COMPANY_SUMMARY
+    context.expertise = EXPERTISE
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1

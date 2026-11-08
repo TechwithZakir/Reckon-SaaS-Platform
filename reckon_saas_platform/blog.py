@@ -22,7 +22,7 @@ DOCTYPE = "SEO Article"
 BLOG = "/blog"
 RSS = "/blog/rss.xml"
 CACHE_KEY = "reckon_saas_blog_articles"
-CATEGORIES = ("Article", "Tutorial", "Feature Guide", "Weekly Update")
+CATEGORIES = ("Article", "Tutorial", "Feature Guide", "Weekly Update", "Comparison")
 SLUG = re.compile(r"[a-z0-9][a-z0-9-]{2,78}")
 LIST_FIELDS = ["name", "title", "summary", "category", "published_on", "modified", "related_module", "keywords", "cover_image"]
 COVER_FILE = re.compile(r"/files/[A-Za-z0-9._-]+\.(?:webp|png|jpg)")
@@ -95,6 +95,23 @@ def get_article(slug: str) -> dict | None:
     article = _row(rows[0])
     article["body"] = rows[0].get("body") or ""
     return article
+
+
+FAQ_SECTION = re.compile(r"<h2>\s*frequently asked questions\s*</h2>(.*?)(?=<h2>|\Z)", re.I | re.S)
+FAQ_PAIR = re.compile(r"<h3>(.*?)</h3>\s*((?:<p>.*?</p>\s*)+)", re.I | re.S)
+
+
+def extract_faqs(body_html: str) -> list[tuple[str, str]]:
+    """Question and answer pairs from a post's "Frequently asked questions" section (h3 question, p answer)."""
+    section = FAQ_SECTION.search(body_html or "")
+    if not section:
+        return []
+    pairs = []
+    for question, answer in FAQ_PAIR.findall(section.group(1)):
+        q, a = plain_text(question), plain_text(answer)
+        if q and a:
+            pairs.append((q, a))
+    return pairs
 
 
 def read_minutes(body: str) -> int:
@@ -241,6 +258,7 @@ def blog_page(base: str, articles: list[dict]) -> dict:
 def article_page(base: str, article: dict, articles: list[dict]) -> dict:
     related = [a for a in articles if a["slug"] != article["slug"]]
     same = [a for a in related if a["module"] and a["module"] == article["module"]] or related
+    article_html = render_body(article.get("body", ""))
     return marketing.make_page(
         base,
         path=article["url"],
@@ -248,10 +266,11 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
         description=article["summary"],
         h1=article["title"],
         trail=[("Home", marketing.HOME), ("Blog", BLOG), (article["title"], article["url"])],
+        faqs=extract_faqs(article_html),
         extra_ld=[article_ld(base, article)],
         og_image=f"{base}{article['image']}" if article.get("image") else None,
         article=article,
-        article_html=render_body(article.get("body", "")),
+        article_html=article_html,
         minutes=read_minutes(article.get("body", "")),
         related=same[:3],
     )

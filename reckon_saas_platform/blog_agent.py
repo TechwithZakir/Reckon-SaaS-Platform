@@ -45,6 +45,7 @@ CATEGORY_BRIEF = {
     "Tutorial": "a step-by-step how-to for a task in one of the ReckonERP modules",
     "Feature Guide": "an in-depth explanation of one product feature: what it does, who it is for, how to start",
     "Article": "an educational article on an ERP, distribution, accounting or AI-for-business topic, tied to what ReckonERP offers",
+    "Comparison": "a fair comparison of two or three options a buyer is weighing, with a short answer first and when each option fits",
     "Weekly Update": "a short weekly update: this week's notes from the vendor when given, otherwise practical tips for using ReckonERP",
 }
 

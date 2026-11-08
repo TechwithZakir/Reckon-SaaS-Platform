@@ -1,0 +1,25 @@
+<section class="alt company-close" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">About us</p>
+      <h2 id="close-h">ReckonERP by Reckon Technologies Ltd.</h2>
+      <p>{{ company_summary|e }}</p>
+    </div>
+    <h3>Our services</h3>
+    <ul class="grid">
+      {% for title, text in services %}<li><article class="card"><h4>{{ title|e }}</h4><p>{{ text|e }}</p></article></li>{% endfor %}
+    </ul>
+    <div class="cols" style="margin-top:28px">
+      <div>
+        <h3>We solve it best with our expertise</h3>
+        <p>{{ expertise|e }}</p>
+        <div class="actions"><a class="btn solid lg" href="/reckonerp-signup">Start free</a><a class="btn lg" href="/pricing">See pricing</a><a class="btn lg" href="/faq">Read the FAQ</a></div>
+      </div>
+      <address class="contact">
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><span class="sr">Website: </span><a href="{{ company_site|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v12H3zM3 7l9 7 9-7"/></svg></span><span class="sr">Email: </span><a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h4l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-3z"/></svg></span><span class="sr">WhatsApp: </span><a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
+      </address>
+    </div>
+  </div>
+</section>

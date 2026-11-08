@@ -193,7 +193,7 @@ class BlogAgentTests(unittest.TestCase):
             self.assertIn("internal link", agent.valid_article(*good, BODY.replace("](/", "](#")))
             self.assertIn("https", agent.valid_article(*good, BODY + " [x](http://insecure.test)"))
             self.assertEqual(
-                agent.categories_for_run(2, 3), [blog.CATEGORIES[3], blog.CATEGORIES[0]]
+                agent.categories_for_run(2, 3), [blog.CATEGORIES[3], blog.CATEGORIES[4]]
             )
 
     def run_writer(self, replies, **settings):

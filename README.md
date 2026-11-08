@@ -188,6 +188,18 @@ Crunchbase, then add those links under **Official Profile Links**.
   invoice, seeds the module's starting data and refreshes the team's roles; a verified payment refreshes
   them again.
 
+### Comparison posts and the closing section
+
+Ten comparison posts (cloud vs on-premises, spreadsheets vs accounting software vs ERP, route sales, deployment
+options, HR and payroll, CRM, open-source vs proprietary vs custom ERP, rules vs machine learning vs LLMs, hosted vs
+self-hosted AI, standard vs customised ERP) are loaded **once, as drafts**, by a patch
+(`blog_seed.py`). Review and publish them from **SEO Agent** (ask "What needs my approval?") or the **SEO Article**
+list. Each has a short answer first, a table, links to the matching module pages and a FAQ that becomes FAQ
+structured data; each gets a cover and a promotion kit. Every post page ends with the same closing section
+(company summary, our services including multi-currency, multi-language and easy customisation for the enterprise
+package, our expertise, contact), defined in `templates/marketing/company_close.html` and `SERVICES` in
+`marketing.py`; the home page shows the same services.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On
