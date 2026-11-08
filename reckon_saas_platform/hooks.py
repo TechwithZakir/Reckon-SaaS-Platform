@@ -52,6 +52,7 @@ scheduler_events = {
     "daily": [
         "reckon_saas_platform.saas.refresh_subscription_statuses",
         "reckon_saas_platform.seo.refresh_seo_daily",
+        "reckon_saas_platform.invoices.create_renewal_invoices",
     ],
 }
 

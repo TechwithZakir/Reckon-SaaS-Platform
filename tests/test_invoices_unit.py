@@ -246,6 +246,87 @@ class SendingTests(unittest.TestCase):
         self.assertEqual((rows[0]["amount_text"], rows[0]["status"], rows[0]["url"]), ("BDT 10.00", "Paid", f"https://example.test/invoice/{KEY}"))
 
 
+class RenewalTests(unittest.TestCase):
+    def env(self, rows, lead=None, existing=()):
+        ctx = platform_modules(*MODS)
+        frappe, mods = ctx.__enter__()
+        self.addCleanup(ctx.__exit__, None, None, None)
+        settings = {} if lead is None else {"invoice_renewal_days": lead}
+        prepare(frappe, settings)
+        frappe.utils.cint = lambda v: int(v or 0)
+        inv = mods[MODS.index("invoices")]
+        inv.cint = frappe.utils.cint
+        frappe.get_all = Mock(return_value=rows)
+        frappe.db.exists = Mock(side_effect=lambda doctype, filters=None: (filters or {}).get("period_start") in existing)
+        made = []
+        inv.create_invoice = Mock(side_effect=lambda name, period_start=None, due_date=None: made.append((name, period_start, due_date)) or _Dict(name=f"INV-{len(made)}"))
+        inv.send_email = Mock(return_value=True)
+        inv.send_sms_link = Mock(return_value=True)
+        return frappe, inv, made
+
+    def test_the_next_period_is_invoiced_a_week_before_the_paid_period_ends(self):
+        frappe, inv, made = self.env([_Dict(name="SUB-1", end_date="2026-11-14"), _Dict(name="SUB-2", end_date="2026-11-01")])
+        created = inv.create_renewal_invoices()
+        self.assertEqual(made, [("SUB-1", "2026-11-15", "2026-11-14"), ("SUB-2", "2026-11-02", "2026-11-01")])
+        self.assertEqual(created, ["INV-1", "INV-2"])
+        filters = frappe.get_all.call_args.kwargs["filters"]
+        self.assertEqual(filters, {"status": ["in", ["Active", "Grace", "Due"]], "end_date": ["<=", "2026-11-15"]})
+        self.assertEqual(inv.send_email.call_count, 2)
+        self.assertEqual(inv.send_sms_link.call_count, 2)
+
+    def test_a_period_is_never_invoiced_twice(self):
+        _f, inv, made = self.env([_Dict(name="SUB-1", end_date="2026-11-14")], existing=("2026-11-15",))
+        self.assertEqual(inv.create_renewal_invoices(), [])
+        self.assertEqual(made, [])
+        inv.send_email.assert_not_called()
+
+    def test_renewals_can_be_switched_off_and_the_lead_time_is_configurable(self):
+        frappe, inv, made = self.env([_Dict(name="SUB-1", end_date="2026-11-14")], lead=0)
+        self.assertEqual(inv.create_renewal_invoices(), [])
+        frappe.get_all.assert_not_called()
+        frappe2, inv2, made2 = self.env([_Dict(name="SUB-1", end_date="2026-11-14")], lead=14)
+        inv2.create_renewal_invoices()
+        self.assertEqual(frappe2.get_all.call_args.kwargs["filters"]["end_date"], ["<=", "2026-11-22"])
+        self.assertEqual(inv2.renewal_lead_days(), 14)
+        _f3, inv3, _m3 = self.env([])
+        self.assertEqual(inv3.renewal_lead_days(), 7)  # unset means the default
+
+    def test_one_bad_subscription_does_not_stop_the_rest(self):
+        frappe, inv, made = self.env([_Dict(name="SUB-1", end_date="2026-11-10"), _Dict(name="SUB-2", end_date="2026-11-12")])
+        calls = []
+
+        def create(name, period_start=None, due_date=None):
+            calls.append(name)
+            if name == "SUB-1":
+                raise RuntimeError("bad row")
+            return _Dict(name="INV-OK")
+
+        inv.create_invoice = Mock(side_effect=create)
+        self.assertEqual(inv.create_renewal_invoices(), ["INV-OK"])
+        self.assertEqual(calls, ["SUB-1", "SUB-2"])
+        frappe.log_error.assert_called_once()
+
+    def test_a_subscription_without_a_paid_until_date_is_skipped(self):
+        _f, inv, made = self.env([_Dict(name="SUB-1", end_date=None)])
+        self.assertEqual(inv.create_renewal_invoices(), [])
+        self.assertEqual(made, [])
+
+    def test_a_payment_settles_the_oldest_unpaid_invoice_first(self):
+        frappe, inv, _m = self.env([])
+        frappe.db.get_value = Mock(return_value=None)
+        inv.mark_paid("SUB-1", "PAY-1")
+        self.assertEqual(frappe.db.get_value.call_args.kwargs["order_by"], "period_start asc")
+
+    def test_job_setting_and_schedule_are_wired(self):
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        self.assertIn('"reckon_saas_platform.invoices.create_renewal_invoices"', hooks)
+        settings = json.loads((PKG / "saas_platform" / "doctype" / "saas_platform_settings" / "saas_platform_settings.json").read_text(encoding="utf-8"))
+        names = [f["fieldname"] for f in settings["fields"]]
+        self.assertEqual(settings["field_order"], names)
+        field = next(f for f in settings["fields"] if f["fieldname"] == "invoice_renewal_days")
+        self.assertEqual((field["fieldtype"], field["default"]), ("Int", "7"))
+
+
 class WiringTests(unittest.TestCase):
     def test_signup_sends_an_invoice_and_a_verified_payment_settles_it(self):
         source = (PKG / "saas.py").read_text(encoding="utf-8")

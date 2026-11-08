@@ -35,8 +35,8 @@ DEFAULT_INSTRUCTIONS = (
 
 
 # --- creating the invoice --------------------------------------------------------------
-def _period(subscription) -> tuple[str, str]:
-    start = str(subscription.get("start_date") or nowdate())
+def _period(subscription, start=None) -> tuple[str, str]:
+    start = str(start or subscription.get("start_date") or nowdate())
     months = MONTHS.get(subscription.get("billing_cycle") or "Monthly", 1)
     return start, str(add_days(add_months(start, months), -1))
 
@@ -49,10 +49,10 @@ def _due_date(subscription) -> str:
     return str(add_days(nowdate(), max(cint(subscription.get("grace_days")), 0)))
 
 
-def create_invoice(subscription_name: str):
-    """The invoice for a subscription's current period; the same one if it already exists."""
+def create_invoice(subscription_name: str, period_start: str | None = None, due_date: str | None = None):
+    """The invoice for a subscription period (the first one by default); the same one if it already exists."""
     subscription = frappe.get_doc("SaaS Subscription", subscription_name)
-    start, end = _period(subscription)
+    start, end = _period(subscription, period_start)
     existing = frappe.db.get_value(DOCTYPE, {"subscription": subscription.name, "period_start": start}, "name")
     if existing:
         return frappe.get_doc(DOCTYPE, existing)
@@ -70,7 +70,7 @@ def create_invoice(subscription_name: str):
             "customer_email": owner["email"],
             "customer_phone": owner["phone"],
             "issue_date": nowdate(),
-            "due_date": _due_date(subscription),
+            "due_date": due_date or _due_date(subscription),
             "period_start": start,
             "period_end": end,
             "currency": subscription.get("currency"),
@@ -97,7 +97,7 @@ def _owner(subscription) -> dict:
 
 def mark_paid(subscription_name: str, payment_name: str | None = None):
     """A verified payment settles the subscription's open invoice."""
-    name = frappe.db.get_value(DOCTYPE, {"subscription": subscription_name, "status": "Unpaid"}, "name", order_by="creation desc")
+    name = frappe.db.get_value(DOCTYPE, {"subscription": subscription_name, "status": "Unpaid"}, "name", order_by="period_start asc")
     if not name:
         return None
     invoice = frappe.get_doc(DOCTYPE, name)
@@ -318,3 +318,52 @@ def whatsapp_link(name: str) -> str:
 def send_receipt(invoice: str) -> bool:
     """Background job: the paid copy of the invoice, by email."""
     return send_email(frappe.get_doc(DOCTYPE, invoice), receipt=True)
+
+
+# --- renewals -----------------------------------------------------------------------------------
+DEFAULT_RENEWAL_DAYS = 7
+RENEWABLE_STATUSES = ["Active", "Grace", "Due"]
+MAX_RENEWALS_PER_RUN = 500
+
+
+def renewal_lead_days() -> int:
+    """Days before a paid period ends that its renewal invoice is issued. 0 switches renewals off."""
+    value = _setting("invoice_renewal_days")
+    return DEFAULT_RENEWAL_DAYS if value in (None, "") else max(cint(value), 0)
+
+
+def create_renewal_invoices() -> list[str]:
+    """Daily job: invoice the next period of every paying subscription that is about to run out.
+
+    A subscription is renewable while it is Active, Due or in Grace and has a paid-until date. Its next
+    period starts the day after that date; the invoice is due on the date itself. One invoice per
+    period, so running the job twice, or after an outage, never doubles up. One bad subscription never
+    stops the others.
+    """
+    lead = renewal_lead_days()
+    if not lead:
+        return []
+    cutoff = str(add_days(nowdate(), lead))
+    rows = frappe.get_all(
+        "SaaS Subscription",
+        filters={"status": ["in", RENEWABLE_STATUSES], "end_date": ["<=", cutoff]},
+        fields=["name", "end_date"],
+        order_by="end_date asc",
+        limit=MAX_RENEWALS_PER_RUN,
+        ignore_permissions=True,
+    )
+    created = []
+    for row in rows:
+        if not row.get("end_date"):
+            continue
+        start = str(add_days(row.end_date, 1))
+        try:
+            if frappe.db.exists(DOCTYPE, {"subscription": row.name, "period_start": start}):
+                continue
+            invoice = create_invoice(row.name, period_start=start, due_date=str(row.end_date))
+            send_email(invoice)
+            send_sms_link(invoice)
+            created.append(invoice.name)
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Renewal invoice for {row.name}")
+    return created

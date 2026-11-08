@@ -173,6 +173,10 @@ Crunchbase, then add those links under **Official Profile Links**.
   paid and emails a receipt. Vendor users can **Send Again** or open WhatsApp to the customer from the invoice.
   WhatsApp is a link, not an automatic send: free-text WhatsApp messages to new customers need an approved
   template from a WhatsApp provider.
+- **Renewals:** a daily job issues the next period's invoice **7 days before** a paid period ends (change
+  **Renewal Invoice Lead Days** in the settings; 0 turns it off) and sends it by email and SMS like the first
+  one. Only Active, Due and Grace subscriptions with a paid-until date are renewed, one invoice per period, and a
+  verified payment settles the oldest unpaid invoice first.
 - **Paying:** the owner pays by bKash, Nagad, Rocket or bank transfer and reports the transaction reference on
   `/reckonerp-subscription`; a vendor user verifies it, which unlocks the module.
 - **Adding a module later:** on the Subscription page the company admin sees **Add a module** with every
