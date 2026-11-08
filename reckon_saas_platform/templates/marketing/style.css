@@ -97,3 +97,5 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .price-mod{display:flex;align-items:center;gap:14px;margin-top:32px}
 .price-mod h2{margin:0;font-size:1.5rem}.price-mod h2 a{color:inherit;text-decoration:none}
 .price-thumb{width:96px;height:54px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;flex:none}
+.foot-seo{display:flex;flex-wrap:wrap;gap:6px 18px;padding:14px 0;margin-top:14px;border-top:1px solid var(--line);font-size:.9rem}
+.foot-seo a{color:var(--mut);text-decoration:none}.foot-seo a:hover{text-decoration:underline}

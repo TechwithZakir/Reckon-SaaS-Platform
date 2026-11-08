@@ -1062,6 +1062,7 @@ def software_ld(base: str, name: str, description: str, path: str, offers=None) 
         "operatingSystem": "Web",
         "inLanguage": ["en", "bn"],
         "publisher": {"@type": "Organization", "name": SITE_NAME},
+        "areaServed": ["Bangladesh", "Worldwide"],
     }
     if offers:
         data["offers"] = list(offers)
@@ -1208,10 +1209,9 @@ def features_page(base: str) -> dict:
     return make_page(
         base,
         path=FEATURES,
-        title="Features: what ReckonERP does for your company",
-        description="Every ReckonERP feature on its own page: self-serve signup, separate "
-        "company workspaces, plans and billing, modules, Bangla support, security and "
-        "integrations.",
+        title="ERP, CRM and AI features for Bangladesh | ReckonERP",
+        description="Every ReckonERP feature: cloud ERP signup, separate company workspaces, "
+        "plans and billing, Bangla support, AI assistant, CRM and integrations.",
         h1="Everything the ReckonERP platform does",
         trail=[("Home", HOME), ("Features", FEATURES)],
         features=FEATURE_LIST,
@@ -1237,9 +1237,9 @@ def modules_page(base: str, modules: list[dict]) -> dict:
     return make_page(
         base,
         path=MODULES,
-        title="ERP modules: Distribution, Accounts and Sales AI Agent",
-        description="Browse the ReckonERP modules you can subscribe to. Each one has its own "
-        "plans, roles and starting data, and runs in your company's private workspace.",
+        title="ERP modules in Bangladesh: Accounts, CRM, HRMS, AI",
+        description="Cloud ERP modules you can subscribe to: distribution, accounting, CRM, HR "
+        "and payroll and a sales AI agent, each with its own plans and private workspace.",
         h1="Choose the modules your business needs",
         trail=[("Home", HOME), ("Modules", MODULES)],
         modules=modules,
@@ -1274,9 +1274,9 @@ def pricing_page(base: str, modules: list[dict]) -> dict:
     return make_page(
         base,
         path=PRICING,
-        title="ReckonERP pricing: plans for every module",
-        description="Subscription plans and prices for every ReckonERP module, with billing periods, "
-        "trial days and what each includes. Sign up online in minutes.",
+        title="Cloud ERP pricing in Bangladesh: plans per module",
+        description="ERP, CRM, HR and payroll and accounting subscription plans in BDT, USD, EUR "
+        "or INR, with trial days and what each includes. Sign up online in minutes.",
         h1="ReckonERP plans and pricing",
         trail=[("Home", HOME), ("Pricing", PRICING)],
         faqs=[row for row in HOME_FAQS if any(w in row[0].lower() for w in ("pricing", "implementation", "ai and integration", "licences"))],
@@ -1335,7 +1335,7 @@ def faq_page(base: str, modules: list[dict]) -> dict:
     return make_page(
         base,
         path=FAQ,
-        title="ReckonERP FAQ: pricing, deployment, AI, licences and support",
+        title="ERP FAQ: pricing, deployment, AI and support | ReckonERP",
         description="Answers about ReckonERP pricing, implementation cost, dedicated cloud and "
         "on-premises deployment, licences, AI and integration charges, and support.",
         h1="Frequently asked questions about ReckonERP",
@@ -1350,9 +1350,9 @@ def integrations_page(base: str, integrations=None) -> dict:
     return make_page(
         base,
         path=INTEGRATIONS,
-        title="Integrations: WhatsApp, email, SMS, voice and AI",
-        description="ReckonERP connects WhatsApp, Facebook Messenger, Instagram, LinkedIn, "
-        "Twilio, SMS gateways, Brevo, SendGrid, Google services and AI providers.",
+        title="Business automation and AI integration | ReckonERP",
+        description="Connect WhatsApp, Messenger, Instagram, LinkedIn, SMS gateways, email "
+        "services, Google and AI providers to your ERP and CRM for business automation.",
         h1="Channels and services you can connect",
         trail=[("Home", HOME), ("Integrations", INTEGRATIONS)],
         integrations=integrations,

@@ -265,9 +265,9 @@ def blog_page(base: str, articles: list[dict]) -> dict:
     page = marketing.make_page(
         base,
         path=BLOG,
-        title="ReckonERP blog: ERP guides, tutorials and weekly updates",
-        description="Practical ERP and AI guides, tutorials, feature explainers and weekly updates "
-        "from ReckonERP for distributors, accountants and sales teams.",
+        title="ERP and AI automation guides | ReckonERP blog",
+        description="Practical ERP, CRM and AI automation guides, comparisons and tutorials for "
+        "distributors, accountants and sales teams in Bangladesh and worldwide.",
         h1="ReckonERP blog",
         trail=[("Home", marketing.HOME), ("Blog", BLOG)],
         articles=articles,

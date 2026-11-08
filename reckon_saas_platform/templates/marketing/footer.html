@@ -6,6 +6,13 @@
       <div><h2>Modules</h2><ul>{% for m in nav_modules %}<li><a href="{{ m.url|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
       <div><h2>Company</h2><ul><li><a href="/pricing">Pricing</a></li><li><a href="/integrations">Integrations</a></li><li><a href="/blog">Blog</a></li><li><a href="/faq">FAQ</a></li><li><a href="/reckonerp-signup">Sign up</a></li><li><a href="/login">Log in</a></li></ul></div>
     </div>
+    <nav class="foot-seo" aria-label="Popular solutions">
+      <a href="/">Cloud ERP software in Bangladesh</a>
+      {% set seo_labels = {"distribution": "Distribution management software", "accounts": "Accounting and inventory software", "hrms": "HR and payroll software", "crm": "CRM software", "sales_agent": "AI sales agent"} %}
+      {% for m in nav_modules %}{% if seo_labels.get(m.key) %}<a href="{{ m.url|e }}">{{ seo_labels[m.key]|e }}</a>{% endif %}{% endfor %}
+      <a href="/features/ai-agent-development">AI agent development and automation</a>
+      <a href="/blog">ERP and AI automation guides</a>
+    </nav>
     <div class="foot-bottom">
       <a class="foot-logo" href="/" aria-label="ReckonERP home"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP" loading="lazy" decoding="async"></a>
       <address class="contact">
