@@ -99,3 +99,7 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .price-thumb{width:96px;height:54px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;flex:none}
 .foot-seo{display:flex;flex-wrap:wrap;gap:6px 18px;padding:14px 0;margin-top:14px;border-top:1px solid var(--line);font-size:.9rem}
 .foot-seo a{color:var(--mut);text-decoration:none}.foot-seo a:hover{text-decoration:underline}
+.wrap.wide{max-width:1180px}
+.home-blog .grid{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.home-blog .grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.home-blog .grid{grid-template-columns:1fr}}

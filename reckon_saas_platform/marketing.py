@@ -1195,7 +1195,7 @@ def make_page(
 def home_page(base: str, modules: list[dict], integrations=None, profiles=None, articles=None) -> dict:
     from reckon_saas_platform import blog
 
-    latest = (blog.get_articles() if articles is None else articles)[:3]
+    latest = (blog.get_articles() if articles is None else articles)[:4]
     description = (
         "Cloud ERP, CRM, HR and payroll, distribution management and AI agent automation for "
         "growing businesses in Bangladesh and worldwide. Start online today."
