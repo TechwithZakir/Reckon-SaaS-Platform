@@ -14,7 +14,7 @@ from pathlib import Path
 
 import frappe
 
-from reckon_saas_platform import blog
+from reckon_saas_platform import blog, blog_motifs
 
 SIZE = (1200, 630)
 LOGO_PATH = Path(__file__).parent / "public" / "images" / "reckonerp-logo.webp"
@@ -64,7 +64,8 @@ def _fit_title(draw, title: str, width: int, max_lines: int = 4):
     for size in (74, 66, 58, 52, 46, 40):
         font = _font(size)
         lines = _wrap(draw, title, font, width)
-        if len(lines) <= max_lines:
+        # Room runs from y=168 to the logo at y=520.
+        if len(lines) <= max_lines and len(lines) * size * 1.18 <= 330:
             return font, lines, size
     return font, lines[:max_lines], size
 
@@ -101,11 +102,16 @@ def _motif(draw, kind: str, x: int, y: int) -> None:
             draw.rounded_rectangle((x + 75, y + 50 + i * 54, x + 75 + width, y + 68 + i * 54), 9, fill=ink if i == 0 else (255, 255, 255, 150))
 
 
-def make_cover(title: str, category: str) -> bytes:
-    """The cover as WebP bytes (1200 by 630)."""
+def make_cover(title: str, category: str, style: str | None = None) -> bytes:
+    """The cover as WebP bytes (1200 by 630).
+
+    A ``style`` (cloud, spreadsheet, route, ...) gives a topic illustration with its own colours; without
+    one the post's category decides.
+    """
     from PIL import Image, ImageDraw
 
-    start, end = THEMES.get(category, THEMES["Article"])
+    topic = blog_motifs.STYLES.get(style or "")
+    start, end = (topic[0], topic[1]) if topic else THEMES.get(category, THEMES["Article"])
     width, height = SIZE
     base = Image.new("RGB", SIZE, start)
     pixels = base.load()
@@ -121,7 +127,10 @@ def make_cover(title: str, category: str) -> bytes:
     canvas.alpha_composite(layer)
 
     art = Image.new("RGBA", SIZE, (0, 0, 0, 0))
-    _motif(ImageDraw.Draw(art), category, 800, 130)
+    if topic:
+        topic[2](ImageDraw.Draw(art), 780, 120)
+    else:
+        _motif(ImageDraw.Draw(art), category, 800, 130)
     canvas.alpha_composite(art)
 
     draw = ImageDraw.Draw(canvas)
@@ -147,9 +156,18 @@ def make_cover(title: str, category: str) -> bytes:
     return out.getvalue()
 
 
-def attach_cover(slug: str, title: str, category: str) -> str:
-    """Draw the cover, save it as a public File on the post and return its URL."""
-    content = make_cover(title, category)
+def attach_cover(slug: str, title: str, category: str, style: str | None = None) -> str:
+    """Draw the cover, save it as a public File on the post and return its URL.
+
+    A cover drawn earlier for the same post is removed first, so redrawing never piles up files.
+    """
+    content = make_cover(title, category, style)
+    for old in frappe.get_all(
+        "File",
+        filters={"attached_to_doctype": blog.DOCTYPE, "attached_to_name": slug, "attached_to_field": "cover_image"},
+        pluck="name",
+    ):
+        frappe.delete_doc("File", old, ignore_permissions=True, force=True)
     file_doc = frappe.get_doc(
         {
             "doctype": "File",
@@ -172,7 +190,7 @@ def generate_cover(name: str) -> str:
     if not frappe.has_permission(blog.DOCTYPE, "write"):
         frappe.throw(frappe._("Not permitted"), frappe.PermissionError)
     doc = frappe.get_doc(blog.DOCTYPE, name)
-    url = attach_cover(doc.name, doc.title, doc.category)
+    url = attach_cover(doc.name, doc.title, doc.category, doc.get("cover_style"))
     if url:
         doc.db_set("cover_image", url)
         frappe.cache.delete_value(blog.CACHE_KEY)

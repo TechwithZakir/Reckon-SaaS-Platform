@@ -114,6 +114,29 @@ def extract_faqs(body_html: str) -> list[tuple[str, str]]:
     return pairs
 
 
+HEADING = re.compile(r"<h([23])>(.*?)</h\1>", re.S)
+
+
+def with_toc(body_html: str) -> tuple[str, list[tuple[str, str]]]:
+    """The post's headings with link targets, and a contents list from its h2 headings."""
+    toc: list[tuple[str, str]] = []
+    used: set[str] = set()
+
+    def add_id(match):
+        level, inner = match.group(1), match.group(2)
+        text = plain_text(inner)
+        base = slugify(text)[:50] or "section"
+        ident, n = base, 2
+        while ident in used:
+            ident, n = f"{base}-{n}", n + 1
+        used.add(ident)
+        if level == "2":
+            toc.append((ident, text))
+        return f'<h{level} id="{ident}">{inner}</h{level}>'
+
+    return HEADING.sub(add_id, body_html or ""), toc
+
+
 def read_minutes(body: str) -> int:
     return max(1, round(len(re.findall(r"\w+", plain_text(body))) / 200))
 
@@ -259,6 +282,8 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
     related = [a for a in articles if a["slug"] != article["slug"]]
     same = [a for a in related if a["module"] and a["module"] == article["module"]] or related
     article_html = render_body(article.get("body", ""))
+    faqs = extract_faqs(article_html)
+    article_html, toc = with_toc(article_html)
     return marketing.make_page(
         base,
         path=article["url"],
@@ -266,7 +291,8 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
         description=article["summary"],
         h1=article["title"],
         trail=[("Home", marketing.HOME), ("Blog", BLOG), (article["title"], article["url"])],
-        faqs=extract_faqs(article_html),
+        faqs=faqs,
+        toc=toc,
         extra_ld=[article_ld(base, article)],
         og_image=f"{base}{article['image']}" if article.get("image") else None,
         article=article,

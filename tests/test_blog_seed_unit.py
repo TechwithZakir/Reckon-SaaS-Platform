@@ -48,11 +48,28 @@ class ContentTests(unittest.TestCase):
             self.assertTrue(20 <= len(post["title"]) <= 58, slug)
             self.assertTrue(70 <= len(post["summary"]) <= 160, slug)
             words = len(re.findall(r"\w+", clean.plain_text(post["body"])))
-            self.assertTrue(350 <= words <= 2200, f"{slug}: {words} words")
+            self.assertTrue(800 <= words <= 2200, f"{slug}: {words} words")
             text = post["title"] + post["summary"] + post["body"]
             self.assertIsNone(agent.FORBIDDEN_ARTICLE.search(text), slug)  # the same rule that blocks publishing
             self.assertNotIn("http://", post["body"], slug)
             self.assertFalse(agent.cliches(post["body"]), f"{slug}: {agent.cliches(post['body'])}")
+
+    def test_posts_tell_a_story_state_the_problem_and_solution_and_conclude(self):
+        for post in self.posts:
+            headings = re.findall(r"<h2>(.*?)</h2>", post["body"])
+            for needed in ("The problem", "The solution: a practical path", "Where ReckonERP fits", "Conclusion", "Frequently asked questions"):
+                self.assertIn(needed, headings, post["slug"])
+            self.assertEqual(headings[0], post["story_title"], post["slug"])
+            self.assertGreaterEqual(len(post["story"]), 2, post["slug"])
+            self.assertEqual(post["body"].count("<ol>"), 1, post["slug"])
+            self.assertGreaterEqual(len(post["faqs"]), 4, post["slug"])
+
+    def test_every_post_has_its_own_cover_style(self):
+        styles = [p["style"] for p in self.posts]
+        self.assertEqual(len(set(styles)), 10)
+        article = json.loads((PKG / "seo_agent_studio" / "doctype" / "seo_article" / "seo_article.json").read_text(encoding="utf-8"))
+        field = next(f for f in article["fields"] if f["fieldname"] == "cover_style")
+        self.assertEqual(set(styles), set(field["options"].split(chr(10))) - {""})
 
     def test_every_post_opens_with_a_short_answer_and_has_a_table_and_a_faq(self):
         blog, clean = self.by["blog"], self.by["blog_html"]
@@ -104,7 +121,7 @@ class SeedTests(unittest.TestCase):
         made, covers = [], []
         frappe.get_doc = Mock(side_effect=lambda values: Mock(insert=lambda ignore_permissions=False: made.append(values)))
         frappe.db.set_value = Mock()
-        image = type("Image", (), {"attach_cover": staticmethod(lambda slug, title, category: covers.append((slug, category)) or f"/files/{slug}-cover.webp")})
+        image = type("Image", (), {"attach_cover": staticmethod(lambda slug, title, category, style=None: covers.append((slug, category, style)) or f"/files/{slug}-cover.webp")})
         import sys
 
         sys.modules["reckon_saas_platform.blog_image"] = image
@@ -116,7 +133,8 @@ class SeedTests(unittest.TestCase):
             self.assertIn(f"{BASE}/blog/{values['slug']}", values["promo_kit"])
             for label in ("LinkedIn post:", "Facebook post:", "Outreach pitch:"):
                 self.assertIn(label, values["promo_kit"])
-        self.assertEqual({c for _s, c in covers}, {"Comparison"})
+        self.assertEqual({c for _s, c, _y in covers}, {"Comparison"})
+        self.assertEqual({y for _s, _c, y in covers}, {p["style"] for p in seed.POSTS if p["slug"] != "cloud-erp-vs-on-premises-erp"})
         self.assertEqual(len(covers), 9)
         self.assertEqual(frappe.db.set_value.call_count, 9)
 
@@ -135,12 +153,41 @@ class SeedTests(unittest.TestCase):
         self.assertEqual(len(made), 10)
         self.assertEqual(frappe.log_error.call_count, 10)
 
+    def test_refresh_rewrites_existing_posts_in_place_and_redraws_covers(self):
+        ctx, frappe, by = load()
+        self.addCleanup(ctx.__exit__, None, None, None)
+        seed = by["blog_seed"]
+        frappe.db.exists = Mock(side_effect=lambda doctype, name=None: name != "cloud-erp-vs-on-premises-erp")
+        docs, drawn = {}, []
+
+        def get_doc(doctype, name):
+            docs[name] = Mock(status="Published")
+            return docs[name]
+
+        frappe.get_doc = Mock(side_effect=get_doc)
+        frappe.db.set_value = Mock()
+        image = type("Image", (), {"attach_cover": staticmethod(lambda slug, title, category, style=None: drawn.append((slug, style)) or "/files/c.webp")})
+        import sys
+
+        sys.modules["reckon_saas_platform.blog_image"] = image
+        done = seed.refresh_posts()
+        self.assertEqual(len(done), 9)  # a missing post is not created by a refresh
+        for slug in done:
+            post = next(p for p in seed.POSTS if p["slug"] == slug)
+            doc = docs[slug]
+            self.assertEqual((doc.body, doc.cover_style, doc.summary), (post["body"], post["style"], post["summary"]))
+            self.assertEqual(doc.status, "Published")  # status is left alone
+            doc.save.assert_called_once()
+        self.assertEqual(len(drawn), 9)
+
     def test_the_patch_runs_once_through_patches_txt_and_publishes_nothing(self):
         patches = (PKG / "patches.txt").read_text(encoding="utf-8")
         self.assertIn("reckon_saas_platform.patches.seed_comparison_blog_drafts", patches)
         self.assertTrue(patches.index("[post_model_sync]") < patches.index("seed_comparison_blog_drafts"))
         source = (PKG / "patches" / "seed_comparison_blog_drafts.py").read_text(encoding="utf-8")
         self.assertIn("seed_drafts()", source)
+        self.assertIn("reckon_saas_platform.patches.refresh_comparison_blog_posts", patches)
+        self.assertIn("refresh_posts()", (PKG / "patches" / "refresh_comparison_blog_posts.py").read_text(encoding="utf-8"))
         self.assertNotIn("Published", (PKG / "blog_seed.py").read_text(encoding="utf-8").replace("publishes it", ""))
 
     def test_saving_or_deleting_a_post_clears_the_cached_pages(self):

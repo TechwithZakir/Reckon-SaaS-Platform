@@ -195,7 +195,14 @@ options, HR and payroll, CRM, open-source vs proprietary vs custom ERP, rules vs
 self-hosted AI, standard vs customised ERP) are loaded **once, as drafts**, by a patch
 (`blog_seed.py`). Review and publish them from **SEO Agent** (ask "What needs my approval?") or the **SEO Article**
 list. Each has a short answer first, a table, links to the matching module pages and a FAQ that becomes FAQ
-structured data; each gets a cover and a promotion kit. Every post page ends with the same closing section
+structured data; each gets a cover and a promotion kit.
+
+The posts are long-form (about 900 to 1,100 words): short answer, an introductory story, the problem, the
+options side by side, how to decide, the solution as a step-by-step path, where ReckonERP fits, a conclusion and a
+FAQ. Each has its own topic cover (`cover_style` on the SEO Article, drawn by `blog_motifs.py`), a standfirst under
+the title, a byline and a contents list built from the headings. `refresh_posts()` (patch
+`refresh_comparison_blog_posts`) rewrites existing posts in place, keeping their status and date, and redraws their
+covers. Every post page ends with the same closing section
 (company summary, our services including multi-currency, multi-language and easy customisation for the enterprise
 package, our expertise, contact), defined in `templates/marketing/company_close.html` and `SERVICES` in
 `marketing.py`; the home page shows the same services.

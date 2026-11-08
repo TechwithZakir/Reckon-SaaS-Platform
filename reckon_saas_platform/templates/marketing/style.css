@@ -89,3 +89,8 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .prose blockquote{border-left:4px solid var(--brand2);margin:16px 0;padding:4px 16px;color:var(--mut)}
 .company-close h3{margin:22px 0 10px}.company-close h4{margin:0 0 4px;font-size:1rem}
 @media(max-width:640px){.prose table{display:block;overflow-x:auto}}
+.standfirst{font-size:1.2rem;line-height:1.6;color:var(--mut);margin:0 0 10px}
+.toc{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:0 0 24px}
+.toc ol{margin:8px 0 0;padding-left:1.2em}.toc li{margin:4px 0}
+.prose h2,.prose h3{scroll-margin-top:84px}
+.prose .callout{border-left:4px solid var(--green);background:var(--bg2);padding:12px 16px;border-radius:0 12px 12px 0;margin:18px 0}
