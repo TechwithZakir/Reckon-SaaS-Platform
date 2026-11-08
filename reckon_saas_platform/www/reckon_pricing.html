@@ -12,7 +12,10 @@
     </div>
     {% if page.priced %}
     {% for mod in page.priced %}
-    <h2 style="margin-top:32px;font-size:1.5rem"><a href="{{ mod.url|e }}" style="color:inherit;text-decoration:none">{{ mod.name|e }}</a></h2>
+    <div class="price-mod">
+      <a href="{{ mod.url|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="" loading="lazy" decoding="async"></a>
+      <h2><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></h2>
+    </div>
     {{ m.plan_cards(mod) }}
     {% endfor %}
     {% else %}

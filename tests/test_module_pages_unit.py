@@ -183,8 +183,10 @@ class RenderTests(unittest.TestCase):
         self.assertNotIn("frappe", html.lower())
         self.assertIn("৳15,000 per year", pricing)
         self.assertIn("Reckon HRMS", pricing)
-        self.assertIn('font-size:1.5rem"><a href="/modules/hrms"', pricing)
-        self.assertNotIn('font-size:1.5rem"><a href="/modules/crm"', pricing)  # no plans, so no section
+        self.assertIn('<h2><a href="/modules/hrms"', pricing)
+        self.assertEqual(pricing.count('class="price-thumb"'), pricing.count('<div class="price-mod">'))
+        self.assertIn('<a href="/modules/hrms" tabindex="-1" aria-hidden="true"><img class="price-thumb"', pricing)
+        self.assertNotIn('<h2><a href="/modules/crm"', pricing)  # no plans, so no section
         self.assertEqual(len(re.findall(r"<h1[ >]", pricing)), 1)
         self.assertIn('href="/pricing"', html)
 
