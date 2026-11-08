@@ -6,6 +6,7 @@
       <span>ReckonERP</span>
     </a>
     <nav class="main" aria-label="Main">
+      <a href="/">Home</a>
       <details class="dd"><summary>Features</summary>
         <div class="panel">
           {% for f in nav_features %}<a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a>{% endfor %}

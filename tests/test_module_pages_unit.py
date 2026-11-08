@@ -189,6 +189,7 @@ class RenderTests(unittest.TestCase):
         self.assertNotIn('<h2><a href="/modules/crm"', pricing)  # no plans, so no section
         self.assertEqual(len(re.findall(r"<h1[ >]", pricing)), 1)
         self.assertIn('href="/pricing"', html)
+        self.assertRegex(html, r'aria-label="Main">\s*<a href="/">Home</a>')
 
 
 if __name__ == "__main__":
