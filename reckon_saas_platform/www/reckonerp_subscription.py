@@ -2,8 +2,13 @@ from __future__ import annotations
 
 import frappe
 
+from reckon_saas_platform import invoices
 from reckon_saas_platform.constants import VENDOR_COMPANY
-from reckon_saas_platform.saas import PAYMENT_PROVIDERS, get_subscription_summary
+from reckon_saas_platform.saas import (
+    PAYMENT_PROVIDERS,
+    get_addable_modules,
+    get_subscription_summary,
+)
 from reckon_saas_platform.tenant_security import TenantResolutionError
 
 BILLING_LABELS = {
@@ -28,8 +33,40 @@ def get_context(context):
     except TenantResolutionError:
         context.summary = frappe._dict({"status": "Missing", "company": "", "modules": []})
     context.subscriptions = [subscription_card(row) for row in context.summary.get("modules") or []]
+    company = context.summary.get("company") or ""
+    context.invoices = []
+    context.addable = []
+    context.can_add_modules = False
+    if company:
+        context.invoices = _safely(lambda: invoices.invoices_for_company(company), [])
+        context.addable = _safely(lambda: get_addable_modules(company), [])
+        context.can_add_modules = _safely(lambda: _is_company_admin(company), False)
+    by_subscription = {}
+    for invoice in context.invoices:
+        by_subscription.setdefault(invoice["subscription"], invoice)
+    for card in context.subscriptions:
+        card["invoice"] = by_subscription.get(card["name"])
+    context.payment_instructions = _safely(lambda: invoices._setting("invoice_payment_instructions"), "") or invoices.DEFAULT_INSTRUCTIONS
     context.product = " · ".join(card["module_name"] for card in context.subscriptions if card["module_name"])
     return context
+
+
+def _safely(fn, default):
+    """A problem in an optional section must not take the whole Subscription page down."""
+    try:
+        return fn()
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Subscription page section")
+        return default
+
+
+def _is_company_admin(company: str) -> bool:
+    return (
+        frappe.db.get_value(
+            "Tenant User Assignment", {"user": frappe.session.user, "company": company, "active": 1}, "role_profile"
+        )
+        == "Company Admin"
+    )
 
 
 def subscription_card(row: dict) -> dict:

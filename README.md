@@ -154,6 +154,32 @@ posts from the kit, send the pitch to relevant blogs, directories and partners, 
 customers for reviews, and list the company on Google Business Profile, G2, Capterra and
 Crunchbase, then add those links under **Official Profile Links**.
 
+## Module pages, pricing, invoices and adding modules
+
+- **Module pages** (`/modules/<key>`): overview, what is inside, who uses it, plans and prices, what is
+  included and not, and a long FAQ (price, trial, support, paid training, on-site help, requirement
+  analysis, customisation, data migration, adding modules, how to pay). Text for the shipped modules is in
+  `module_content.py`; a module without written text still gets a complete page from its registry entry.
+  Prices are read from the enabled **SaaS Plan** records (never written in the copy) and also appear as
+  schema.org Offers and on `/pricing`.
+- **Header banners:** each shipped module has its own drawn picture
+  (`python scripts/make_module_banners.py` regenerates them); any later module gets a generated SVG that is
+  unique to its key. Add a motif in the script to give a new module a drawn one.
+- **Invoices:** after signup an **SaaS Invoice** is created in the background and emailed to the owner with a
+  PDF (needs an outgoing Email Account and `wkhtmltopdf`, as ERPNext prints do); a link is texted by
+  SMS when BulkSMSBD is set up. Both can be switched off, and a payment instruction text set, under **SaaS
+  Platform Settings > Invoices and Payment**. The invoice is public at `/invoice/<key>` (the key is random),
+  with a PDF download, a WhatsApp share link and a link to report the payment. A verified payment marks it
+  paid and emails a receipt. Vendor users can **Send Again** or open WhatsApp to the customer from the invoice.
+  WhatsApp is a link, not an automatic send: free-text WhatsApp messages to new customers need an approved
+  template from a WhatsApp provider.
+- **Paying:** the owner pays by bKash, Nagad, Rocket or bank transfer and reports the transaction reference on
+  `/reckonerp-subscription`; a vendor user verifies it, which unlocks the module.
+- **Adding a module later:** on the Subscription page the company admin sees **Add a module** with every
+  module on sale that the company does not hold. Subscribing creates a separate subscription, payment and
+  invoice, seeds the module's starting data and refreshes the team's roles; a verified payment refreshes
+  them again.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On

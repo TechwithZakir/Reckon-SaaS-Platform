@@ -269,7 +269,7 @@ def invoices_for_company(company: str) -> list[dict]:
     rows = frappe.get_all(
         DOCTYPE,
         filters={"company": company},
-        fields=["name", "saas_module", "plan", "amount", "currency", "status", "issue_date", "due_date", "access_key"],
+        fields=["name", "subscription", "saas_module", "plan", "amount", "currency", "status", "issue_date", "due_date", "access_key"],
         order_by="creation desc",
         limit=50,
         ignore_permissions=True,
@@ -278,6 +278,7 @@ def invoices_for_company(company: str) -> list[dict]:
     return [
         {
             "name": r.name,
+            "subscription": r.get("subscription") or "",
             "module_name": _module_label(r.saas_module),
             "plan": r.plan,
             "amount_text": money(r.amount, r.currency),

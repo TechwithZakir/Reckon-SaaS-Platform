@@ -547,6 +547,137 @@ def submit_payment_reference(subscription: str, reference: str, provider: str | 
     }
 
 
+CLOSED_SUBSCRIPTION_STATUSES = frozenset({"Expired", "Cancelled"})
+
+
+def _open_module_keys(company: str) -> set[str]:
+    """Modules the company already holds through a subscription that is not closed."""
+    from reckon_saas_platform.entitlements import parse_covered_modules
+
+    keys: set[str] = set()
+    for row in frappe.get_all(
+        "SaaS Subscription",
+        filters={"company": company},
+        fields=["saas_module", "covered_modules", "status"],
+        ignore_permissions=True,
+    ):
+        if row.get("status") in CLOSED_SUBSCRIPTION_STATUSES:
+            continue
+        if row.get("saas_module"):
+            keys.add(row.saas_module)
+        keys |= parse_covered_modules(row.get("covered_modules"))
+    return keys
+
+
+def get_addable_modules(company: str) -> list[dict]:
+    """Modules on sale that the company does not have yet, with their plans, for the Subscription page."""
+    from reckon_saas_platform import marketing
+
+    held = _open_module_keys(company)
+    return [
+        {"key": m["key"], "name": m["name"], "tagline": m["tagline"], "plans": m["plans"], "url": m["url"]}
+        for m in marketing.get_modules()
+        if m["key"] not in held and m["plans"]
+    ]
+
+
+def _require_company_admin(tenant) -> None:
+    role = frappe.db.get_value(
+        "Tenant User Assignment", {"user": tenant.user, "company": tenant.company, "active": 1}, "role_profile"
+    )
+    if role != "Company Admin":
+        frappe.throw(_("Only the company admin can add a module."), frappe.PermissionError)
+
+
+def seed_added_module(company: str, module_key: str) -> bool:
+    """Give a new module its starting data. The handlers are get-or-create, so a repeat is safe."""
+    savepoint = "reckon_saas_seed_added_module"
+    frappe.db.savepoint(savepoint)
+    try:
+        for handler_path in get_seed_handlers({module_key}):
+            frappe.get_attr(handler_path)(company=company, seed_version=CURRENT_SEED_VERSION)
+    except Exception:
+        _rollback_to(savepoint)
+        frappe.log_error(title=f"Seeding {module_key} for {company} failed", message=frappe.get_traceback())
+        return False
+    return True
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=10, seconds=60 * 60)
+def add_module_subscription(plan: str, billing_cycle: str | None = None):
+    """The company admin subscribes the company to one more module.
+
+    The new module gets its own subscription, payment and invoice. With a trial it opens at once;
+    otherwise it opens when the payment is verified (or during the plan's grace days), exactly as at signup.
+    """
+    tenant = resolve_tenant()
+    _require_company_admin(tenant)
+    plan_row = (
+        frappe.db.get_value(
+            "SaaS Plan", plan, ["name", "enabled", "saas_module", "billing_cycle"], as_dict=True
+        )
+        if isinstance(plan, str) and plan
+        else None
+    )
+    if not plan_row or not plan_row.enabled or not plan_row.saas_module:
+        frappe.throw(_("Please select a valid plan."), SignupValidationError)
+    module_key = plan_row.saas_module
+    if not get_module_definition(module_key) or not frappe.db.get_value("SaaS Module", module_key, "enabled"):
+        frappe.throw(_("This module is not available right now."), SignupValidationError)
+    if module_key in _open_module_keys(tenant.company):
+        frappe.throw(_("Your company already has this module."), SignupValidationError)
+    cycle = next((c for c in (billing_cycle, plan_row.billing_cycle) if c in BILLING_CYCLES), "Monthly")
+
+    savepoint = "reckon_saas_add_module"
+    frappe.db.savepoint(savepoint)
+    try:
+        plan_doc = frappe.get_doc("SaaS Plan", plan_row.name)
+        subscription = _create_registration_subscription(
+            frappe._dict(name=None, billing_cycle=cycle), plan_doc, tenant.company, tenant.user
+        )
+        payment = frappe.get_doc(
+            {
+                "doctype": "SaaS Payment",
+                "subscription": subscription.name,
+                "company": tenant.company,
+                "amount": plan_doc.price,
+                "currency": plan_doc.currency,
+                "status": "Pending Verification",
+            }
+        ).insert(ignore_permissions=True)
+    except Exception:
+        _rollback_to(savepoint)
+        raise
+    invalidate_operational_access_cache(tenant.company)
+
+    seeded = seed_added_module(tenant.company, module_key)
+    try:
+        _reconcile_company_users(tenant.company)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Reconcile users after adding {module_key}")
+    frappe.enqueue(
+        "reckon_saas_platform.invoices.issue_and_send",
+        subscription=subscription.name,
+        queue="short",
+        enqueue_after_commit=True,
+    )
+    opens_now = subscription.status == "Trial"
+    return {
+        "ok": True,
+        "subscription": subscription.name,
+        "payment": payment.name,
+        "seeded": seeded,
+        "message": (
+            _("{0} is added with a free trial. Your invoice is on its way.").format(module_label(module_key))
+            if opens_now
+            else _("{0} is added. Pay the invoice and report the transaction below; it opens once the payment is verified.").format(
+                module_label(module_key)
+            )
+        ),
+    }
+
+
 @frappe.whitelist()
 def get_vendor_saas_summary():
     _require_vendor()
@@ -1307,7 +1438,23 @@ def verify_payment(payment: str, reference: str | None = None):
     subscription.grace_until = None
     subscription.save(ignore_permissions=True)
     _settle_invoice(subscription.name, payment_doc.name)
+    _after_payment(subscription)
     return subscription
+
+
+def _after_payment(subscription) -> None:
+    """A verified payment can switch a module on, so refresh the company's users' roles. Never undoes the payment."""
+    try:
+        _reconcile_company_users(subscription.company)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Reconcile users after payment for {subscription.name}")
+
+
+def _reconcile_company_users(company: str) -> None:
+    from reckon_saas_platform.team import reconcile_user
+
+    for user in frappe.get_all("Tenant User Assignment", filters={"company": company, "active": 1}, pluck="user"):
+        reconcile_user(user)
 
 
 def _settle_invoice(subscription: str, payment: str) -> None:

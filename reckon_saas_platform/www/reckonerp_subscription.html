@@ -38,7 +38,8 @@
           <div class="rs-portal__row"><span>Plan</span><strong>{{ sub.plan|e }}</strong></div>
           <div class="rs-portal__row"><span>Price</span><strong>{{ sub.currency|e }} {{ sub.price }} / {{ sub.billing_cycle|e }}</strong></div>
           <div class="rs-portal__row"><span>Billing</span><strong>{{ sub.detail|e }}</strong></div>
-          {% if sub.payment %}<div class="rs-portal__row"><span>Last payment</span><strong>{{ sub.payment.status|e }}{% if sub.payment.gateway_reference %} · {{ sub.payment.gateway_reference|e }}{% endif %}</strong></div>{% endif %}
+          {% if sub.invoice %}<div class="rs-portal__row"><span>Invoice</span><strong><a href="{{ sub.invoice.url|e }}">{{ sub.invoice.name|e }}</a> &middot; {{ sub.invoice.status|e }} &middot; <a href="{{ sub.invoice.pdf_url|e }}">PDF</a></strong></div>{% endif %}
+                    {% if sub.payment %}<div class="rs-portal__row"><span>Last payment</span><strong>{{ sub.payment.status|e }}{% if sub.payment.gateway_reference %} · {{ sub.payment.gateway_reference|e }}{% endif %}</strong></div>{% endif %}
         </div>
         {% if sub.access and summary.operational_access and sub.landing_route %}
         <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
@@ -63,6 +64,44 @@
       {% endfor %}
 
       <article class="rs-portal__card rs-portal__card--wide">
+        <p class="rs-portal__eyebrow">How to pay</p><h2>Payment</h2>
+        <p>{{ payment_instructions|e }}</p>
+        <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>
+      </article>
+
+      {% if invoices %}
+      <article class="rs-portal__card rs-portal__card--wide">
+        <p class="rs-portal__eyebrow">Billing</p><h2>Invoices</h2>
+        <div class="rs-portal__list">
+          {% for inv in invoices %}<div class="rs-portal__row"><span><a href="{{ inv.url|e }}">{{ inv.name|e }}</a> &middot; {{ inv.module_name|e }} &middot; due {{ inv.due_date|e }}</span><strong>{{ inv.amount_text|e }} &middot; {{ inv.status|e }} &middot; <a href="{{ inv.pdf_url|e }}">PDF</a></strong></div>{% endfor %}
+        </div>
+      </article>
+      {% endif %}
+
+      {% if addable %}
+      <article class="rs-portal__card rs-portal__card--wide" id="add-module">
+        <p class="rs-portal__eyebrow">More modules</p><h2>Add a module</h2>
+        {% if can_add_modules %}
+        <p>Each module has its own plan and invoice. A module with a free trial opens at once; otherwise it opens when its payment is verified.</p>
+        {% for mod in addable %}
+        <div class="rs-portal__list" style="margin-top:12px">
+          <div class="rs-portal__row"><strong><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></strong><span>{{ mod.tagline|e }}</span></div>
+          {% for p in mod.plans %}
+          <form class="rs-portal__form" data-add-module="{{ p.name|e }}" style="grid-template-columns:1fr auto;align-items:center">
+            <span>{{ p.name|e }} &middot; <strong>{{ p.price_text|e }}</strong>{% if p.trial_days %} &middot; {{ p.trial_days }}-day free trial{% endif %}</span>
+            <button class="rs-portal__button rs-portal__button--primary" type="submit">Subscribe</button>
+            <div class="rs-portal__message" role="status" style="grid-column:1 / -1"></div>
+          </form>
+          {% endfor %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>Only your company admin can add modules. Ask them to open this page.</p>
+        {% endif %}
+      </article>
+      {% endif %}
+
+      <article class="rs-portal__card rs-portal__card--wide">
         <p class="rs-portal__eyebrow">Provisioning</p><h2>Company setup progress</h2>
         {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status|e }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ (summary.provisioning.current_step or "Queued")|e }}</strong></div></div>{% else %}<p>Provisioning starts after verification.</p>{% endif %}
       </article>
@@ -76,7 +115,44 @@
       const token = (window.frappe && window.frappe.csrf_token) || "";
       return token === "None" ? "" : token;
     }
-    document.querySelectorAll("[data-pay-subscription]").forEach(function (form) {
+    document.querySelectorAll("[data-add-module]").forEach(function (form) {
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const message = form.querySelector(".rs-portal__message");
+        const button = form.querySelector("button[type=submit]");
+        const body = new URLSearchParams();
+        body.append("plan", form.getAttribute("data-add-module"));
+        button.disabled = true;
+        message.className = "rs-portal__message";
+        try {
+          const response = await fetch("/api/method/reckon_saas_platform.saas.add_module_subscription", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" },
+            body: body,
+          });
+          const payload = await response.json().catch(function () { return {}; });
+          if (!response.ok || payload.exc_type) {
+            let text = "Could not add the module. Please try again.";
+            try {
+              text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" ");
+            } catch (e) {}
+            message.textContent = text;
+            message.classList.add("is-error");
+            button.disabled = false;
+            return;
+          }
+          message.textContent = (payload.message && payload.message.message) || "Module added.";
+          message.classList.add("is-success");
+          setTimeout(function () { window.location.reload(); }, 1800);
+        } catch (error) {
+          message.textContent = "Network error. Please try again.";
+          message.classList.add("is-error");
+          button.disabled = false;
+        }
+      });
+    });
+        document.querySelectorAll("[data-pay-subscription]").forEach(function (form) {
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
         const message = form.querySelector(".rs-portal__message");
