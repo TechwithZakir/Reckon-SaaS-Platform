@@ -11,6 +11,7 @@
       {% set seo_labels = {"distribution": "Distribution management software", "accounts": "Accounting and inventory software", "hrms": "HR and payroll software", "crm": "CRM software", "sales_agent": "AI sales agent"} %}
       {% for m in nav_modules %}{% if seo_labels.get(m.key) %}<a href="{{ m.url|e }}">{{ seo_labels[m.key]|e }}</a>{% endif %}{% endfor %}
       <a href="/features/ai-agent-development">AI agent development and automation</a>
+      <a href="/industries">ERP software by industry</a>
       <a href="/blog">ERP and AI automation guides</a>
     </nav>
     <div class="foot-bottom">

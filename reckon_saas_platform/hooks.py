@@ -79,6 +79,8 @@ home_page = "index"
 website_route_rules = [
     {"from_route": "/features", "to_route": "reckon_features"},
     {"from_route": "/features/<slug>", "to_route": "reckon_features"},
+    {"from_route": "/industries", "to_route": "reckon_industries"},
+    {"from_route": "/industries/<slug>", "to_route": "reckon_industries"},
     {"from_route": "/modules", "to_route": "reckon_modules"},
     {"from_route": "/modules/<slug>", "to_route": "reckon_modules"},
     {"from_route": "/integrations", "to_route": "reckon_integrations"},

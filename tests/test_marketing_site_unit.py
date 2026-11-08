@@ -58,8 +58,10 @@ def all_pages(marketing, modules):
         marketing.features_page(BASE),
         marketing.modules_page(BASE, modules),
         marketing.integrations_page(BASE),
+        marketing.industries_page(BASE),
     ]
     pages += [marketing.feature_page(BASE, f) for f in marketing.FEATURE_LIST]
+    pages += [marketing.industry_page(BASE, i, modules) for i in __import__("reckon_saas_platform.industries", fromlist=["x"]).INDUSTRIES]
     pages += [marketing.module_page(BASE, m, modules) for m in modules]
     return pages
 
@@ -643,6 +645,8 @@ class MarketingRenderTests(unittest.TestCase):
                     template = "reckon_features"
                 elif page["path"].startswith("/modules"):
                     template = "reckon_modules"
+                elif page["path"].startswith("/industries"):
+                    template = "reckon_industries"
                 else:
                     template = "reckon_integrations"
                 rendered.append((page, self._render(template, page, modules, marketing)))

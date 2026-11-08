@@ -38,6 +38,7 @@ PRICING = "/pricing"
 CURRENCY_SYMBOLS = {"BDT": "\u09f3", "USD": "$", "EUR": "\u20ac", "INR": "\u20b9"}
 CYCLE_WORDS = {"Monthly": "month", "Quarterly": "quarter", "Half Yearly": "6 months", "Yearly": "year", "Annual": "year"}
 FAQ = "/faq"
+INDUSTRIES_PATH = "/industries"
 SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
 LOGO = "/assets/reckon_saas_platform/images/reckonerp-logo.webp"
@@ -867,6 +868,16 @@ def signup_url(module_key: str | None = None) -> str:
     return f"{SIGNUP}?module={quote(module_key)}" if module_key else SIGNUP
 
 
+def industry_url(slug: str) -> str:
+    return f"{INDUSTRIES_PATH}/{slug}"
+
+
+def get_industry(slug: str) -> dict | None:
+    from reckon_saas_platform.industries import INDUSTRIES
+
+    return next((i for i in INDUSTRIES if i["slug"] == slug), None)
+
+
 def get_feature(slug: str) -> dict | None:
     return next((f for f in FEATURE_LIST if f["slug"] == slug), None)
 
@@ -1233,6 +1244,41 @@ def feature_page(base: str, feature: dict) -> dict:
     )
 
 
+def industries_page(base: str) -> dict:
+    from reckon_saas_platform.industries import INDUSTRIES
+
+    return make_page(
+        base,
+        path=INDUSTRIES_PATH,
+        title="ERP software by industry in Bangladesh | ReckonERP",
+        description="Cloud ERP for garments, textile, pharmaceutical, healthcare, manufacturing, "
+        "trading and FMCG distribution businesses in Bangladesh.",
+        h1="ERP software for your industry",
+        trail=[("Home", HOME), ("Industries", INDUSTRIES_PATH)],
+        industries=INDUSTRIES,
+    )
+
+
+def industry_page(base: str, industry: dict, modules: list[dict]) -> dict:
+    from reckon_saas_platform.industries import INDUSTRIES, STANDARD
+
+    by_key = {m["key"]: m for m in modules}
+    fits = [by_key[k] for k in industry["modules"] if k in by_key]
+    return make_page(
+        base,
+        path=industry_url(industry["slug"]),
+        title=f"{industry['title']} | ReckonERP",
+        description=industry["description"],
+        h1=industry["title"],
+        trail=[("Home", HOME), ("Industries", INDUSTRIES_PATH), (industry["name"], industry_url(industry["slug"]))],
+        faqs=industry["faqs"],
+        industry=industry,
+        standard_note=STANDARD,
+        fit_modules=fits,
+        industries=[i for i in INDUSTRIES if i["slug"] != industry["slug"]],
+    )
+
+
 def modules_page(base: str, modules: list[dict]) -> dict:
     return make_page(
         base,
@@ -1373,7 +1419,10 @@ def public_paths(modules: list[dict], articles=None) -> list[str]:
     paths = [HOME, FEATURES]
     paths += [feature_url(f["slug"]) for f in FEATURE_LIST]
     paths += [MODULES] + [m["url"] for m in modules]
-    paths += [PRICING, INTEGRATIONS, FAQ]
+    paths += [PRICING, INTEGRATIONS, FAQ, INDUSTRIES_PATH]
+    from reckon_saas_platform.industries import INDUSTRIES
+
+    paths += [industry_url(i["slug"]) for i in INDUSTRIES]
     if articles:
         paths += [blog.BLOG] + [a["url"] for a in articles]
     paths += [SIGNUP]
@@ -1436,6 +1485,11 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     lines += ["", "## Features", ""]
     for feature in FEATURE_LIST:
         lines.append(f"- [{feature['title']}]({base}{feature_url(feature['slug'])}): {feature['summary']}")
+    from reckon_saas_platform.industries import INDUSTRIES
+
+    lines += ["", "## Industries", ""]
+    for item in INDUSTRIES:
+        lines.append(f"- [{item['title']}]({base}{industry_url(item['slug'])}): {item['description']}")
     lines += [
         "",
         "## Integrations",
