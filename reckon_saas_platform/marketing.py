@@ -73,6 +73,7 @@ FEATURE_ILLUSTRATION = {
     "ai-assisted-selling": "ai",
     "reckon-ai-assistant": "ai",
     "field-sales-and-visits": "crm",
+    "ai-agent-development": "automation",
 }
 
 # Crawlers that fetch pages for search and AI answers. All are welcome on the
@@ -431,6 +432,60 @@ FEATURE_LIST = (
         ],
     },
     {
+        "slug": "ai-agent-development",
+        "title": "AI agent development and automation",
+        "icon": "spark",
+        "summary": "Custom AI agents, assistants and workflow automation, built around your ERP and CRM data.",
+        "description": "Custom AI agents for business: LLM assistants, RAG on your own "
+        "documents, MCP, multi-agent workflows and integrations, with human approval.",
+        "intro": "Beyond the ready-made Reckon AI assistant and Sales AI Agent, we design and "
+        "build AI agents for your own processes. Each one is scoped after a requirement "
+        "analysis, works inside your permissions, and shows its work before anything changes.",
+        "points": [
+            "Agentic AI: agents that plan a task, call your ERP and CRM, and report back",
+            "LLM applications and copilots for sales, support, finance and operations",
+            "RAG: answers drawn from your own documents and records, with the source shown",
+            "MCP servers that let AI tools use your systems through a controlled interface",
+            "Multi-agent workflows where a researcher, a drafter and a checker share one job",
+            "Business integrations with WhatsApp, email, SMS, voice and your other systems",
+            "AI workflow automation for sales, marketing, HR and back-office routines",
+            "Human approval, permission checks and an action log on every change",
+        ],
+        "faqs": [
+            (
+                "What kinds of AI agents can you build?",
+                "Sales and lead-generation agents, customer-support assistants, document and "
+                "records question-answering, workflow automation across ERP and CRM, and "
+                "multi-agent flows. We scope each one after a requirement analysis.",
+            ),
+            (
+                "Do you work with LLMs, RAG and MCP?",
+                "Yes. We build LLM applications, retrieval over your own documents (RAG) and MCP "
+                "servers that expose your systems to AI tools in a controlled way.",
+            ),
+            (
+                "Can an agent change my data without asking?",
+                "Not unless you decide so. Our designs show a preview and wait for a person's "
+                "approval, check permissions at that moment and log every action.",
+            ),
+            (
+                "Can the models run on our own servers?",
+                "Where your requirements need it, yes: an OpenAI-compatible model server on your "
+                "own infrastructure can be used. Quality and cost depend on the model you choose.",
+            ),
+            (
+                "How is custom AI development priced?",
+                "It is quoted separately after requirement analysis. AI and integration usage "
+                "(model calls, WhatsApp, SMS and so on) is billed in addition.",
+            ),
+            (
+                "Do you build AI agents for companies in Bangladesh?",
+                "Yes, for companies in Bangladesh and worldwide. Bangla and English are both "
+                "supported, and we can work on site on request.",
+            ),
+        ],
+    },
+    {
         "slug": "ai-assisted-selling",
         "title": "AI-assisted selling",
         "icon": "spark",
@@ -459,7 +514,7 @@ FEATURE_LIST = (
 # --- Module copy: marketing text layered on the registry's own fields -----------
 MODULE_COPY = {
     "distribution": {
-        "seo_title": "FMCG distribution software for route sales and collections",
+        "seo_title": "Distribution management software in Bangladesh",
         "headline": "FMCG distribution software for route sales, collections and stock",
         "tagline": "Routes, deliveries, collections and stock for FMCG distributors.",
         "audience": "FMCG distributors, wholesalers and van-sales teams",
@@ -483,7 +538,7 @@ MODULE_COPY = {
         ],
     },
     "accounts": {
-        "seo_title": "Accounting and inventory software for small business",
+        "seo_title": "Accounting and inventory software in Bangladesh",
         "headline": "Accounting and inventory software for growing small businesses",
         "tagline": "Invoices, bills, stock and Tally-style books for a small business.",
         "audience": "Shops, traders and small companies that need clean books",
@@ -502,7 +557,7 @@ MODULE_COPY = {
         ],
     },
     "sales_agent": {
-        "seo_title": "AI sales agent for B2B lead generation and follow-up",
+        "seo_title": "AI sales agent for B2B lead generation",
         "headline": "AI sales agent for finding and following up B2B customers",
         "tagline": "Find, research and follow up B2B customers, with approval before any send.",
         "audience": "B2B sales teams, with strong coverage of Bangladesh",
@@ -530,7 +585,7 @@ MODULE_COPY = {
 MODULE_COPY.update(
     {
         "hrms": {
-            "seo_title": "HR and payroll software for small businesses",
+            "seo_title": "HR and payroll software in Bangladesh",
             "headline": "HR, attendance, leave and payroll software for small businesses",
             "tagline": "Employees, attendance, leave and payroll in one private workspace per company.",
             "audience": "Small and growing companies that run HR from spreadsheets",
@@ -543,7 +598,7 @@ MODULE_COPY.update(
             "faqs": [],
         },
         "crm": {
-            "seo_title": "CRM software for leads, deals and sales teams",
+            "seo_title": "CRM software in Bangladesh for leads and deals",
             "headline": "CRM software for leads, deals and sales teams",
             "tagline": "Leads, deals and organizations for sales teams, in a private workspace.",
             "audience": "Sales teams that track leads in spreadsheets or chat threads",
@@ -754,6 +809,19 @@ HOME_FAQS = (
         "priced in BDT, USD, EUR or INR. Bangla screens and Bangladeshi SMS gateways are extra "
         "strengths for Bangladesh. Dedicated cloud and on-premises installations are available "
         "for companies anywhere on request.",
+    ),
+    (
+        "Is ReckonERP available for companies in Bangladesh?",
+        "Yes. ReckonERP is made in Bangladesh by Reckon Technologies. It offers cloud ERP, "
+        "CRM, HR and payroll, accounting and distribution management, with Bangla screens, "
+        "plans priced in BDT and Bangladeshi SMS gateways. Implementation, training and "
+        "on-site support are available as paid services.",
+    ),
+    (
+        "Can you build custom AI agents and automation?",
+        "Yes. Besides the Reckon AI assistant and the Sales AI Agent, we build custom AI "
+        "agents, LLM applications, RAG and MCP integrations and workflow automation around "
+        "your ERP and CRM data, quoted after requirement analysis.",
     ),
     (
         "Can I use it in Bangla?",
@@ -969,7 +1037,8 @@ def organization_ld(base: str, same_as=None) -> dict:
         "url": f"{base}/",
         "logo": f"{base}{LOGO_SOCIAL}",
         "email": SUPPORT_EMAIL,
-        "areaServed": "Worldwide",
+        "areaServed": ["Bangladesh", "Worldwide"],
+        "address": {"@type": "PostalAddress", "addressCountry": "BD"},
         "knowsLanguage": ["en", "bn"],
         "contactPoint": {
             "@type": "ContactPoint",
@@ -1116,13 +1185,13 @@ def home_page(base: str, modules: list[dict], integrations=None, profiles=None, 
 
     latest = (blog.get_articles() if articles is None else articles)[:3]
     description = (
-        "ReckonERP is a cloud ERP with built-in AI. Invoices, orders, stock and people in one "
-        "workspace, in English and Bangla. Start online today."
+        "Cloud ERP, CRM, HR and payroll, distribution management and AI agent automation for "
+        "growing businesses in Bangladesh and worldwide. Start online today."
     )
     return make_page(
         base,
         path=HOME,
-        title="ReckonERP: cloud ERP with built-in AI for growing businesses",
+        title="ReckonERP: Cloud ERP, CRM and AI Agents in Bangladesh",
         description=description,
         h1="Your ERP, now with an AI that reads every ledger.",
         faqs=HOME_FAQS,

@@ -414,13 +414,18 @@ class MarketingDataTests(unittest.TestCase):
             org = json.loads(home["jsonld"][0])
             questions = [q for q, _a in home["faqs"]]
             pages = all_pages(marketing, modules)
-        self.assertEqual(org["areaServed"], "Worldwide")
+        self.assertEqual(org["areaServed"], ["Bangladesh", "Worldwide"])
+        self.assertEqual(org["address"]["addressCountry"], "BD")
         self.assertEqual(org["knowsLanguage"], ["en", "bn"])
         self.assertIn("Can I use ReckonERP outside Bangladesh?", questions)
-        self.assertNotIn("Bangladesh", home["title"])
+        # Bangladesh is the home market in titles; the site still says it serves companies worldwide.
+        self.assertIn("Bangladesh", home["title"])
+        self.assertIn("worldwide", home["description"])
+        self.assertLessEqual(len(home["title"]), 60)
+        self.assertTrue(70 <= len(home["description"]) <= 160)
         for page in pages:
             if page["path"].startswith("/modules/"):
-                self.assertNotIn("Bangladesh", page["title"], page["path"])
+                self.assertLessEqual(len(page["title"]), 70, page["path"])
 
     def test_modules_come_from_the_registry(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
