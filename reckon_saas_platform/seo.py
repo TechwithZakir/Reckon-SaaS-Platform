@@ -37,6 +37,7 @@ def collect_pages(base: str, modules: list[dict], integrations=None, profiles=No
         marketing.features_page(base),
         marketing.modules_page(base, modules),
         marketing.integrations_page(base, integrations),
+        marketing.pricing_page(base, modules),
         marketing.faq_page(base, modules),
     ]
     pages += [marketing.feature_page(base, feature) for feature in marketing.FEATURE_LIST]

@@ -20,6 +20,17 @@
 </ul>
 {% endmacro %}
 
+{% macro plan_cards(mod) %}
+<ul class="grid plans">
+  {% for plan in mod.plans %}
+  <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong>{{ plan.price_text|e }}</strong></p>
+    {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ plan.trial_days }}-day free trial</p>{% endif %}
+    {% if plan.features %}<ul class="tick">{% for f in plan.features[:6] %}<li>{{ f|e }}</li>{% endfor %}</ul>{% endif %}
+    <a class="btn solid" href="/reckonerp-signup?module={{ mod.key|e }}">Choose {{ plan.name|e }}</a></article></li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
 {% macro faq(faqs, heading) %}
 {% if faqs %}
 <section aria-labelledby="faq-h"><div class="wrap">

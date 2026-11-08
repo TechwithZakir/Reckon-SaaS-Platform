@@ -80,6 +80,7 @@ website_route_rules = [
     {"from_route": "/modules", "to_route": "reckon_modules"},
     {"from_route": "/modules/<slug>", "to_route": "reckon_modules"},
     {"from_route": "/integrations", "to_route": "reckon_integrations"},
+    {"from_route": "/pricing", "to_route": "reckon_pricing"},
     {"from_route": "/sitemap.xml", "to_route": "reckon_sitemap.xml"},
     {"from_route": "/robots.txt", "to_route": "reckon_robots.txt"},
     {"from_route": "/llms.txt", "to_route": "reckon_llms.txt"},

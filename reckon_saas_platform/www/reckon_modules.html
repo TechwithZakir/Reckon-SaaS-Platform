@@ -5,6 +5,9 @@
 {{ m.crumbs(page.trail) }}
 {% if page.module %}
 <section class="page-hero">
+  <div class="wrap">
+    <img class="banner" src="{{ page.module.banner.src|e }}" width="{{ page.module.banner.width }}" height="{{ page.module.banner.height }}" alt="{{ page.module.banner.alt|e }}" fetchpriority="high" decoding="async">
+  </div>
   <div class="wrap cols">
     <div>
       <p class="eyebrow">ERP module</p>
@@ -25,6 +28,43 @@
       <ul class="tick">{% for f in page.module.features %}<li>{{ f|e }}</li>{% endfor %}</ul>
       {% endif %}
     </aside>
+  </div>
+</section>
+<section aria-labelledby="ov-h">
+  <div class="wrap prose">
+    <h2 id="ov-h">About {{ page.module.name|e }}</h2>
+    {% for paragraph in page.module.overview %}<p>{{ paragraph|e }}</p>{% endfor %}
+  </div>
+</section>
+{% if page.module.highlights %}
+<section class="alt" aria-labelledby="in-h">
+  <div class="wrap">
+    <div class="head"><h2 id="in-h">What is inside {{ page.module.name|e }}</h2></div>
+    <ul class="grid">
+      {% for title, text in page.module.highlights %}<li><article class="card"><h3>{{ title|e }}</h3>{% if text %}<p>{{ text|e }}</p>{% endif %}</article></li>{% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+{% if page.module.use_cases %}
+<section aria-labelledby="uc-h">
+  <div class="wrap">
+    <div class="head"><h2 id="uc-h">Who uses {{ page.module.name|e }}</h2></div>
+    <ul class="tick">{% for u in page.module.use_cases %}<li>{{ u|e }}</li>{% endfor %}</ul>
+  </div>
+</section>
+{% endif %}
+<section class="alt" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="head"><h2 id="price-h">{{ page.module.name|e }} plans and pricing</h2><p>Subscribe online. Your invoice arrives by email with a PDF, and a link by SMS.</p></div>
+    {% if page.module.plans %}{{ m.plan_cards(page.module) }}{% else %}<p>Plans are shown at signup. <a href="{{ page.signup_url|e }}">Start here</a>.</p>{% endif %}
+    <p class="note">See <a href="/pricing">all plans</a>. Implementation, training, customisation and on-site support are quoted separately.</p>
+  </div>
+</section>
+<section aria-labelledby="inc-h">
+  <div class="wrap two">
+    <div><h2 id="inc-h">Included</h2><ul class="tick">{% for i in page.module.inclusions %}<li>{{ i|e }}</li>{% endfor %}</ul></div>
+    <div><h2>Not included</h2><ul class="tick">{% for i in page.module.exclusions %}<li>{{ i|e }}</li>{% endfor %}</ul></div>
   </div>
 </section>
 {{ m.faq(page.faqs, "Questions about " ~ page.module.name) }}

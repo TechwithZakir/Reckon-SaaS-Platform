@@ -19,6 +19,8 @@ from xml.sax.saxutils import escape as xml_escape
 
 import frappe
 
+from reckon_saas_platform import module_assets, module_content
+
 SITE_NAME = "ReckonERP"
 BRAND_NAME = SITE_NAME
 POWERED_BY = "Powered by ReckonERP"
@@ -32,6 +34,9 @@ HOME = "/"
 FEATURES = "/features"
 MODULES = "/modules"
 INTEGRATIONS = "/integrations"
+PRICING = "/pricing"
+CURRENCY_SYMBOLS = {"BDT": "\u09f3", "USD": "$", "EUR": "\u20ac", "INR": "\u20b9"}
+CYCLE_WORDS = {"Monthly": "month", "Quarterly": "quarter", "Half Yearly": "6 months", "Yearly": "year", "Annual": "year"}
 FAQ = "/faq"
 SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
@@ -56,7 +61,7 @@ ILLUSTRATIONS = {
     "ai": ("illus-ai.svg", "AI assistant drafting a reply that waits for a person to approve", 480, 320),
 }
 # Which illustration describes a module or feature best.
-MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm"}
+MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm", "hrms": "erp", "crm": "crm"}
 FEATURE_ILLUSTRATION = {
     "self-serve-signup": "automation",
     "separate-company-workspaces": "erp",
@@ -522,6 +527,37 @@ MODULE_COPY = {
     },
 }
 
+MODULE_COPY.update(
+    {
+        "hrms": {
+            "seo_title": "HR and payroll software for small businesses",
+            "headline": "HR, attendance, leave and payroll software for small businesses",
+            "tagline": "Employees, attendance, leave and payroll in one private workspace per company.",
+            "audience": "Small and growing companies that run HR from spreadsheets",
+            "benefits": [
+                "Keep one record per employee",
+                "Record attendance and organise shifts",
+                "Let employees request leave and managers approve it",
+                "Run payroll from the attendance and leave you recorded",
+            ],
+            "faqs": [],
+        },
+        "crm": {
+            "seo_title": "CRM software for leads, deals and sales teams",
+            "headline": "CRM software for leads, deals and sales teams",
+            "tagline": "Leads, deals and organizations for sales teams, in a private workspace.",
+            "audience": "Sales teams that track leads in spreadsheets or chat threads",
+            "benefits": [
+                "Capture and track every lead",
+                "Move deals through your pipeline",
+                "Keep organizations and contacts together",
+                "Give owners and the team the access each needs",
+            ],
+            "faqs": [],
+        },
+    }
+)
+
 # Plain-language labels for the registry's ``subscription_features`` keys.
 FEATURE_LABELS = {
     "dsr_routes": "DSR route planning and delivery tracking",
@@ -746,6 +782,52 @@ def get_feature(slug: str) -> dict | None:
     return next((f for f in FEATURE_LIST if f["slug"] == slug), None)
 
 
+def _price_text(price: float, symbol: str, cycle: str) -> str:
+    amount = f"{price:,.0f}" if float(price).is_integer() else f"{price:,.2f}"
+    return f"{symbol}{amount} per {CYCLE_WORDS.get(cycle, (cycle or 'period').lower())}"
+
+
+def get_plans() -> dict[str, list[dict]]:
+    """Enabled SaaS Plans grouped by module key, cheapest first, as the site shows them."""
+    plans: dict[str, list[dict]] = {}
+    try:
+        if not frappe.db.exists("DocType", "SaaS Plan"):
+            return plans
+        rows = frappe.get_all(
+            "SaaS Plan",
+            filters={"enabled": 1},
+            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "features"],
+            order_by="price asc",
+            ignore_permissions=True,
+        )
+    except Exception:
+        return plans
+    for row in rows:
+        key = row.get("saas_module")
+        try:
+            price = float(row.get("price") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not key or "plan_name" not in row and not row.get("name"):
+            continue
+        currency = str(row.get("currency") or "")
+        symbol = CURRENCY_SYMBOLS.get(currency, currency)
+        cycle = row.get("billing_cycle") or "Monthly"
+        plans.setdefault(key, []).append(
+            {
+                "name": row.get("plan_name") or row.get("name"),
+                "price": price,
+                "currency": currency,
+                "symbol": symbol,
+                "cycle": cycle,
+                "price_text": _price_text(price, symbol, cycle),
+                "trial_days": int(row.get("trial_days") or 0),
+                "features": [feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()],
+            }
+        )
+    return plans
+
+
 def get_modules() -> list[dict]:
     """Modules installed on this site and on sale.
 
@@ -767,6 +849,7 @@ def get_modules() -> list[dict]:
 
     modules = []
     seen = set()
+    all_plans = get_plans()
     for definition in get_saas_modules():
         key = definition.get("key")
         record = records.get(key)
@@ -780,18 +863,31 @@ def get_modules() -> list[dict]:
         feature_keys = [
             line.strip() for line in (record.get("features") or "").splitlines() if line.strip()
         ] or list(definition.get("subscription_features") or [])
+        details = module_content.MODULE_DETAILS.get(key, {})
+        features = [feature_label(k) for k in feature_keys]
+        inclusions = list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS)
+        exclusions = list(details.get("exclusions") or []) + list(module_content.COMMON_EXCLUSIONS)
+        plans = all_plans.get(key, [])
+        own_faqs = list(details.get("faqs") or copy.get("faqs") or [])
         modules.append(
             {
                 "key": key,
                 "name": label,
                 "description": description,
+                "overview": list(details.get("overview") or [description]) if (details or description) else [],
+                "highlights": list(details.get("highlights") or [(f, "") for f in features]),
+                "use_cases": list(details.get("use_cases") or []),
+                "inclusions": inclusions,
+                "exclusions": exclusions,
+                "plans": plans,
+                "banner": module_assets.banner(key, label),
                 "tagline": copy.get("tagline") or description,
                 "seo_title": copy.get("seo_title") or "",
                 "headline": copy.get("headline") or "",
                 "audience": copy.get("audience") or "",
                 "benefits": list(copy.get("benefits") or []),
-                "features": [feature_label(k) for k in feature_keys],
-                "faqs": list(copy.get("faqs") or []),
+                "features": features,
+                "faqs": own_faqs + module_content.service_faqs(label, plans, inclusions[: len(details.get("inclusions") or features)], exclusions),
                 "url": module_url(key),
                 "modified": str(record.get("modified") or "")[:10],
                 "image": illustration(MODULE_ILLUSTRATION.get(key, "erp")),
@@ -865,8 +961,8 @@ def organization_ld(base: str, same_as=None) -> dict:
     return data
 
 
-def software_ld(base: str, name: str, description: str, path: str) -> dict:
-    return {
+def software_ld(base: str, name: str, description: str, path: str, offers=None) -> dict:
+    data = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         "name": name,
@@ -877,6 +973,9 @@ def software_ld(base: str, name: str, description: str, path: str) -> dict:
         "inLanguage": ["en", "bn"],
         "publisher": {"@type": "Organization", "name": SITE_NAME},
     }
+    if offers:
+        data["offers"] = list(offers)
+    return data
 
 
 def faq_ld(faqs) -> dict:
@@ -953,7 +1052,7 @@ def make_page(
     h1: str,
     trail: list[tuple[str, str]] | None = None,
     faqs=None,
-    software: tuple[str, str] | None = None,
+    software: tuple | None = None,
     same_as=None,
     extra_ld=None,
     noindex: bool = False,
@@ -969,7 +1068,7 @@ def make_page(
     if path == HOME:
         ld.append(organization_ld(base, same_as))
     if software:
-        ld.append(software_ld(base, software[0], software[1], path))
+        ld.append(software_ld(base, software[0], software[1], path, software[2] if len(software) > 2 else None))
     if faqs:
         ld.append(faq_ld(faqs))
     ld += list(extra_ld or [])
@@ -1065,6 +1164,37 @@ def _articles_for(module_key: str) -> list[dict]:
     return [a for a in blog.get_articles() if a["module"] == module_key]
 
 
+def plan_offers(base: str, module: dict) -> list[dict]:
+    """schema.org Offers for the module's real, enabled plans."""
+    return [
+        {
+            "@type": "Offer",
+            "name": plan["name"],
+            "price": f"{plan['price']:.2f}",
+            "priceCurrency": plan["currency"],
+            "url": f"{base}{signup_url(module['key'])}",
+            "availability": "https://schema.org/InStock",
+        }
+        for plan in module["plans"]
+        if len(plan["currency"]) == 3 and plan["price"] > 0
+    ]
+
+
+def pricing_page(base: str, modules: list[dict]) -> dict:
+    return make_page(
+        base,
+        path=PRICING,
+        title="ReckonERP pricing: plans for every module",
+        description="Subscription plans and prices for every ReckonERP module, with billing periods, "
+        "trial days and what each includes. Sign up online in minutes.",
+        h1="ReckonERP plans and pricing",
+        trail=[("Home", HOME), ("Pricing", PRICING)],
+        faqs=[row for row in HOME_FAQS if any(w in row[0].lower() for w in ("pricing", "implementation", "ai and integration", "licences"))],
+        modules=modules,
+        priced=[m for m in modules if m["plans"]],
+    )
+
+
 def module_page(base: str, module: dict, modules: list[dict]) -> dict:
     description = (module["tagline"] + " " + module["description"]).strip()
     if len(description) > 158:
@@ -1077,7 +1207,8 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
         h1=module["headline"] or module["name"],
         trail=[("Home", HOME), ("Modules", MODULES), (module["name"], module["url"])],
         faqs=module["faqs"],
-        software=(f"{SITE_NAME} {module['name']}", description),
+        software=(f"{SITE_NAME} {module['name']}", description, plan_offers(base, module)),
+        og_image=f"{base}{module['banner']['og']}" if module["banner"]["og"] else None,
         module=module,
         module_articles=[a for a in _articles_for(module["key"])][:3],
         modules=[m for m in modules if m["key"] != module["key"]],
@@ -1152,7 +1283,7 @@ def public_paths(modules: list[dict], articles=None) -> list[str]:
     paths = [HOME, FEATURES]
     paths += [feature_url(f["slug"]) for f in FEATURE_LIST]
     paths += [MODULES] + [m["url"] for m in modules]
-    paths += [INTEGRATIONS, FAQ]
+    paths += [PRICING, INTEGRATIONS, FAQ]
     if articles:
         paths += [blog.BLOG] + [a["url"] for a in articles]
     paths += [SIGNUP]
@@ -1224,6 +1355,10 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
         + ".",
         "",
         *_blog_lines(base),
+        "## Pricing",
+        "",
+        f"- [Plans and pricing]({base}{PRICING}): subscription plans for every module",
+        "",
         "## Answers",
         "",
         f"- [FAQ]({base}{FAQ}): pricing, deployment, implementation cost, licences, AI and "
