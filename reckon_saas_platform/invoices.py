@@ -207,15 +207,17 @@ def _enabled(field: str) -> bool:
     return (_setting(field) or "Yes") != "No"
 
 
-def send_email(invoice, receipt: bool = False) -> bool:
+def send_email(invoice, receipt: bool = False, reminder: str = "") -> bool:
     """Email the invoice (or the paid receipt) with the PDF attached."""
     from reckon_saas_platform.saas import is_outgoing_email_configured
 
     if not invoice.get("customer_email") or not is_outgoing_email_configured() or not _enabled("invoice_email_enabled"):
         return False
     context = invoice_context(invoice)
-    subject = (f"Payment received: invoice {invoice.name}" if receipt else f"Your ReckonERP invoice {invoice.name}")
-    body = frappe.render_template("reckon_saas_platform/templates/saas_invoice_email.html", {**context, "receipt": receipt})
+    subject = (f"Payment received: invoice {invoice.name}" if receipt else reminder or f"Your ReckonERP invoice {invoice.name}")
+    body = frappe.render_template(
+        "reckon_saas_platform/templates/saas_invoice_email.html", {**context, "receipt": receipt, "reminder": reminder}
+    )
     try:
         frappe.sendmail(
             recipients=[invoice.customer_email],
@@ -232,14 +234,15 @@ def send_email(invoice, receipt: bool = False) -> bool:
     return True
 
 
-def send_sms_link(invoice) -> bool:
+def send_sms_link(invoice, reminder: str = "") -> bool:
     """Text the invoice link to a Bangladeshi mobile number, when SMS is set up."""
     from reckon_saas_platform.sms import is_sms_configured, normalize_bd_mobile, send_sms
 
     number = normalize_bd_mobile(invoice.get("customer_phone") or "")
     if not number or not is_sms_configured() or not _enabled("invoice_sms_enabled"):
         return False
-    text = f"ReckonERP invoice {invoice.name}: {money(invoice.amount, invoice.currency)} due {invoice.due_date}. View and pay: {public_url(invoice)}"
+    text = reminder or f"ReckonERP invoice {invoice.name}: {money(invoice.amount, invoice.currency)} due {invoice.due_date}."
+    text = f"{text} View and pay: {public_url(invoice)}"
     try:
         send_sms(number, text)
     except Exception:
@@ -367,3 +370,76 @@ def create_renewal_invoices() -> list[str]:
         except Exception:
             frappe.log_error(frappe.get_traceback(), f"Renewal invoice for {row.name}")
     return created
+
+
+# --- payment reminders -----------------------------------------------------------------------------
+DEFAULT_REMINDER_SCHEDULE = "-2,1,7"
+MAX_REMINDERS = 6
+MAX_REMINDER_ROWS = 500
+QUIET_SUBSCRIPTION_STATUSES = ("Cancelled", "Suspended", "Expired")
+
+
+def parse_schedule(text) -> list[int]:
+    """``"-2,1,7"`` -> ``[-2, 1, 7]``: days from the due date, sorted, unique, sensible and few."""
+    offsets = set()
+    for part in re.split(r"[,;\s]+", str(text or "")):
+        if re.fullmatch(r"-?\d{1,2}", part) and -30 <= int(part) <= 60:
+            offsets.add(int(part))
+    return sorted(offsets)[:MAX_REMINDERS]
+
+
+def reminder_schedule() -> list[int]:
+    value = _setting("invoice_reminder_schedule")
+    return parse_schedule(DEFAULT_REMINDER_SCHEDULE if value is None else value)
+
+
+def reminder_wording(invoice, days_from_due: int) -> tuple[str, str]:
+    """``(email subject, sms text)`` for a reminder sent ``days_from_due`` days from the due date."""
+    amount = money(invoice.amount, invoice.currency)
+    if days_from_due < 0:
+        when = "is due tomorrow" if days_from_due == -1 else f"is due in {-days_from_due} days"
+        return f"Reminder: invoice {invoice.name} {when}", f"ReckonERP reminder: invoice {invoice.name} ({amount}) {when}."
+    if days_from_due == 0:
+        return f"Invoice {invoice.name} is due today", f"ReckonERP: invoice {invoice.name} ({amount}) is due today."
+    late = "1 day" if days_from_due == 1 else f"{days_from_due} days"
+    return f"Overdue: invoice {invoice.name} ({late} late)", f"ReckonERP: invoice {invoice.name} ({amount}) is {late} overdue."
+
+
+def send_payment_reminders() -> list[str]:
+    """Daily job: remind owners about unpaid invoices on the schedule (days from the due date).
+
+    The default schedule is 2 days before, then 1 and 7 days after. Each invoice gets each step once.
+    If the job missed days, one reminder goes out, not one per missed step. Paid or cancelled invoices,
+    and invoices of cancelled, suspended or expired subscriptions, are left alone.
+    """
+    schedule = reminder_schedule()
+    if not schedule:
+        return []
+    today = frappe.utils.getdate(nowdate())
+    rows = frappe.get_all(
+        DOCTYPE,
+        filters={"status": "Unpaid", "reminders_sent": ["<", len(schedule)], "due_date": ["is", "set"]},
+        fields=["name", "due_date", "reminders_sent", "subscription"],
+        order_by="due_date asc",
+        limit=MAX_REMINDER_ROWS,
+        ignore_permissions=True,
+    )
+    sent = []
+    for row in rows:
+        try:
+            days = (today - frappe.utils.getdate(row.due_date)).days
+            reached = sum(1 for offset in schedule if offset <= days)
+            if reached <= cint(row.reminders_sent):
+                continue
+            if frappe.db.get_value("SaaS Subscription", row.subscription, "status") in QUIET_SUBSCRIPTION_STATUSES:
+                continue
+            invoice = frappe.get_doc(DOCTYPE, row.name)
+            step = schedule[reached - 1]
+            subject, text = reminder_wording(invoice, days if days >= 0 else step)
+            send_email(invoice, reminder=subject)
+            send_sms_link(invoice, reminder=text)
+            invoice.db_set({"reminders_sent": reached, "last_reminder_on": today})
+            sent.append(invoice.name)
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Payment reminder for {row.name}")
+    return sent

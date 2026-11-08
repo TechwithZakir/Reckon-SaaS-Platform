@@ -2,6 +2,11 @@
   <p>Hello {{ invoice.customer_name|e }},</p>
   {% if receipt %}
   <p>We received your payment. Invoice <strong>{{ invoice.name|e }}</strong> for <strong>{{ amount_text|e }}</strong> is now marked paid. The PDF is attached for your records.</p>
+  {% elif reminder %}
+  <p>{{ reminder|e }}. The invoice <strong>{{ invoice.name|e }}</strong> for <strong>{{ description|e }}</strong> is for <strong>{{ amount_text|e }}</strong>, due {{ invoice.due_date|e }}. The PDF is attached.</p>
+  <p>{{ instructions|e }}</p>
+  <p><a href="{{ subscription_url|e }}" style="display:inline-block;background:#0b78ab;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-weight:bold">Open your Subscription page</a></p>
+  <p>If you have already paid, please enter the transaction reference on that page so we can verify it. Thank you.</p>
   {% else %}
   <p>Thank you for choosing ReckonERP. Your invoice <strong>{{ invoice.name|e }}</strong> for <strong>{{ description|e }}</strong> is attached as a PDF.</p>
   <p><strong>Amount:</strong> {{ amount_text|e }}<br><strong>Due:</strong> {{ invoice.due_date|e }}</p>

@@ -327,6 +327,128 @@ class RenewalTests(unittest.TestCase):
         self.assertEqual((field["fieldtype"], field["default"]), ("Int", "7"))
 
 
+class ReminderTests(unittest.TestCase):
+    def env(self, rows, schedule=None, status="Active"):
+        ctx = platform_modules(*MODS)
+        frappe, mods = ctx.__enter__()
+        self.addCleanup(ctx.__exit__, None, None, None)
+        settings = {} if schedule is None else {"invoice_reminder_schedule": schedule}
+        prepare(frappe, settings)
+        frappe.utils.cint = lambda v: int(v or 0)
+        frappe.utils.getdate = lambda v: __import__("datetime").date.fromisoformat(str(v)[:10])
+        inv = mods[MODS.index("invoices")]
+        inv.cint = frappe.utils.cint
+        frappe.get_all = Mock(return_value=rows)
+        frappe.db.get_value = Mock(return_value=status)
+        self.docs = {}
+
+        def get_doc(doctype, name):
+            doc = invoice_doc(name=name)
+            self.docs[name] = doc
+            return doc
+
+        frappe.get_doc = Mock(side_effect=get_doc)
+        inv.send_email = Mock(return_value=True)
+        inv.send_sms_link = Mock(return_value=True)
+        return frappe, inv
+
+    def row(self, due, sent=0, name="INV-1"):
+        return _Dict(name=name, due_date=due, reminders_sent=sent, subscription="SUB-1")
+
+    def test_schedule_is_parsed_safely(self):
+        _f, inv = self.env([])
+        self.assertEqual(inv.parse_schedule("-2,1,7"), [-2, 1, 7])
+        self.assertEqual(inv.parse_schedule(" 7; 1 ,1, -2 "), [-2, 1, 7])
+        self.assertEqual(inv.parse_schedule("abc, 999, -99, 3"), [3])
+        self.assertEqual(inv.parse_schedule(""), [])
+        self.assertEqual(len(inv.parse_schedule(",".join(str(n) for n in range(10)))), 6)
+        self.assertEqual(inv.reminder_schedule(), [-2, 1, 7])  # unset means the default
+
+    def test_a_reminder_goes_out_on_each_step_once(self):
+        # today is 2026-11-08
+        for due, sent, expect in (
+            ("2026-11-10", 0, 1),   # due in 2 days: the "-2" step
+            ("2026-11-11", 0, 0),   # due in 3 days: too early
+            ("2026-11-07", 1, 1),   # 1 day late: the "+1" step
+            ("2026-11-07", 2, 0),   # already sent that step
+            ("2026-11-01", 2, 1),   # 7 days late: the last step
+        ):
+            frappe, inv = self.env([self.row(due, sent)])
+            sent_names = inv.send_payment_reminders()
+            self.assertEqual(len(sent_names), expect, (due, sent))
+            if expect:
+                inv.send_email.assert_called_once()
+                inv.send_sms_link.assert_called_once()
+
+    def test_missed_days_send_one_reminder_and_record_every_step_reached(self):
+        frappe, inv = self.env([self.row("2026-10-20", 0)])  # 19 days late, nothing sent yet
+        self.assertEqual(inv.send_payment_reminders(), ["INV-1"])
+        inv.send_email.assert_called_once()
+        self.docs["INV-1"].db_set.assert_called_once_with({"reminders_sent": 3, "last_reminder_on": __import__("datetime").date(2026, 11, 8)})
+
+    def test_wording_says_before_today_and_late(self):
+        _f, inv = self.env([])
+        doc = invoice_doc()
+        self.assertEqual(inv.reminder_wording(doc, -2)[0], "Reminder: invoice INV-2026-00001 is due in 2 days")
+        self.assertEqual(inv.reminder_wording(doc, -1)[0], "Reminder: invoice INV-2026-00001 is due tomorrow")
+        self.assertEqual(inv.reminder_wording(doc, 0)[0], "Invoice INV-2026-00001 is due today")
+        self.assertEqual(inv.reminder_wording(doc, 1)[0], "Overdue: invoice INV-2026-00001 (1 day late)")
+        subject, text = inv.reminder_wording(doc, 7)
+        self.assertEqual(subject, "Overdue: invoice INV-2026-00001 (7 days late)")
+        self.assertIn("BDT 1,500.00", text)
+
+    def test_subject_and_text_reach_the_email_and_sms(self):
+        frappe, inv = self.env([self.row("2026-11-07", 1)])
+        inv.send_payment_reminders()
+        subject = inv.send_email.call_args.kwargs["reminder"]
+        text = inv.send_sms_link.call_args.kwargs["reminder"]
+        self.assertEqual(subject, "Overdue: invoice INV-1 (1 day late)")
+        self.assertIn("1 day overdue", text)
+
+    def test_closed_subscriptions_and_an_empty_schedule_are_left_alone(self):
+        for status in ("Cancelled", "Suspended", "Expired"):
+            _f, inv = self.env([self.row("2026-11-07", 1)], status=status)
+            self.assertEqual(inv.send_payment_reminders(), [], status)
+            inv.send_email.assert_not_called()
+        frappe, inv = self.env([self.row("2026-11-07", 1)], schedule="")
+        self.assertEqual(inv.send_payment_reminders(), [])
+        frappe.get_all.assert_not_called()
+
+    def test_query_asks_only_for_unpaid_invoices_still_owed_a_reminder(self):
+        frappe, inv = self.env([])
+        inv.send_payment_reminders()
+        filters = frappe.get_all.call_args.kwargs["filters"]
+        self.assertEqual((filters["status"], filters["reminders_sent"]), ("Unpaid", ["<", 3]))
+
+    def test_one_failure_does_not_stop_the_others(self):
+        frappe, inv = self.env([self.row("2026-11-07", 1, "INV-1"), self.row("2026-11-07", 1, "INV-2")])
+        inv.send_email = Mock(side_effect=[RuntimeError("smtp"), True])
+        self.assertEqual(inv.send_payment_reminders(), ["INV-2"])
+        frappe.log_error.assert_called_once()
+
+    def test_wiring_and_the_reminder_email_text(self):
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        self.assertIn('"reckon_saas_platform.invoices.send_payment_reminders"', hooks)
+        doctype = json.loads((PKG / "saas_platform" / "doctype" / "saas_invoice" / "saas_invoice.json").read_text(encoding="utf-8"))
+        self.assertEqual(doctype["field_order"], [f["fieldname"] for f in doctype["fields"]])
+        self.assertEqual(next(f for f in doctype["fields"] if f["fieldname"] == "reminders_sent")["default"], "0")
+        settings = json.loads((PKG / "saas_platform" / "doctype" / "saas_platform_settings" / "saas_platform_settings.json").read_text(encoding="utf-8"))
+        names = [f["fieldname"] for f in settings["fields"]]
+        self.assertEqual(settings["field_order"], names)
+        self.assertEqual(next(f for f in settings["fields"] if f["fieldname"] == "invoice_reminder_schedule")["default"], "-2,1,7")
+        if jinja2:
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(PKG.parent)))
+            ctx = {
+                "invoice": invoice_doc(), "description": "ReckonERP HRMS", "amount_text": "BDT 1,500.00", "instructions": "Pay by bKash.",
+                "subscription_url": "https://example.test/reckonerp-subscription", "public_url": "https://example.test/invoice/x",
+                "seller": {"name": "R", "email": "e", "phone": "p"}, "receipt": False, "reminder": "Overdue: invoice X (1 day late)",
+            }
+            body = env.get_template("reckon_saas_platform/templates/saas_invoice_email.html").render(**ctx)
+            self.assertIn("Overdue: invoice X (1 day late)", body)
+            self.assertIn("already paid", body)
+            self.assertNotIn("Thank you for choosing ReckonERP", body)
+
+
 class WiringTests(unittest.TestCase):
     def test_signup_sends_an_invoice_and_a_verified_payment_settles_it(self):
         source = (PKG / "saas.py").read_text(encoding="utf-8")

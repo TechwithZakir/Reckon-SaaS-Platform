@@ -177,6 +177,10 @@ Crunchbase, then add those links under **Official Profile Links**.
   **Renewal Invoice Lead Days** in the settings; 0 turns it off) and sends it by email and SMS like the first
   one. Only Active, Due and Grace subscriptions with a paid-until date are renewed, one invoice per period, and a
   verified payment settles the oldest unpaid invoice first.
+- **Reminders:** unpaid invoices get an email and SMS on a schedule counted from the due date, by default 2
+  days before, then 1 and 7 days after (**Payment Reminder Schedule** in the settings; empty turns reminders
+  off). Each step is sent once; after missed days only one reminder goes out; paid or cancelled invoices and
+  invoices of cancelled, suspended or expired subscriptions are skipped.
 - **Paying:** the owner pays by bKash, Nagad, Rocket or bank transfer and reports the transaction reference on
   `/reckonerp-subscription`; a vendor user verifies it, which unlocks the module.
 - **Adding a module later:** on the Subscription page the company admin sees **Add a module** with every
