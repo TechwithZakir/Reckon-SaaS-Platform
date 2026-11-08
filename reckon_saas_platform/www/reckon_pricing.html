@@ -13,7 +13,7 @@
     {% if page.priced %}
     {% for mod in page.priced %}
     <div class="price-mod">
-      <a href="{{ mod.url|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="" loading="lazy" decoding="async"></a>
+      <a href="{{ mod.url|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="{{ mod.name|e }} module illustration" loading="lazy" decoding="async"></a>
       <h2><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></h2>
     </div>
     {{ m.plan_cards(mod) }}

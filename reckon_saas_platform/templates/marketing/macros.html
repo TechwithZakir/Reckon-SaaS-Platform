@@ -15,7 +15,7 @@
 {% macro article_cards(items) %}
 <ul class="grid">
   {% for a in items %}
-  <li><article class="card">{% if a.image %}<a href="{{ a.url|e }}" tabindex="-1" aria-hidden="true"><img src="{{ a.image|e }}" width="1200" height="630" alt="" loading="lazy" decoding="async"></a>{% endif %}<p class="eyebrow" style="margin:0">{{ a.category|e }}</p><h3><a href="{{ a.url|e }}" style="color:inherit;text-decoration:none">{{ a.title|e }}</a></h3><p>{{ a.summary|e }}</p><a class="more" href="{{ a.url|e }}">Read<span class="sr">: {{ a.title|e }}</span></a></article></li>
+  <li><article class="card">{% if a.image %}<a href="{{ a.url|e }}" tabindex="-1" aria-hidden="true"><img src="{{ a.image|e }}" width="1200" height="630" alt="Cover image: {{ a.title|e }}" loading="lazy" decoding="async"></a>{% endif %}<p class="eyebrow" style="margin:0">{{ a.category|e }}</p><h3><a href="{{ a.url|e }}" style="color:inherit;text-decoration:none">{{ a.title|e }}</a></h3><p>{{ a.summary|e }}</p><a class="more" href="{{ a.url|e }}">Read<span class="sr">: {{ a.title|e }}</span></a></article></li>
   {% endfor %}
 </ul>
 {% endmacro %}

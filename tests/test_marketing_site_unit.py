@@ -755,6 +755,11 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertNotIn("alert(1)</script>", html)
         self.assertIn("&lt;script&gt;alert(1)", html)
 
+class ImageAltTests(unittest.TestCase):
+    def test_no_marketing_template_ships_an_image_with_empty_alt(self):
+        for path in list((PKG / "www").glob("*.html")) + list((PKG / "templates" / "marketing").glob("*.html")):
+            self.assertNotIn('alt=""', path.read_text(encoding="utf-8"), path.name)
+
 
 if __name__ == "__main__":
     unittest.main()
