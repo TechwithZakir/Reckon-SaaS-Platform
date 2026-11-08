@@ -774,7 +774,8 @@ class LocalSeoTests(unittest.TestCase):
     def test_technology_question_names_no_framework_vendor(self):
         with platform_modules("marketing") as (_frappe, (marketing,)):
             answer = dict(marketing.HOME_FAQS)["What technology is ReckonERP built on?"]
-        self.assertIn("Python", answer)
+        for needle in ("Python", "MariaDB", "Redis", "WebSockets", "REST API", "Anthropic Claude", "OpenAI-compatible", "RAG", "MCP"):
+            self.assertIn(needle, answer)
         self.assertNotIn("frappe", answer.lower())
 
 

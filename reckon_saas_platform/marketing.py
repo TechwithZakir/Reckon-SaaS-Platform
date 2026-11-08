@@ -833,10 +833,22 @@ HOME_FAQS = (
     ),
     (
         "What technology is ReckonERP built on?",
-        "ReckonERP runs on open-source ERP technology written in Python, with a MariaDB "
-        "database, Redis-backed background workers, real-time updates over WebSockets and "
-        "a REST API for integrations. AI features use a hosted AI provider or an "
-        "OpenAI-compatible model server, and custom agents can use RAG and MCP connections.",
+        "ReckonERP is built on open-source ERP technology written in Python. The application "
+        "layer is Python with server-rendered pages and a JavaScript front end. Data is kept in "
+        "a MariaDB relational database, with each customer working in its own Company "
+        "workspace and permission rules that keep records apart. Redis-backed background "
+        "workers run long jobs such as invoices, reminders and AI tasks outside the page "
+        "request, and real-time updates reach the browser over WebSockets. A REST API and "
+        "webhooks connect the ERP to your other systems and to channels such as WhatsApp, "
+        "email and SMS. Everything is served over HTTPS. "
+        "For AI, Reckon AI can use a hosted AI provider or any model server with an "
+        "OpenAI-compatible or Anthropic Claude-compatible interface, including one you run "
+        "yourself on a dedicated or on-premises installation. Each business can keep its own "
+        "keys, and a monthly call limit caps usage. AI works inside each person's permissions "
+        "and changes data only after approval. Custom AI agents are built with LLM "
+        "applications, retrieval over your own documents (RAG), MCP connections that expose "
+        "your systems to AI tools in a controlled way, and multi-agent workflows, scoped after "
+        "a requirement analysis.",
     ),
     (
         "Where is Reckon Technologies based?",
