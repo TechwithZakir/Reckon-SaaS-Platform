@@ -32,7 +32,20 @@ class SEOArticle(Document):
 
     def on_update(self):
         frappe.cache.delete_value(CACHE_KEY)
+        # The home page lists the latest posts and is cached for visitors, so clear the page cache too.
+        try:
+            from frappe.website.utils import clear_website_cache
+
+            clear_website_cache()
+        except Exception:
+            frappe.clear_cache()
         frappe.enqueue("reckon_saas_platform.seo.refresh_seo", trigger="article", queue="short", enqueue_after_commit=True)
 
     def on_trash(self):
         frappe.cache.delete_value(CACHE_KEY)
+        try:
+            from frappe.website.utils import clear_website_cache
+
+            clear_website_cache()
+        except Exception:
+            frappe.clear_cache()

@@ -143,6 +143,10 @@ class SeedTests(unittest.TestCase):
         self.assertIn("seed_drafts()", source)
         self.assertNotIn("Published", (PKG / "blog_seed.py").read_text(encoding="utf-8").replace("publishes it", ""))
 
+    def test_saving_or_deleting_a_post_clears_the_cached_pages(self):
+        source = (PKG / "seo_agent_studio" / "doctype" / "seo_article" / "seo_article.py").read_text(encoding="utf-8")
+        self.assertEqual(source.count("clear_website_cache()"), 2)  # on_update and on_trash
+
     def test_comparison_is_a_category_of_the_article_form_cover_and_agent(self):
         article = json.loads((PKG / "seo_agent_studio" / "doctype" / "seo_article" / "seo_article.json").read_text(encoding="utf-8"))
         category = next(f for f in article["fields"] if f["fieldname"] == "category")
