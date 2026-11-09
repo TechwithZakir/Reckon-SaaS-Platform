@@ -158,7 +158,15 @@ def build_frappe() -> ModuleType:
     utils.getdate = Mock(name="getdate", side_effect=getdate)
     utils.add_days = Mock(name="add_days", side_effect=lambda value, days: getdate(value) + timedelta(days=days))
     utils.add_months = Mock(name="add_months", side_effect=add_months)
-    utils.nowdate = Mock(name="nowdate", side_effect=lambda: date.today().isoformat())
+    real_nowdate = Mock(name="nowdate")
+
+    def _nowdate():
+        # A test that replaces ``frappe.utils.nowdate`` also pins the date for modules that imported the name.
+        current = utils.nowdate
+        return date.today().isoformat() if current is real_nowdate else current()
+
+    real_nowdate.side_effect = _nowdate
+    utils.nowdate = real_nowdate
     utils.cint = lambda value: int(value or 0)
     utils.flt = lambda value: float(value or 0)
     utils.strip_html = lambda value: value
