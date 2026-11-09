@@ -74,6 +74,23 @@ class LanguageHelperTests(unittest.TestCase):
             request_path(frappe, "/blog/some-post")
             self.assertEqual(marketing.current_lang(), "en")
 
+    def test_pages_without_a_slug_never_share_a_cached_copy_between_languages(self):
+        """Frappe caches one copy per route name, so ``/`` and ``/bn`` must not point at the same page."""
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        rules = dict(re.findall(r'\{"from_route": "([^"]+)", "to_route": "([^"]+)"\}', hooks))
+        english = {k: v for k, v in rules.items() if not k.startswith("/bn") and "<" not in k}
+        for route, target in rules.items():
+            if not route.startswith("/bn") or "<" in route:
+                continue
+            twin = "/" if route == "/bn" else route[len("/bn"):]
+            twin_target = "index" if twin == "/" else english[twin]
+            self.assertNotEqual(target, twin_target, f"{route} shares the cache entry of {twin}")
+            self.assertTrue((PKG / "www" / f"{target}.py").exists(), target)
+            template = (PKG / "www" / f"{target}.html").read_text(encoding="utf-8")
+            self.assertIn(f'{{% extends "reckon_saas_platform/www/{twin_target}.html" %}}', template, target)
+            self.assertIn(f"from reckon_saas_platform.www.{twin_target} import get_context", (PKG / "www" / f"{target}.py").read_text(encoding="utf-8"))
+        self.assertEqual(len([r for r in rules if r.startswith("/bn") and "<" not in r]), 7)
+
 
 @unittest.skipUnless(jinja2, "jinja2 is not installed")
 class BanglaPageTests(unittest.TestCase):
