@@ -800,7 +800,7 @@ class TrackingLoaderTests(unittest.TestCase):
         self.assertNotIn("else if(T.ga4)", source)
         self.assertIn("if(T.gtm){", source)
         self.assertIn("if(T.ga4){", source)
-        self.assertIn("if(T.pixel&&!T.gtm){", source)
+        self.assertIn("if(T.pixel&&!(T.gtm&&T.pixel_in_gtm)){", source)  # loaded by the site unless the container owns it
         self.assertIn("timeZone==='Asia/Dhaka'", source)  # Bangladesh visitors skip the banner, others are asked first  # the container owns the Pixel when Tag Manager is set
 
 class PerformanceAssetTests(unittest.TestCase):

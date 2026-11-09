@@ -1797,6 +1797,7 @@ def get_tracking() -> dict:
             if re.fullmatch(pattern, value):
                 result[key] = value
     # An unsaved Single reads blank, which must still mean "ask first".
+    result["pixel_in_gtm"] = bool(settings.get("meta_pixel_in_tag_manager")) if settings is not None else False
     result["consent"] = (settings.get("tracking_consent") if settings is not None else None) != "Load immediately"
     result["enabled"] = bool(result["gtm"] or result["ga4"] or result["pixel"])
     return result

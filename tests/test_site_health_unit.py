@@ -124,6 +124,18 @@ class SiteHealthTests(unittest.TestCase):
             page = marketing.pricing_page(BASE, _modules(marketing, frappe))
         self.assertEqual((page["lang"], page["canonical"]), ("bn", f"{BASE}/bn/pricing"))
 
+    def test_pixel_is_loaded_by_the_site_unless_the_container_owns_it(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(google_tag_manager_id="GTM-M6LCK4P8", google_analytics_id="G-QNDNXFPWSZ", meta_pixel_id="1357499629607234"))
+            default = marketing.get_tracking()
+            frappe.get_cached_doc = Mock(return_value=_Dict(google_tag_manager_id="GTM-M6LCK4P8", meta_pixel_id="1357499629607234", meta_pixel_in_tag_manager=1))
+            owned = marketing.get_tracking()
+        self.assertEqual((default["gtm"], default["ga4"], default["pixel"], default["pixel_in_gtm"]), ("GTM-M6LCK4P8", "G-QNDNXFPWSZ", "1357499629607234", False))
+        self.assertTrue(owned["pixel_in_gtm"])
+        path = PKG / "saas_platform" / "doctype" / "saas_platform_settings" / "saas_platform_settings.json"
+        field = next(f for f in json.loads(path.read_text(encoding="utf-8"))["fields"] if f["fieldname"] == "meta_pixel_in_tag_manager")
+        self.assertEqual((field["fieldtype"], field["default"]), ("Check", "0"))
+
 
 if __name__ == "__main__":
     unittest.main()
