@@ -1,0 +1,203 @@
+"""Bangla text for the module pages: overviews, highlights, use cases, inclusions and FAQs.
+
+Technical words stay in English (ERP, CRM, Workspace, Plan, Integration, Customization and so on).
+``PATTERNS`` handle the questions and answers every module shares, where a module name or a plan
+price is part of the sentence.
+"""
+
+from __future__ import annotations
+
+import re
+
+MODULES = {
+    # --- Distribution ---
+    "ReckonERP Distribution runs the daily work of an FMCG distributor: planning SR and DSR routes, delivering to retailers, collecting what they owe, and keeping stock and cash straight at the end of the day.": "ReckonERP Distribution একজন FMCG ডিস্ট্রিবিউটরের দৈনন্দিন কাজ সামলায়: SR ও DSR-এর রুট সাজানো, রিটেইলারদের কাছে ডেলিভারি, তাদের কাছে পাওনা আদায়, আর দিনের শেষে স্টক ও নগদের হিসাব মিলিয়ে রাখা।",
+    "It is built for teams that work from vans and phones. Field staff use a Bangla-first mobile app in the browser, while the office sees routes, dues and cash in real time and the books update underneath.": "এটি তৈরি হয়েছে ভ্যান ও ফোন নিয়ে কাজ করা দলের জন্য। মাঠের কর্মীরা ব্রাউজারেই বাংলা-আগে মোবাইল অ্যাপ ব্যবহার করেন, আর অফিসে বসে রুট, বকেয়া ও নগদ টাকার হিসাব রিয়েল-টাইমে দেখা যায়; হিসাবের খাতা আপনা-আপনি হালনাগাদ হয়।",
+    "Every company works in its own private workspace on ERPNext, so invoices, stock and payments post to real accounting records rather than a separate spreadsheet.": "প্রতিটি কোম্পানি ERPNext-এ নিজের আলাদা Workspace-এ কাজ করে, তাই ইনভয়েস, স্টক ও পেমেন্ট আলাদা স্প্রেডশিটে নয়, সরাসরি আসল হিসাবের খাতায় জমা হয়।",
+    "DSR and SR routes": "DSR ও SR রুট",
+    "Plan the day's visits and deliveries per route, and see what each representative delivered.": "রুট অনুযায়ী দিনের ভিজিট ও ডেলিভারি সাজান, আর দেখুন প্রতিটি প্রতিনিধি কী ডেলিভারি দিলেন।",
+    "Retailer dues": "রিটেইলারের বকেয়া",
+    "Keep a running balance per retailer and collect against open invoices in the field.": "প্রতিটি রিটেইলারের চলতি ব্যালান্স রাখুন এবং খোলা ইনভয়েসের বিপরীতে মাঠেই আদায় করুন।",
+    "DSR cash custody": "DSR-এর নগদ জিম্মা",
+    "Know how much cash each DSR carries and record what is handed in.": "প্রতিটি DSR-এর কাছে কত নগদ আছে জানুন এবং জমা দেওয়া টাকার হিসাব রাখুন।",
+    "Supplier-provided goods": "সরবরাহকারীর দেওয়া পণ্য",
+    "Handle goods supplied by principals alongside your own stock.": "প্রিন্সিপালের সরবরাহ করা পণ্য নিজের স্টকের পাশাপাশি সামলান।",
+    "Bangla-first mobile app": "বাংলা-আগে মোবাইল অ্যাপ",
+    "Field screens work in the phone browser with Bangla labels.": "মাঠের স্ক্রিনগুলো ফোনের ব্রাউজারেই চলে, বাংলা লেবেলসহ।",
+    "Accounting underneath": "ভেতরে হিসাবরক্ষণ",
+    "Invoices, stock and payments post to your company's books.": "ইনভয়েস, স্টক ও পেমেন্ট আপনার কোম্পানির হিসাবের খাতায় জমা হয়।",
+    "FMCG distributors and sub-distributors with SR and DSR teams": "SR ও DSR টিমসহ FMCG ডিস্ট্রিবিউটর ও সাব-ডিস্ট্রিবিউটর",
+    "Wholesalers who deliver by van and collect dues from retailers": "যেসব পাইকারি ব্যবসায়ী ভ্যানে ডেলিভারি দেন এবং রিটেইলারদের কাছ থেকে বকেয়া আদায় করেন",
+    "Companies that hold goods for principals as well as their own stock": "যেসব কোম্পানি নিজের স্টকের পাশাপাশি প্রিন্সিপালের পণ্যও রাখে",
+    "Route planning and delivery tracking": "রুট পরিকল্পনা ও ডেলিভারি ট্র্যাকিং",
+    "Retailer dues and collections": "রিটেইলারের বকেয়া ও আদায়",
+    "Admin, Manager, User and Master Data Manager roles": "Admin, Manager, User ও Master Data Manager রোল",
+    "Handheld devices and printers": "হ্যান্ডহেল্ড ডিভাইস ও প্রিন্টার",
+    "Route optimisation by map or GPS tracking hardware": "ম্যাপ বা GPS ট্র্যাকিং হার্ডওয়্যারভিত্তিক রুট অপটিমাইজেশন",
+    "Integration with your principals' own systems": "প্রিন্সিপালদের নিজস্ব সিস্টেমের সাথে Integration",
+    "Can my field team use it on a phone?": "আমাদের মাঠকর্মীরা কি ফোনে এটি ব্যবহার করতে পারবেন?",
+    "Yes. The Distribution module includes a Bangla-first mobile app that works in the phone's browser, so there is nothing to install.": "হ্যাঁ। Distribution মডিউলে বাংলা-আগে একটি মোবাইল অ্যাপ আছে, যা ফোনের ব্রাউজারেই চলে, তাই আলাদা কিছু ইনস্টল করতে হয় না।",
+    "Does it handle accounting and stock?": "এটি কি হিসাব ও স্টক সামলাতে পারে?",
+    "It runs on ERPNext, so invoices, payments and stock post to your Company's books.": "এটি ERPNext-এর ওপর চলে, তাই ইনভয়েস, পেমেন্ট ও স্টক আপনার Company-র হিসাবের খাতায় জমা হয়।",
+    "Does it track cash carried by each DSR?": "প্রতিটি DSR-এর বহন করা নগদ কি ট্র্যাক করা যায়?",
+    "Yes. DSR cash custody records what each DSR collected and what was handed in.": "হ্যাঁ। DSR-এর নগদ জিম্মা অংশে প্রতিটি DSR কত আদায় করেছেন আর কত জমা দিয়েছেন, তা লেখা থাকে।",
+    "Yes. The Distribution module includes a Bangla-first mobile app that works in the browser.": "হ্যাঁ। Distribution মডিউলে বাংলা-আগে একটি মোবাইল অ্যাপ আছে, যা ব্রাউজারেই চলে।",
+    "Does it handle accounting?": "এটি কি হিসাবরক্ষণ সামলায়?",
+    "It runs on ERPNext, so invoices, payments and stock post to the books of your Company.": "এটি ERPNext-এর ওপর চলে, তাই ইনভয়েস, পেমেন্ট ও স্টক আপনার Company-র হিসাবের খাতায় জমা হয়।",
+    # --- Accounts ---
+    "ReckonERP Accounts gives a small business clean books without the complexity of a full ERP rollout: sales invoices and quotations, purchase bills and orders, stock, cash and bank, and reports in a Tally-style layout.": "ReckonERP Accounts পুরো ERP চালুর ঝামেলা ছাড়াই ছোট ব্যবসাকে পরিচ্ছন্ন হিসাব দেয়: বিক্রয় ইনভয়েস ও কোটেশন, ক্রয়ের বিল ও অর্ডার, স্টক, নগদ ও ব্যাংক, আর ট্যালি-ধাঁচের রিপোর্ট।",
+    "It is a simpler set of screens over ERPNext's accounting, so the numbers are real double-entry records. Owners and accountants can read the books in the familiar Tally-style views, in English or Bangla.": "এটি ERPNext-এর অ্যাকাউন্টিংয়ের ওপর সহজ কিছু স্ক্রিন, তাই সংখ্যাগুলো আসল ডাবল-এন্ট্রি রেকর্ড। মালিক ও হিসাবরক্ষকরা পরিচিত ট্যালি-ধাঁচের ভিউতে ইংরেজি বা বাংলায় খাতা পড়তে পারেন।",
+    "Roles separate sales, purchase and stock work, so staff only open what their job needs.": "রোলের মাধ্যমে বিক্রয়, ক্রয় ও স্টকের কাজ আলাদা থাকে, তাই কর্মীরা শুধু নিজের কাজের অংশটুকুই খুলতে পারেন।",
+    "Sales invoices and quotations": "বিক্রয় ইনভয়েস ও কোটেশন",
+    "Quote, invoice and track what customers owe.": "কোটেশন দিন, ইনভয়েস করুন এবং গ্রাহকের কাছে কত পাওনা তা ট্র্যাক করুন।",
+    "Purchase bills and orders": "ক্রয়ের বিল ও অর্ডার",
+    "Record supplier bills and orders and what you owe.": "সরবরাহকারীর বিল ও অর্ডার এবং আপনার দেনা লিখে রাখুন।",
+    "Stock and warehouses": "স্টক ও গুদাম",
+    "Keep stock in step with what you buy and sell.": "যা কিনছেন ও বিক্রি করছেন, স্টক তার সাথে মিলিয়ে রাখুন।",
+    "Cash, bank and payments": "নগদ, ব্যাংক ও পেমেন্ট",
+    "Record receipts and payments in one place.": "প্রাপ্তি ও পরিশোধ এক জায়গায় লিখুন।",
+    "Tally-style books and reports": "ট্যালি-ধাঁচের খাতা ও রিপোর্ট",
+    "Ledgers, day books and summaries in a layout accountants know.": "হিসাবরক্ষকদের চেনা ধাঁচে লেজার, ডে বুক ও সারসংক্ষেপ।",
+    "Team roles": "টিমের রোল",
+    "Separate roles for sales, purchase and stock staff.": "বিক্রয়, ক্রয় ও স্টক কর্মীদের জন্য আলাদা রোল।",
+    "Shops, traders and small companies that need accurate books": "দোকান, ট্রেডার ও ছোট কোম্পানি, যাদের নির্ভুল হিসাব দরকার",
+    "Businesses moving from spreadsheets or desktop accounting to the cloud": "স্প্রেডশিট বা ডেস্কটপ অ্যাকাউন্টিং থেকে Cloud-এ আসতে চাওয়া ব্যবসা",
+    "Owners who want to see profit, dues and cash without learning a large ERP": "বড় ERP না শিখেই মুনাফা, বকেয়া ও নগদের হিসাব দেখতে চাওয়া মালিক",
+    "Team roles for sales, purchase and stock": "বিক্রয়, ক্রয় ও স্টকের জন্য টিমের রোল",
+    "Payroll and HR (see the HRMS module)": "Payroll ও HR (HRMS মডিউল দেখুন)",
+    "Statutory return filing with the tax authority": "কর কর্তৃপক্ষের কাছে বিধিবদ্ধ রিটার্ন জমা",
+    "Bank feed integrations": "ব্যাংক ফিড Integration",
+    "Is this a full accounting system?": "এটি কি পূর্ণাঙ্গ অ্যাকাউন্টিং সিস্টেম?",
+    "Yes. It is built on ERPNext's accounting with a simpler set of screens for small businesses.": "হ্যাঁ। এটি ERPNext-এর অ্যাকাউন্টিংয়ের ওপর তৈরি, ছোট ব্যবসার জন্য সহজ কিছু স্ক্রিনসহ।",
+    "Can my accountant see Tally-style reports?": "আমার হিসাবরক্ষক কি ট্যালি-ধাঁচের রিপোর্ট দেখতে পারবেন?",
+    "Yes. The module includes ledgers, books and summaries in a Tally-style layout.": "হ্যাঁ। মডিউলে ট্যালি-ধাঁচের লেজার, খাতা ও সারসংক্ষেপ আছে।",
+    # --- Sales AI Agent ---
+    "ReckonERP Sales AI Agent finds businesses worth contacting, researches each one from its own website, scores the leads and prepares follow-ups, with a person approving every message before it is sent.": "ReckonERP Sales AI Agent যোগাযোগের উপযুক্ত ব্যবসা খুঁজে বের করে, প্রতিটির নিজস্ব ওয়েবসাইট থেকে তথ্য সংগ্রহ করে, লিড স্কোর করে এবং ফলো-আপ তৈরি করে; প্রতিটি বার্তা পাঠানোর আগে একজন মানুষ অনুমোদন দেন।",
+    "Research keeps its evidence next to each claim, scoring uses fixed rules you can read and explain, and leads sync to your CRM so your team can pick up where the agent stopped.": "রিসার্চে প্রতিটি দাবির পাশে প্রমাণ থাকে, স্কোরিং হয় আপনার পড়া ও বোঝানোর মতো নির্দিষ্ট নিয়মে, আর লিড CRM-এ সিঙ্ক হয়ে যায়, ফলে এজেন্ট যেখানে থামে আপনার দল সেখান থেকেই শুরু করতে পারে।",
+    "Channels such as email, SMS and WhatsApp are connected one by one on a single Integrations page, and each business keeps its own keys.": "ইমেইল, SMS ও WhatsApp-এর মতো চ্যানেল একটিমাত্র Integrations পেজ থেকে একটি একটি করে যুক্ত করা যায়, আর প্রতিটি ব্যবসা নিজের কী নিজের কাছেই রাখে।",
+    "Lead discovery campaigns": "লিড Discovery ক্যাম্পেইন",
+    "Run campaigns that find businesses worth contacting.": "যোগাযোগের উপযুক্ত ব্যবসা খুঁজে বের করার ক্যাম্পেইন চালান।",
+    "Website research with evidence": "প্রমাণসহ ওয়েবসাইট রিসার্চ",
+    "Each finding links back to where it came from.": "প্রতিটি তথ্য কোথা থেকে এসেছে, সেই লিংক সাথেই থাকে।",
+    "Rule-based lead scoring": "নিয়মভিত্তিক লিড স্কোরিং",
+    "Scores you can read, explain and adjust.": "যে স্কোর আপনি পড়তে, বোঝাতে ও বদলাতে পারেন।",
+    "CRM sync": "CRM সিঙ্ক",
+    "Qualified leads flow to your CRM.": "যাচাইকৃত লিড আপনার CRM-এ চলে যায়।",
+    "Email sequences with approval": "অনুমোদনসহ ইমেইল সিকোয়েন্স",
+    "Follow-ups are drafted for you and wait for a person to approve.": "ফলো-আপের খসড়া আপনার জন্য তৈরি হয় এবং মানুষের অনুমোদনের অপেক্ষায় থাকে।",
+    "AI research and drafting": "AI রিসার্চ ও খসড়া",
+    "AI helps with research and first drafts, never with sending.": "AI রিসার্চ ও প্রথম খসড়ায় সাহায্য করে, বার্তা পাঠানোর কাজ কখনো করে না।",
+    "B2B sales teams that need a steady flow of qualified leads": "যেসব B2B সেলস টিমের নিয়মিত যাচাইকৃত লিড দরকার",
+    "Agencies and suppliers prospecting businesses in a region": "কোনো অঞ্চলের ব্যবসায় সম্ভাব্য গ্রাহক খোঁজা এজেন্সি ও সরবরাহকারী",
+    "Teams that want AI help but a human decision before anything is sent": "যেসব দল AI-এর সহায়তা চায়, তবে কিছু পাঠানোর আগে মানুষের সিদ্ধান্ত চায়",
+    "AI research and drafting tools": "AI রিসার্চ ও খসড়া তৈরির টুল",
+    "AI usage and channel charges (WhatsApp, SMS, voice, email providers) are billed in addition": "AI ব্যবহার ও চ্যানেলের চার্জ (WhatsApp, SMS, ভয়েস, ইমেইল প্রোভাইডার) আলাদাভাবে বিল করা হয়",
+    "Bought contact lists": "কেনা যোগাযোগ তালিকা",
+    "Sending without approval": "অনুমোদন ছাড়া পাঠানো",
+    "Which channels can it use?": "এটি কোন কোন চ্যানেল ব্যবহার করতে পারে?",
+    "Website chat, WhatsApp, Facebook Messenger, Instagram, LinkedIn, Twilio, SMS gateways and email. See the integrations page for the full list.": "ওয়েবসাইট চ্যাট, WhatsApp, Facebook Messenger, Instagram, LinkedIn, Twilio, SMS গেটওয়ে ও ইমেইল। পূর্ণ তালিকার জন্য Integrations পেজ দেখুন।",
+    "Does it need my own AI account?": "এর জন্য কি আমার নিজের AI অ্যাকাউন্ট লাগবে?",
+    "The platform operator can provide the AI service for everyone, and a business may bring its own if the operator allows it.": "প্ল্যাটফর্ম অপারেটর সবার জন্য AI সার্ভিস দিতে পারেন, আর অপারেটর অনুমতি দিলে কোনো ব্যবসা নিজের AI অ্যাকাউন্টও ব্যবহার করতে পারে।",
+    "Will it message people without approval?": "অনুমোদন ছাড়া কি এটি মানুষকে বার্তা পাঠাবে?",
+    "No. Drafts wait for a person's approval before any message is sent.": "না। কোনো বার্তা পাঠানোর আগে খসড়া একজন মানুষের অনুমোদনের অপেক্ষায় থাকে।",
+    # --- HRMS ---
+    "ReckonERP HRMS is compact HR and payroll for small businesses: employee records, attendance and shifts, leave, and payroll, in one workspace per company.": "ReckonERP HRMS ছোট ব্যবসার জন্য সহজ HR ও Payroll: কর্মীর রেকর্ড, উপস্থিতি ও শিফট, ছুটি এবং বেতন—প্রতি কোম্পানির জন্য একটি আলাদা Workspace-এ।",
+    "It keeps the everyday HR work simple, so a business owner or HR officer can run attendance, leave and the monthly payroll without learning a large HR suite.": "প্রতিদিনের HR কাজ সহজ রাখে, তাই ব্যবসার মালিক বা HR কর্মকর্তা বড় কোনো HR সফটওয়্যার না শিখেই উপস্থিতি, ছুটি ও মাসিক বেতন চালাতে পারেন।",
+    "Team members get roles that match their work, from HR and payroll managers to employee self-service, and each company's people data stays separate from every other customer.": "প্রত্যেকে নিজের কাজের সাথে মানানসই রোল পান—HR ও Payroll ম্যানেজার থেকে শুরু করে কর্মীর নিজস্ব সেলফ-সার্ভিস পর্যন্ত—আর প্রতিটি কোম্পানির কর্মীদের তথ্য অন্য সব গ্রাহক থেকে আলাদা থাকে।",
+    "Employees": "কর্মী",
+    "One record per person with the details HR needs.": "HR-এর দরকারি সব তথ্যসহ প্রতিজনের জন্য একটি রেকর্ড।",
+    "Attendance and shifts": "উপস্থিতি ও শিফট",
+    "Record attendance and organise shifts.": "উপস্থিতি লিখুন ও শিফট সাজান।",
+    "Leave": "ছুটি",
+    "Employees request leave and managers approve it.": "কর্মীরা ছুটির আবেদন করেন, ম্যানেজাররা অনুমোদন দেন।",
+    "Payroll": "Payroll",
+    "Run payroll from attendance and leave.": "উপস্থিতি ও ছুটির ভিত্তিতে Payroll চালান।",
+    "Roles for HR work": "HR কাজের জন্য রোল",
+    "HR manager, payroll manager, talent admin and employee self-service roles.": "HR ম্যানেজার, Payroll ম্যানেজার, ট্যালেন্ট অ্যাডমিন ও কর্মীর সেলফ-সার্ভিস রোল।",
+    "Private per company": "প্রতি কোম্পানির আলাদা",
+    "Every company's HR data is kept apart.": "প্রতিটি কোম্পানির HR তথ্য আলাদা রাখা হয়।",
+    "Businesses that need monthly payroll tied to real attendance": "যেসব ব্যবসার মাসিক বেতন আসল উপস্থিতির সাথে সংযুক্ত রাখা দরকার",
+    "Owners who want employees to see their own leave and records": "যেসব মালিক চান কর্মীরা নিজের ছুটি ও রেকর্ড নিজেই দেখুন",
+    "HR manager, payroll manager, talent admin and employee self-service roles": "HR ম্যানেজার, Payroll ম্যানেজার, ট্যালেন্ট অ্যাডমিন ও কর্মীর সেলফ-সার্ভিস রোল",
+    "Statutory filings and tax returns": "বিধিবদ্ধ ফাইলিং ও কর রিটার্ন",
+    "Biometric or attendance hardware": "বায়োমেট্রিক বা উপস্থিতির হার্ডওয়্যার",
+    "Recruitment portals beyond the included talent role": "অন্তর্ভুক্ত ট্যালেন্ট রোলের বাইরে নিয়োগ পোর্টাল",
+    "Can employees see their own information?": "কর্মীরা কি নিজেদের তথ্য দেখতে পারেন?",
+    "Yes. The Employee Self Service role lets each person see their own records, subject to what the company allows.": "হ্যাঁ। Employee Self Service রোলে প্রত্যেকে নিজের রেকর্ড দেখতে পারেন, কোম্পানি যতটুকু অনুমতি দেয় সেই সীমার মধ্যে।",
+    "Is payroll based on attendance?": "Payroll কি উপস্থিতির ওপর নির্ভর করে?",
+    "Payroll is built from the attendance and leave you record in the module.": "মডিউলে আপনি যে উপস্থিতি ও ছুটি লিখে রাখেন, তার ভিত্তিতেই Payroll তৈরি হয়।",
+    # --- CRM ---
+    "ReckonERP CRM gives sales teams one place for leads, deals and the organizations behind them, so nothing a customer said lives only in someone's head or inbox.": "ReckonERP CRM সেলস টিমকে লিড, ডিল আর তাদের পেছনের প্রতিষ্ঠানের জন্য এক জায়গা দেয়, ফলে গ্রাহকের বলা কোনো কথা শুধু কারও মাথায় বা ইনবক্সে আটকে থাকে না।",
+    "Each company works in its own private CRM, with an admin role for the owner and a user role for the team, and records stay separate from every other customer.": "প্রতিটি কোম্পানি নিজের আলাদা CRM-এ কাজ করে—মালিকের জন্য Admin রোল, দলের জন্য User রোল—আর রেকর্ড অন্য সব গ্রাহক থেকে আলাদা থাকে।",
+    "It pairs with the Sales AI Agent: the agent finds and qualifies leads, and the CRM is where your team follows them up.": "এটি Sales AI Agent-এর সাথে জুড়ে কাজ করে: এজেন্ট লিড খুঁজে যাচাই করে, আর CRM-এ আপনার দল সেগুলোর ফলো-আপ করে।",
+    "Leads": "লিড",
+    "Capture and track every enquiry.": "প্রতিটি অনুসন্ধান সংগ্রহ করুন ও অনুসরণ করুন।",
+    "Deals": "ডিল",
+    "Move opportunities through your pipeline.": "সম্ভাবনাগুলোকে Pipeline-এ এগিয়ে নিন।",
+    "Organizations": "প্রতিষ্ঠান",
+    "Keep the companies and contacts behind each deal together.": "প্রতিটি ডিলের পেছনের কোম্পানি ও যোগাযোগের তথ্য একসাথে রাখুন।",
+    "Admin and user roles": "Admin ও User রোল",
+    "Owners manage the CRM; the team works in it.": "মালিক CRM পরিচালনা করেন; দল তাতে কাজ করে।",
+    "Your records are separate from every other customer.": "আপনার রেকর্ড অন্য সব গ্রাহক থেকে আলাদা।",
+    "Works with the Sales AI Agent": "Sales AI Agent-এর সাথে কাজ করে",
+    "Qualified leads sync straight in.": "যাচাইকৃত লিড সরাসরি সিঙ্ক হয়।",
+    "Businesses that want one pipeline for leads, deals and companies": "যেসব ব্যবসা লিড, ডিল ও কোম্পানির জন্য একটি Pipeline চায়",
+    "Teams adding the Sales AI Agent to feed their pipeline": "Pipeline ভরাট করতে Sales AI Agent যোগ করা দল",
+    "Email and telephony provider charges": "ইমেইল ও টেলিফোনি প্রোভাইডারের চার্জ",
+    "Marketing automation beyond the module": "মডিউলের বাইরে Marketing automation",
+    "Custom pipelines and fields (customisation is quoted separately)": "কাস্টম Pipeline ও ফিল্ড (Customization আলাদা কোটেশনে)",
+    "Can I use it with the Sales AI Agent?": "আমি কি এটি Sales AI Agent-এর সাথে ব্যবহার করতে পারব?",
+    "Yes. The agent syncs qualified leads into the CRM, where your team follows them up.": "হ্যাঁ। এজেন্ট যাচাইকৃত লিড CRM-এ সিঙ্ক করে, আর আপনার দল সেখানে ফলো-আপ করে।",
+    # --- questions and answers every module shares ---
+    "Can you support us on-site?": "আপনারা কি অন-সাইট সাপোর্ট দিতে পারবেন?",
+    "Do you do requirement analysis before we start?": "শুরুর আগে কি আপনারা Requirement analysis করেন?",
+    "Can I add or change modules later?": "পরে কি মডিউল যোগ বা পরিবর্তন করতে পারব?",
+    "How do I pay?": "পেমেন্ট করব কীভাবে?",
+    "Basic help by email and WhatsApp on how to use the module is included with your subscription. Faster response, a named contact or regular check-ins are available as paid support on request.": "মডিউল কীভাবে ব্যবহার করবেন তা নিয়ে ইমেইল ও WhatsApp-এ প্রাথমিক সহায়তা সাবস্ক্রিপশনের সাথেই পাবেন। আরও দ্রুত সাড়া, নির্দিষ্ট যোগাযোগকারী বা নিয়মিত চেক-ইন অনুরোধে সশুল্ক সাপোর্ট হিসেবে পাওয়া যায়।",
+    "Yes, as a paid service. We can train your team online or in person, in English or Bangla. Training is quoted separately and is not part of the subscription.": "হ্যাঁ, তবে সশুল্ক সেবা হিসেবে। আমরা অনলাইনে বা সরাসরি, ইংরেজি বা বাংলায় আপনার দলকে প্রশিক্ষণ দিতে পারি। প্রশিক্ষণের জন্য আলাদা কোটেশন দেওয়া হয়, এটি সাবস্ক্রিপশনের অংশ নয়।",
+    "On-site support is available on request and quoted separately, including travel. Most customers start online and ask for a visit only when they need one.": "অন-সাইট সাপোর্ট অনুরোধে পাওয়া যায় এবং যাতায়াতসহ আলাদা কোটেশনে দেওয়া হয়। বেশিরভাগ গ্রাহক অনলাইনে শুরু করেন, আর দরকার হলেই আমাদের ভিজিট চান।",
+    "Self-service signup needs none. If your process is complex, we offer a paid requirement analysis: we study how you work, map it to the module and tell you what is covered, what needs configuration and what would need customisation.": "নিজে নিজে সাইন আপ করলে এর দরকার হয় না। আপনার প্রক্রিয়া জটিল হলে আমরা সশুল্ক Requirement analysis করি: আপনার কাজের ধরন বুঝে মডিউলের সাথে মিলিয়ে বলে দিই কী কী আগে থেকেই আছে, কী কনফিগার করতে হবে, আর কোনটির জন্য Customization লাগবে।",
+    "Yes. Additional customisations such as extra fields, reports, print formats, workflows and integrations are quoted after requirement analysis. For full control we also offer dedicated cloud and on-premises installation.": "হ্যাঁ। অতিরিক্ত ফিল্ড, রিপোর্ট, প্রিন্ট ফরম্যাট, Workflow ও Integration-এর মতো Customization Requirement analysis-এর পর আলাদা কোটেশনে করা হয়। পূর্ণ নিয়ন্ত্রণের জন্য Dedicated Cloud ও On-premises ইনস্টলেশনও আছে।",
+    "Data migration from spreadsheets or other software is available as an additional service, quoted by the amount and quality of the data.": "স্প্রেডশিট বা অন্য সফটওয়্যার থেকে Data migration অতিরিক্ত সেবা হিসেবে পাওয়া যায়; ডেটার পরিমাণ ও মান অনুযায়ী কোটেশন দেওয়া হয়।",
+    "Yes. Subscribe to another module from your Subscription page at any time; each module has its own plan and invoice.": "হ্যাঁ। যেকোনো সময় আপনার Subscription পেজ থেকে অন্য মডিউল সাবস্ক্রাইব করতে পারেন; প্রতিটি মডিউলের আলাদা Plan ও ইনভয়েস আছে।",
+    "After signup you receive an invoice by email (with a PDF), and a link by SMS. Pay by bKash, Nagad, Rocket or bank transfer, enter the transaction reference on your Subscription page, and we unlock your workspace once the payment is verified.": "সাইন আপের পর ইমেইলে ইনভয়েস (PDF সহ) আর SMS-এ একটি লিংক পাবেন। bKash, Nagad, Rocket বা ব্যাংক ট্রান্সফারে পেমেন্ট করে Subscription পেজে ট্রানজ্যাকশন রেফারেন্স দিন; পেমেন্ট যাচাই হলেই আমরা আপনার Workspace চালু করে দিই।",
+    "Trial days depend on the plan; any trial is shown at signup before you pay.": "ট্রায়ালের দিন Plan অনুযায়ী ভিন্ন হয়; ট্রায়াল থাকলে পেমেন্টের আগে সাইন আপের সময় তা দেখানো হয়।",
+}
+
+_CYCLE = {"month": "প্রতি মাসে", "quarter": "প্রতি ৩ মাসে", "6 months": "প্রতি ৬ মাসে", "year": "প্রতি বছরে"}
+
+
+def _plans(listing: str, translate) -> str:
+    """``Basic: ৳500 per month; Pro: ৳1,000 per month`` -> Bangla price wording, plan names kept."""
+    parts = []
+    for item in listing.split("; "):
+        name, _sep, price = item.partition(": ")
+        found = re.fullmatch(r"(\S+) per (month|quarter|6 months|year)", price)
+        parts.append(f"{name}: {_CYCLE[found.group(2)]} {found.group(1)}" if found else item)
+    return "; ".join(parts)
+
+
+def _list(text: str, translate) -> str:
+    return "; ".join(translate(item) for item in text.split("; "))
+
+
+# (pattern, builder(match, translate)) for sentences that contain a module name or a price.
+PATTERNS = [
+    (re.compile(r"^How much does (.+) cost\?$"), lambda m, t: f"{m[1]}-এর মূল্য কত?"),
+    (re.compile(r"^Is there a free trial for (.+)\?$"), lambda m, t: f"{m[1]}-এর জন্য কি ফ্রি ট্রায়াল আছে?"),
+    (re.compile(r"^What is included in the (.+) subscription\?$"), lambda m, t: f"{m[1]} সাবস্ক্রিপশনে কী কী অন্তর্ভুক্ত?"),
+    (re.compile(r"^What is not included in (.+)\?$"), lambda m, t: f"{m[1]}-এ কী কী অন্তর্ভুক্ত নয়?"),
+    (re.compile(r"^What support do I get with (.+)\?$"), lambda m, t: f"{m[1]}-এর সাথে কী সাপোর্ট পাব?"),
+    (re.compile(r"^Do you provide training for (.+)\?$"), lambda m, t: f"{m[1]}-এর জন্য কি আপনারা প্রশিক্ষণ দেন?"),
+    (re.compile(r"^Can (.+) be customised for us\?$"), lambda m, t: f"{m[1]} কি আমাদের জন্য Customize করা যাবে?"),
+    (re.compile(r"^Can you move our existing data into (.+)\?$"), lambda m, t: f"আমাদের বিদ্যমান ডেটা কি {m[1]}-এ নিয়ে আসতে পারবেন?"),
+    (re.compile(r"^(.+) is sold as a subscription\. Current plans: (.+)\. The price, billing period and any trial days are shown again at signup, before you pay\.$"),
+     lambda m, t: f"{m[1]} সাবস্ক্রিপশন হিসেবে বিক্রি হয়। বর্তমান Plan: {_plans(m[2], t)}। মূল্য, বিলিং সময়কাল ও ট্রায়ালের দিন (থাকলে) পেমেন্টের আগে সাইন আপের সময় আবার দেখানো হয়।"),
+    (re.compile(r"^(.+) is sold as a subscription\. The plan, price, billing period and any trial days are shown at signup, before you pay\.$"),
+     lambda m, t: f"{m[1]} সাবস্ক্রিপশন হিসেবে বিক্রি হয়। Plan, মূল্য, বিলিং সময়কাল ও ট্রায়ালের দিন (থাকলে) পেমেন্টের আগে সাইন আপের সময় দেখানো হয়।"),
+    (re.compile(r"^Some plans start with a free trial \(up to (\d+) days\)\. The trial length for each plan is shown at signup\.$"),
+     lambda m, t: f"কিছু Plan ফ্রি ট্রায়াল দিয়ে শুরু হয় (সর্বোচ্চ {m[1]} দিন পর্যন্ত)। প্রতিটি Plan-এর ট্রায়ালের মেয়াদ সাইন আপের সময় দেখানো হয়।"),
+    (re.compile(r"^Included: (.+)\.$"), lambda m, t: f"অন্তর্ভুক্ত: {_list(m[1], t)}।"),
+    (re.compile(r"^Not included: (.+)\. Ask us for a quote for any of these\.$"),
+     lambda m, t: f"অন্তর্ভুক্ত নয়: {_list(m[1], t)}। এসবের যেকোনোটির জন্য আমাদের কাছে কোটেশন চান।"),
+]

@@ -334,6 +334,15 @@ BN.update(
     }
 )
 
+from reckon_saas_platform import marketing_bn_faq as _faq  # noqa: E402
+from reckon_saas_platform import marketing_bn_modules as _modules  # noqa: E402
+from reckon_saas_platform import marketing_bn_pages as _pages  # noqa: E402
+
+BN.update(_modules.MODULES)
+BN.update(_pages.FEATURES)
+BN.update(_pages.INDUSTRIES)
+BN.update(_faq.HOME_FAQS)
+
 # "Prefix ... | suffix" titles and "Questions about X" headings, matched when there is no exact entry.
 SUFFIXES = {
     " | ReckonERP": " | ReckonERP",
@@ -356,6 +365,10 @@ def translate(text):
     hit = BN.get(text)
     if hit is not None:
         return hit
+    for pattern, build in _modules.PATTERNS:
+        found = pattern.match(text)
+        if found:
+            return build(found, translate)
     price = PRICE.match(text)
     if price:
         return f"{CYCLES[price.group('cycle')]} {price.group('price')}"

@@ -130,6 +130,46 @@ class LanguageHelperTests(unittest.TestCase):
             self.assertEqual(marketing.scrub_brand("Built on Frappe."), "Built on.")
             self.assertEqual(marketing.scrub_brand("Nothing to change"), "Nothing to change")
 
+    def test_every_module_feature_industry_and_home_faq_text_has_a_bangla_version(self):
+        import importlib
+
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            from reckon_saas_platform import module_content
+
+            bn = marketing.marketing_bn
+            industries = importlib.import_module("reckon_saas_platform.industries")
+            texts = []
+            for details in module_content.MODULE_DETAILS.values():
+                texts += details.get("overview", []) + details.get("use_cases", []) + details.get("inclusions", []) + details.get("exclusions", [])
+                texts += [t for pair in details.get("highlights", []) for t in pair]
+                texts += [t for pair in details.get("faqs", []) for t in pair]
+            for copy in marketing.MODULE_COPY.values():
+                texts += [t for pair in copy.get("faqs", []) or [] for t in pair]
+            for feature in marketing.FEATURE_LIST:
+                texts += [feature["description"], feature["intro"], *feature["points"], *[t for pair in feature["faqs"] for t in pair]]
+            texts.append(industries.STANDARD)
+            for industry in industries.INDUSTRIES:
+                texts += [industry["description"], industry["intro"], *industry["standard"], *industry["custom"], *[t for pair in industry["faqs"] for t in pair]]
+            texts += [t for pair in marketing.HOME_FAQS for t in pair]
+            texts += ["About ReckonERP", "More answers"]
+            missing = sorted({t[:90] for t in texts if bn.translate(t) == t and t not in bn.BN})
+        self.assertEqual(missing, [])
+
+    def test_shared_module_questions_and_answers_translate_with_the_module_name_and_prices(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            from reckon_saas_platform import module_content
+
+            bn = marketing.marketing_bn
+            plans = [{"name": "Basic", "price_text": "৳500 per month", "trial_days": 15}, {"name": "Pro", "price_text": "৳1,000 per quarter", "trial_days": 0}]
+            for name in ("Distribution SaaS", "Reckon CRM"):
+                for question, answer in module_content.service_faqs(name, plans, ["One thing", "Two things"], ["Not this"]) + module_content.service_faqs(name, [], ["One"], ["Two"]):
+                    self.assertNotEqual(bn.translate(question), question, question)
+                    self.assertNotEqual(bn.translate(answer), answer, answer[:60])
+            translated = bn.translate(module_content.service_faqs("Reckon CRM", plans, [], [])[0][1])
+        self.assertIn("Reckon CRM সাবস্ক্রিপশন হিসেবে বিক্রি হয়", translated)
+        self.assertIn("Basic: প্রতি মাসে ৳500", translated)
+        self.assertIn("Pro: প্রতি ৩ মাসে ৳1,000", translated)
+
 
 @unittest.skipUnless(jinja2, "jinja2 is not installed")
 class BanglaPageTests(unittest.TestCase):
@@ -214,8 +254,13 @@ class BanglaPageTests(unittest.TestCase):
         self.assertFalse(context.get("lang_links"))
 
     def test_untranslated_text_falls_back_to_english_instead_of_disappearing(self):
-        page, html, _m = self.render("/bn/faq", lambda m, mods: m.faq_page(BASE, mods))
-        self.assertIn("What is ReckonERP?", html)  # answers and questions are long-form reading, so they stay English
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            request_path(frappe, "/bn/faq")
+            page = marketing.make_page(BASE, path="/faq", title="Pricing", description="d" * 60, h1="Pricing",
+                                       faqs=[("What is ReckonERP?", "x"), ("A question nobody has translated?", "An answer nobody has translated.")])
+        questions = [q for q, _a in page["faqs"]]
+        self.assertEqual(questions, ["ReckonERP কী?", "A question nobody has translated?"])
+        self.assertEqual(page["faqs"][1][1], "An answer nobody has translated.")
 
     def test_all_pages_still_build_in_english(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
