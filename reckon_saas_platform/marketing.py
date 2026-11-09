@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import re
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 from xml.sax.saxutils import escape as xml_escape
 
 import frappe
@@ -1858,12 +1858,6 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.services = SERVICES
     context.company_summary = COMPANY_SUMMARY
     context.expertise = EXPERTISE
-    request = getattr(frappe.local, "request", None)
-    served = getattr(request, "path", "")
-    if isinstance(served, str) and served and not page.get("noindex"):
-        # /reckon_pricing, /reckon_bn_home and /index render the same page as its public address; keep them out of search.
-        if (served.rstrip("/") or "/") != ((urlparse(page["canonical"]).path.rstrip("/")) or "/"):
-            page["noindex"] = True
     if lang == "bn":
         for name in ("address_text", "open_hours"):
             setattr(context, name, marketing_bn.translate(getattr(context, name)))

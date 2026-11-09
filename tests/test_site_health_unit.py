@@ -62,22 +62,21 @@ class SiteHealthTests(unittest.TestCase):
             marketing.refresh_public_pages(doc=Mock(), method="on_update")
         self.assertEqual(frappe.clear_cache.call_count, 2)  # one per call, in this stub the website cache module is absent
 
-    def test_duplicate_raw_routes_are_disallowed_and_marked_noindex(self):
+    def test_duplicate_raw_routes_are_disallowed_but_never_flagged_noindex_per_request(self):
+        """Frappe shares one cached copy between a route name and its public address, so a per-request noindex flag
+        set when someone opens ``/reckon_pricing`` would leak onto ``/pricing``. The page keeps its public canonical
+        instead, and robots.txt keeps crawlers off the raw routes."""
         with platform_modules("marketing") as (frappe, (marketing,)):
             robots = marketing.robots_txt(BASE)
             modules = _modules(marketing, frappe)
             page = marketing.pricing_page(BASE, modules)
-            frappe.local.request = Mock(path="/reckon_pricing")  # the template's own address, not the public one
+            frappe.local.request = Mock(path="/reckon_pricing")
             marketing.apply_context(_Dict(), page, modules)
-            duplicate = page["noindex"]
-            real = marketing.pricing_page(BASE, modules)
-            frappe.local.request = Mock(path="/pricing")
-            marketing.apply_context(_Dict(), real, modules)
         self.assertIn("Disallow: /reckon_" + chr(10), robots)
         self.assertIn("Disallow: /index" + chr(10), robots)
         self.assertNotIn("Disallow: /industries", robots)
-        self.assertTrue(duplicate)
-        self.assertFalse(real["noindex"])
+        self.assertFalse(page["noindex"])  # a request path must never change what is cached for the public address
+        self.assertEqual(page["canonical"], f"{BASE}/pricing")  # the raw route still points search engines at the real page
 
     def test_bangla_titles_stay_short_enough_not_to_be_cut_in_results(self):
         with platform_modules("marketing") as (frappe, (marketing,)):
