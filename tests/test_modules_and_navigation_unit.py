@@ -247,6 +247,35 @@ class SignupPlanGroupingTests(unittest.TestCase):
             page.get_signup_plans("crm")
             self.assertEqual(frappe.get_all.call_args.kwargs["filters"], {"enabled": 1, "saas_module": "crm"})
 
+    def _mixed(self, frappe):
+        frappe.get_all.side_effect = [
+            [_Dict(name="distribution", module_name="Distribution SaaS")],
+            [
+                _Dict(name="Basic USD", saas_module="distribution", currency="USD", price=4),
+                _Dict(name="Basic", saas_module="distribution", currency="BDT", price=500),
+                _Dict(name="Pro", saas_module="distribution", currency="BDT", price=1000),
+                _Dict(name="Pro USD", saas_module="distribution", currency="USD", price=8),
+            ],
+        ]
+
+    def test_bdt_plans_come_first_and_a_currency_parameter_keeps_only_that_currency(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            self._mixed(frappe)
+            plans, _groups = page.get_signup_plans("distribution")
+            self.assertEqual([p.name for p in plans], ["Basic", "Pro", "Basic USD", "Pro USD"])
+            self._mixed(frappe)
+            plans, _groups = page.get_signup_plans("distribution", "USD")
+            self.assertEqual([p.name for p in plans], ["Basic USD", "Pro USD"])
+            self._mixed(frappe)
+            plans, _groups = page.get_signup_plans("distribution", "EUR")  # no plans in that currency: show them all
+            self.assertEqual(len(plans), 4)
+
+    def test_requested_currency_must_look_like_a_currency_code(self):
+        with platform_modules("www.reckonerp_signup") as (frappe, (page,)):
+            for raw, expected in (("usd", "USD"), ("BDT", "BDT"), ("<script>", ""), ("US", ""), (None, "")):
+                frappe.form_dict = {"currency": raw}
+                self.assertEqual(page._requested_currency(), expected, raw)
+
 
 if __name__ == "__main__":
     unittest.main()

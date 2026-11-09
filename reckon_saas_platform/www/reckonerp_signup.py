@@ -42,7 +42,7 @@ def get_context(context):
     # and the module selector instead of that module's plans.
     context.module_unavailable = bool(requested) and context.module is None
     context.selected_module = context.module["key"] if context.module else ""
-    context.plans, context.plan_groups = get_signup_plans(context.selected_module)
+    context.plans, context.plan_groups = get_signup_plans(context.selected_module, _requested_currency())
     module_names = {group["module"]: group["module_name"] for group in context.plan_groups}
     context.plan_cards = [_plan_card(plan, context.t, module_names) for plan in context.plans]
     # Without ?module=, the form shows a module selector and filters the plan
@@ -76,6 +76,11 @@ def _request_language() -> str:
     )
 
 
+def _requested_currency() -> str:
+    value = str(frappe.form_dict.get("currency") or "").upper()
+    return value if re.fullmatch(r"[A-Z]{3}", value) else ""
+
+
 def _url_with(**changes) -> str:
     """The signup URL with the current safe parameters plus ``changes``."""
     params = {}
@@ -85,6 +90,8 @@ def _url_with(**changes) -> str:
         params["module"] = module
     if REGISTRATION_NAME.fullmatch(registration):
         params["registration"] = registration
+    if _requested_currency():
+        params["currency"] = _requested_currency()
     params.update(changes)
     return f"/reckonerp-signup?{urlencode(params)}"
 
@@ -151,11 +158,12 @@ def _feature_label(key: str) -> str:
     return " ".join(labelled)
 
 
-def get_signup_plans(module_key: str | None = None) -> tuple[list[dict], list[dict]]:
+def get_signup_plans(module_key: str | None = None, currency: str | None = None) -> tuple[list[dict], list[dict]]:
     """Enabled plans of modules that are on sale, grouped by module.
 
     ``?module=<key>`` on the signup URL limits the list to one module, so each
-    product can link to its own signup page.
+    product can link to its own signup page. ``?currency=USD`` keeps only the plans in that currency when
+    there are any; otherwise every plan is listed, BDT first.
     """
     modules = {
         row.name: row.module_name
@@ -191,6 +199,9 @@ def get_signup_plans(module_key: str | None = None) -> tuple[list[dict], list[di
         )
         if not plan.saas_module or plan.saas_module in modules
     ]
+    if currency and any(plan.currency == currency for plan in plans):
+        plans = [plan for plan in plans if plan.currency == currency]
+    plans.sort(key=lambda plan: (plan.currency != "BDT", flt(plan.price)))
     groups: dict[str, dict] = {}
     for plan in plans:
         key = plan.saas_module or ""

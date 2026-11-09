@@ -28,7 +28,7 @@
   <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong>{{ plan.price_text|e }}</strong></p>
     {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</p>{% endif %}
     {% if plan.features %}<ul class="tick">{% for f in plan.features[:6] %}<li>{{ f|e }}</li>{% endfor %}</ul>{% endif %}
-    <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key)|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
+    <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
   {% endfor %}
 </ul>
 {% endfor %}

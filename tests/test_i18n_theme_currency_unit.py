@@ -237,7 +237,8 @@ class CurrencySwitchTests(unittest.TestCase):
             context = _Dict()
             marketing.apply_context(context, pricing, modules)
             html = jinja2.Environment(loader=jinja2.FileSystemLoader(str(REPO_ROOT))).get_template("reckon_saas_platform/www/reckon_pricing.html").render(**context)
-        self.assertIn('href="/reckonerp-signup?module=distribution&amp;lang=bn"', html)
+        self.assertIn('href="/reckonerp-signup?module=distribution&amp;currency=BDT&amp;lang=bn"', html)
+        self.assertIn('href="/reckonerp-signup?module=distribution&amp;currency=USD&amp;lang=bn"', html)  # a USD plan opens signup on USD plans
         self.assertIn("Starter বেছে নিন", html)
         self.assertIn("14 দিনের ফ্রি ট্রায়াল", html)
         self.assertIn('aria-label="মুদ্রা"', html)
