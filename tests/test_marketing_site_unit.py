@@ -784,6 +784,14 @@ class ImageAltTests(unittest.TestCase):
         for path in list((PKG / "www").glob("*.html")) + list((PKG / "templates" / "marketing").glob("*.html")):
             self.assertNotIn('alt=""', path.read_text(encoding="utf-8"), path.name)
 
+class TrackingLoaderTests(unittest.TestCase):
+    def test_ga4_loads_alongside_tag_manager_like_the_company_site(self):
+        source = (PKG / "templates" / "marketing" / "tracking.html").read_text(encoding="utf-8")
+        self.assertNotIn("else if(T.ga4)", source)
+        self.assertIn("if(T.gtm){", source)
+        self.assertIn("if(T.ga4){", source)
+        self.assertIn("if(T.pixel){", source)
+
 
 if __name__ == "__main__":
     unittest.main()

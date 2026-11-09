@@ -15,7 +15,8 @@
     if(T.gtm){
       w.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});
       var g=d.createElement('script');g.async=true;g.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(T.gtm);d.head.appendChild(g);
-    }else if(T.ga4){
+    }
+    if(T.ga4){
       w.gtag=function(){w.dataLayer.push(arguments)};
       w.gtag('js',new Date());w.gtag('config',T.ga4);
       var a=d.createElement('script');a.async=true;a.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(T.ga4);d.head.appendChild(a);
