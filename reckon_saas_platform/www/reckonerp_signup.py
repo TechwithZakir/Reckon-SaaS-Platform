@@ -50,6 +50,12 @@ def get_context(context):
     context.show_module_picker = not context.module and bool(context.modules)
     context.lang_links = {lang: _url_with(lang=lang) for lang in LANGUAGES}
     context.whatsapp_url = _whatsapp_url(context.t, context.module)
+    from reckon_saas_platform import marketing
+
+    site = marketing.site_base()
+    context.canonical_url = f"{site}/reckonerp-signup" + (f"?module={context.selected_module}" if context.selected_module else "")
+    context.alternate_urls = {code: f"{context.canonical_url}{'&' if '?' in context.canonical_url else '?'}lang={code}" for code in LANGUAGES}
+    context.meta_description = context.t["hero_lead"]
     _add_site_chrome(context)
     return context
 

@@ -4,6 +4,12 @@
 
 {% block head_include %}
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="{{ meta_description|e }}">
+<link rel="canonical" href="{{ canonical_url|e }}">
+<link rel="alternate" hreflang="en" href="{{ alternate_urls.en|e }}">
+<link rel="alternate" hreflang="bn" href="{{ alternate_urls.bn|e }}">
+<link rel="alternate" hreflang="x-default" href="{{ canonical_url|e }}">
+<script>document.documentElement.lang="{{ lang|e }}";</script>
 {% if lang == "bn" %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap">

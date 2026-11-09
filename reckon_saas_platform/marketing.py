@@ -1653,6 +1653,12 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
     for feature in FEATURE_LIST:
         out += [f"### {feature['title']}", f"URL: {base}{feature_url(feature['slug'])}", "", feature["intro"], ""]
         out += [f"- {point}" for point in feature["points"]] + [""]
+    from reckon_saas_platform.industries import INDUSTRIES
+
+    out += ["## Industries", ""]
+    for item in INDUSTRIES:
+        out += [f"### {item['title']}", f"URL: {base}{industry_url(item['slug'])}", "", item["intro"], ""]
+        out += [f"- {point}" for point in item["standard"]] + [""]
     out += ["## Deployment options", ""]
     out += [f"- {item['title']}: {item['text']}" for item in DEPLOYMENTS] + ["", AI_NOTE, ""]
     out += ["## Integrations and channels", "", ", ".join(item["name"] for item in integrations) + ".", ""]

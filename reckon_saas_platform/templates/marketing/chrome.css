@@ -70,3 +70,10 @@ footer.foot .powered{margin-left:12px;font-weight:700}
 .rk-cur{margin:0 0 8px}
 .cur-set:not(.primary){display:none}
 @media(max-width:720px){.rk-theme button,.rk-lang a{padding:6px 9px}}
+
+@media(max-width:720px){
+header.top .bar{gap:6px 10px}
+header.top .actions .btn{padding:8px 14px;font-size:14px;min-height:36px}
+.rk-theme button,.rk-lang a,.rk-cur button{min-height:32px;padding:6px 11px}
+nav.main{gap:2px 12px}
+}
