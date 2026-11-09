@@ -21,7 +21,8 @@
       w.gtag('js',new Date());w.gtag('config',T.ga4);
       var a=d.createElement('script');a.async=true;a.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(T.ga4);d.head.appendChild(a);
     }
-    if(T.pixel){
+    // With Tag Manager the container owns the Pixel; loading it here too would count every page view twice.
+    if(T.pixel&&!T.gtm){
       !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(w,d,'script','https://connect.facebook.net/en_US/fbevents.js');
       w.fbq('init',T.pixel);w.fbq('track','PageView');
     }

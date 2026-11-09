@@ -790,7 +790,7 @@ class TrackingLoaderTests(unittest.TestCase):
         self.assertNotIn("else if(T.ga4)", source)
         self.assertIn("if(T.gtm){", source)
         self.assertIn("if(T.ga4){", source)
-        self.assertIn("if(T.pixel){", source)
+        self.assertIn("if(T.pixel&&!T.gtm){", source)  # the container owns the Pixel when Tag Manager is set
 
 
 if __name__ == "__main__":
