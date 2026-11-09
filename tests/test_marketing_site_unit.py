@@ -701,7 +701,7 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn("marketing-hero-dark.webp", html)
         for name in ("marketing-hero.webp", "marketing-hero-dark.webp", "reckonerp-logo.webp", "reckonerp-logo-512.png", "reckonerp-icon-64.png"):
             self.assertTrue((asset_root / name).exists(), name)
-        self.assertIn("reckonerp-logo.webp", html)
+        self.assertIn("reckonerp-logo-192.webp", html)
         self.assertIn(f"{BASE}/assets/reckon_saas_platform/images/reckonerp-logo-512.png", html)
         self.assertIn('href="https://www.reckon.tech/"', html)
         self.assertIn('href="mailto:hello@reckon.tech"', html)
@@ -793,6 +793,19 @@ class TrackingLoaderTests(unittest.TestCase):
         self.assertIn("if(T.ga4){", source)
         self.assertIn("if(T.pixel&&!T.gtm){", source)
         self.assertIn("timeZone==='Asia/Dhaka'", source)  # Bangladesh visitors skip the banner, others are asked first  # the container owns the Pixel when Tag Manager is set
+
+class PerformanceAssetTests(unittest.TestCase):
+    def test_small_logo_and_hero_variants_exist_and_are_smaller(self):
+        images = PKG / "public" / "images"
+        self.assertLess((images / "reckonerp-logo-192.webp").stat().st_size, (images / "reckonerp-logo.webp").stat().st_size)
+        for name in ("marketing-hero-640.webp", "marketing-hero-dark-640.webp"):
+            self.assertLess((images / name).stat().st_size, (images / name.replace("-640", "")).stat().st_size, name)
+
+    def test_home_hero_offers_a_phone_sized_image_and_keeps_its_priority(self):
+        html = (PKG / "www" / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(html.count("640w"), 2)  # light and dark sources
+        self.assertIn('fetchpriority="high"', html)
+        self.assertIn('width="1280" height="860"', html)  # reserved space, so no layout shift
 
 
 if __name__ == "__main__":

@@ -51,10 +51,14 @@ SIGNUP = "/reckonerp-signup"
 LOGIN = "/login"
 LOGO = "/assets/reckon_saas_platform/images/reckonerp-logo.webp"
 LOGO_SIZE = (360, 232)
+LOGO_SMALL = "/assets/reckon_saas_platform/images/reckonerp-logo-192.webp"
+LOGO_SMALL_SIZE = (192, round(192 * 232 / 360))
 LOGO_SOCIAL = "/assets/reckon_saas_platform/images/reckonerp-logo-512.png"
 ICON = "/assets/reckon_saas_platform/images/reckonerp-icon-64.png"
 HERO_IMAGE = "/assets/reckon_saas_platform/images/marketing-hero.webp"
 HERO_IMAGE_DARK = "/assets/reckon_saas_platform/images/marketing-hero-dark.webp"
+HERO_IMAGE_640 = "/assets/reckon_saas_platform/images/marketing-hero-640.webp"
+HERO_IMAGE_DARK_640 = "/assets/reckon_saas_platform/images/marketing-hero-dark-640.webp"
 IMAGE_DIR = "/assets/reckon_saas_platform/images"
 
 # Illustrations drawn for this site: (file, alt text, width, height).
@@ -1716,8 +1720,8 @@ def shared_context(context, modules: list[dict]) -> None:
     context.publisher = PUBLISHER
     context.powered_by = POWERED_BY
     context.year = frappe.utils.nowdate()[:4]
-    context.logo = LOGO
-    context.logo_width, context.logo_height = LOGO_SIZE
+    context.logo = LOGO_SMALL
+    context.logo_width, context.logo_height = LOGO_SMALL_SIZE
     context.company_site = COMPANY_SITE
     context.address_text = ADDRESS_TEXT
     context.map_url = MAP_URL
@@ -1735,6 +1739,8 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.icon = ICON
     context.hero_image = HERO_IMAGE
     context.hero_image_dark = HERO_IMAGE_DARK
+    context.hero_image_640 = HERO_IMAGE_640
+    context.hero_image_dark_640 = HERO_IMAGE_DARK_640
     context.showcase = [
         {"title": title, "text": text, "image": illustration(name)} for name, title, text in SHOWCASE
     ]
