@@ -8,6 +8,8 @@ Long reading material (blog posts, FAQ answers, module detail lists) is intentio
 
 from __future__ import annotations
 
+import re
+
 LANG = "bn"
 PREFIX = "/bn"
 # Pages that have a Bangla twin. Blog, invoices and the signup form are handled elsewhere.
@@ -291,6 +293,10 @@ PREFIXES = {
 }
 
 
+CYCLES = {"month": "প্রতি মাসে", "quarter": "প্রতি ৩ মাসে", "6 months": "প্রতি ৬ মাসে", "year": "প্রতি বছরে"}
+PRICE = re.compile(r"^(?P<price>\S+) per (?P<cycle>month|quarter|6 months|year)$")
+
+
 def translate(text):
     """The Bangla for ``text``, or ``text`` itself when there is none."""
     if not isinstance(text, str) or not text:
@@ -298,6 +304,9 @@ def translate(text):
     hit = BN.get(text)
     if hit is not None:
         return hit
+    price = PRICE.match(text)
+    if price:
+        return f"{CYCLES[price.group('cycle')]} {price.group('price')}"
     for tail, bn_tail in SUFFIXES.items():
         if text.endswith(tail):
             head = text[: -len(tail)]

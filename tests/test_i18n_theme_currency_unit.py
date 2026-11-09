@@ -37,6 +37,9 @@ class LanguageHelperTests(unittest.TestCase):
         self.assertEqual(bn.translate("Pricing"), "মূল্য")
         self.assertEqual(bn.translate("A sentence nobody translated yet"), "A sentence nobody translated yet")
         self.assertEqual(bn.translate("Questions about Reckon HRMS"), "Reckon HRMS সম্পর্কে প্রশ্ন")
+        self.assertEqual(bn.translate("৳1,500 per month"), "প্রতি মাসে ৳1,500")
+        self.assertEqual(bn.translate("$99 per year"), "প্রতি বছরে $99")
+        self.assertEqual(bn.translate("৳5,000 per 6 months"), "প্রতি ৬ মাসে ৳5,000")
         self.assertTrue(bn.translate("Distribution management software in Bangladesh | ReckonERP").endswith(" | ReckonERP"))
         self.assertEqual(bn.deep({"url": "/pricing", "title": "Pricing", "list": ["Home", ("Blog", 3)]}),
                          {"url": "/pricing", "title": "মূল্য", "list": ["হোম", ("ব্লগ", 3)]})

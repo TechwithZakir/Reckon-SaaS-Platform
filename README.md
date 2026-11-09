@@ -207,6 +207,21 @@ covers. Every post page ends with the same closing section
 package, our expertise, contact), defined in `templates/marketing/company_close.html` and `SERVICES` in
 `marketing.py`; the home page shows the same services.
 
+### Languages, currencies and theme on the public site
+
+- **Bangla** pages live under `/bn` (`/bn`, `/bn/pricing`, `/bn/modules/<key>` and so on) with their own canonical
+  and `hreflang` links, and the sitemap lists both editions. English is the source: `marketing_bn.py` maps English
+  text to Bangladeshi Bangla and anything without an entry stays English, so a page is never blank. The blog,
+  invoices and long FAQ answers are English only. Templates call `tr("...")` for text and `u("/path")` for links;
+  new text needs an entry in `BN`. Every `/bn` page without a slug has its own `www/reckon_bn_*` route because
+  Frappe caches one copy per route name; a test guards that.
+- **BDT and USD** come from the **SaaS Plan** records: a module's plans are grouped by currency (BDT first) and the
+  pricing and module pages show a currency switch once plans exist in more than one currency. To offer USD, add
+  enabled SaaS Plan records with currency `USD`. Search data and the default view use BDT. Visitors whose browser
+  is in the Asia/Dhaka timezone start on BDT, others on USD when it exists; the choice is remembered.
+- **Theme**: Dark and Light buttons in the header; with no choice the site follows the system. The choice is stored
+  in the browser and applied before the page paints.
+
 ## Modules and plans
 
 Each product app declares its module in the `reckon_saas_modules` hook. On
