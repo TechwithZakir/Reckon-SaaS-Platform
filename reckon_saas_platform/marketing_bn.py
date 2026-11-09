@@ -342,6 +342,7 @@ BN.update(_modules.MODULES)
 BN.update(_pages.FEATURES)
 BN.update(_pages.INDUSTRIES)
 BN.update(_faq.HOME_FAQS)
+BN.update(_faq.SITE)
 
 # "Prefix ... | suffix" titles and "Questions about X" headings, matched when there is no exact entry.
 SUFFIXES = {

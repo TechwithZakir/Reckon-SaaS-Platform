@@ -170,6 +170,14 @@ class LanguageHelperTests(unittest.TestCase):
         self.assertIn("Basic: প্রতি মাসে ৳500", translated)
         self.assertIn("Pro: প্রতি ৩ মাসে ৳1,000", translated)
 
+    def test_product_list_integration_groups_and_cta_translate(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            bn = marketing.marketing_bn
+            texts = [marketing.FAMILY_NOTE, *[app["text"] for app in marketing.FAMILY_APPS], *[label for _key, label in marketing.INTEGRATION_GROUPS]]
+            missing = [t[:70] for t in texts if bn.translate(t) == t and t not in bn.BN]
+            self.assertEqual(missing, [])
+            self.assertEqual(bn.translate("Start with Reckon HRMS"), "Reckon HRMS দিয়ে শুরু করুন")
+
 
 @unittest.skipUnless(jinja2, "jinja2 is not installed")
 class BanglaPageTests(unittest.TestCase):

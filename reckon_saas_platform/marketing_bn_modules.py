@@ -183,6 +183,7 @@ def _list(text: str, translate) -> str:
 
 # (pattern, builder(match, translate)) for sentences that contain a module name or a price.
 PATTERNS = [
+    (re.compile(r"^Start with (.+)$"), lambda m, t: f"{m[1]} দিয়ে শুরু করুন"),
     (re.compile(r"^How much does (.+) cost\?$"), lambda m, t: f"{m[1]}-এর মূল্য কত?"),
     (re.compile(r"^Is there a free trial for (.+)\?$"), lambda m, t: f"{m[1]}-এর জন্য কি ফ্রি ট্রায়াল আছে?"),
     (re.compile(r"^What is included in the (.+) subscription\?$"), lambda m, t: f"{m[1]} সাবস্ক্রিপশনে কী কী অন্তর্ভুক্ত?"),

@@ -42,3 +42,34 @@ HOME_FAQS = {
     "Can I use it in Bangla?": "আমি কি এটি বাংলায় ব্যবহার করতে পারব?",
     "Signup is available in Bangla and English, and the Distribution module is designed Bangla-first for field teams.": "সাইন আপ বাংলা ও ইংরেজি দুটোতেই পাওয়া যায়, আর Distribution মডিউল মাঠের দলের জন্য বাংলা-আগে ভাবনায় তৈরি।",
 }
+
+
+# Shared labels: product list, integration groups and a few module feature labels.
+SITE = {
+    "These products are offered on request, on a dedicated cloud or on-premises, and are not on self-serve signup yet. Customisation and implementation are quoted separately.": "এই প্রোডাক্টগুলো অনুরোধে পাওয়া যায়—Dedicated Cloud বা On-premises-এ—এবং এখনো নিজে নিজে সাইন আপের জন্য খোলা নয়। Customization ও Implementation আলাদা কোটেশনে।",
+    "Ask questions about your own records, get insights and alerts, and approve suggested actions.": "নিজের রেকর্ড নিয়ে প্রশ্ন করুন, ইনসাইট ও সতর্কবার্তা পান, আর প্রস্তাবিত কাজ অনুমোদন করুন।",
+    "Field sales on your CRM: visit scheduling, GPS check-in and check-out, customer maps and visit history.": "আপনার CRM-এ মাঠ পর্যায়ের বিক্রয়: ভিজিটের সময়সূচি, GPS চেক-ইন ও চেক-আউট, গ্রাহকের ম্যাপ ও ভিজিটের ইতিহাস।",
+    "Construction projects from estimate to bill: BOQ revisions, measurements, rate analysis, procurement, site execution, variations and progress certificates.": "এস্টিমেট থেকে বিল পর্যন্ত নির্মাণ প্রকল্প: BOQ সংশোধন, পরিমাপ, রেট অ্যানালাইসিস, ক্রয়, সাইটের কাজ, ভেরিয়েশন ও অগ্রগতির সনদ।",
+    "Property development and sales: projects, buildings and units, bookings, installment plans, land and joint-venture agreements, handovers, collections, contractor bills and budgets.": "প্রপার্টি ডেভেলপমেন্ট ও বিক্রয়: প্রকল্প, ভবন ও ইউনিট, বুকিং, কিস্তির পরিকল্পনা, জমি ও যৌথ-উদ্যোগ চুক্তি, হস্তান্তর, আদায়, ঠিকাদারের বিল ও বাজেট।",
+    "Simple HR for small teams: employees, attendance, salary and bulk salary payment, payslip PDFs and HR reports.": "ছোট দলের জন্য সহজ HR: কর্মী, উপস্থিতি, বেতন ও একসাথে বেতন পরিশোধ, পে-স্লিপ PDF এবং HR রিপোর্ট।",
+    "Configurable attendance consequences and payroll additions that follow your own company policy.": "আপনার কোম্পানির নিজস্ব নীতি অনুযায়ী কনফিগারযোগ্য উপস্থিতির ফলাফল ও Payroll-এর সংযোজন।",
+    "Restaurant and central kitchen": "রেস্টুরেন্ট ও সেন্ট্রাল কিচেন",
+    "Branches that share a central store and kitchen: requisition, stock movement, production, delivery and branch-wise sales.": "যেসব ব্রাঞ্চ একটি সেন্ট্রাল স্টোর ও কিচেন ভাগ করে নেয়: রিকুইজিশন, স্টক স্থানান্তর, প্রোডাকশন, ডেলিভারি ও ব্রাঞ্চ অনুযায়ী বিক্রি।",
+    "Messaging": "মেসেজিং",
+    "Social and lead forms": "সোশ্যাল ও লিড ফর্ম",
+    "Voice and SMS": "ভয়েস ও SMS",
+    "Email": "ইমেইল",
+    "Search and research": "সার্চ ও রিসার্চ",
+    "Platform": "প্ল্যাটফর্ম",
+    "Website chat": "ওয়েবসাইট চ্যাট",
+    "Meta lead ads": "Meta লিড বিজ্ঞাপন",
+    "LinkedIn lead forms": "LinkedIn লিড ফর্ম",
+    "SMS gateways (Bangladesh)": "SMS গেটওয়ে (বাংলাদেশ)",
+    "Asterisk office phone": "Asterisk অফিস ফোন",
+    "AI voice assistant": "AI ভয়েস অ্যাসিস্ট্যান্ট",
+    "Local AI server": "লোকাল AI সার্ভার",
+    "Email verification": "ইমেইল যাচাই",
+    "SMS one-time codes": "SMS ওয়ান-টাইম কোড",
+    "DSR route planning and delivery tracking": "DSR রুট পরিকল্পনা ও ডেলিভারি ট্র্যাকিং",
+    "Attendance shifts": "উপস্থিতি ও শিফট",
+}
