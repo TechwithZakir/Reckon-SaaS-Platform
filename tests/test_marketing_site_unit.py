@@ -746,7 +746,7 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn("Decline", on)
         # The loaders are inside a function that only runs after consent.
         self.assertLess(on.index("function load()"), on.index("googletagmanager.com/gtm.js"))
-        self.assertIn("if(!T.consent||saved===", on)
+        self.assertIn("if(!T.consent||home||saved===", on)
 
     def test_text_from_modules_is_escaped(self):
         hostile = [{"key": "x1", "label": "<script>alert(1)</script>", "description": "d"}]
