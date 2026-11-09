@@ -1,42 +1,42 @@
 {% extends "reckon_saas_platform/templates/marketing/base.html" %}
 
 {% block content %}
-{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
 <section class="hero">
   <div class="wrap">
     <div>
-      <p class="eyebrow"><span class="pill">ERP</span><span class="pill">CRM</span><span class="pill">Automation</span><span class="pill">AI</span></p>
-      <h1>Your ERP, now with <span class="grad">an AI that reads every ledger.</span></h1>
-      <p class="lead">Invoices, orders, stock and people &mdash; one calm, glass-clear workspace.</p>
-      <div class="glass"><ul><li>AI built into ERP, CRM and automation</li><li>Private workspace for every company, in Bangla or English</li><li>Start online, or deploy on a dedicated cloud or on-premises</li></ul></div>
+      <p class="eyebrow"><span class="pill">{{ tr("ERP") }}</span><span class="pill">{{ tr("CRM") }}</span><span class="pill">{{ tr("Automation") }}</span><span class="pill">{{ tr("AI") }}</span></p>
+      <h1>{{ tr("Your ERP, now with") }} <span class="grad">{{ tr("an AI that reads every ledger.") }}</span></h1>
+      <p class="lead">{{ tr("Invoices, orders, stock and people &mdash; one calm, glass-clear workspace.") }}</p>
+      <div class="glass"><ul><li>{{ tr("AI built into ERP, CRM and automation") }}</li><li>{{ tr("Private workspace for every company, in Bangla or English") }}</li><li>{{ tr("Start online, or deploy on a dedicated cloud or on-premises") }}</li></ul></div>
       <div class="actions">
-        <a class="btn solid lg" href="/reckonerp-signup">Sign up</a>
-        <a class="btn lg" href="/login">Log in</a>
-        <a href="/modules">Explore modules</a>
+        <a class="btn solid lg" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a>
+        <a class="btn lg" href="{{ u("/login") }}">{{ tr("Log in") }}</a>
+        <a href="{{ u("/modules") }}">{{ tr("Explore modules") }}</a>
       </div>
     </div>
-    <picture><source media="(prefers-color-scheme: dark)" srcset="{{ hero_image_dark_640|e }} 640w, {{ hero_image_dark|e }} 1280w" sizes="(max-width: 900px) 92vw, 520px"><img src="{{ hero_image|e }}" srcset="{{ hero_image_640|e }} 640w, {{ hero_image|e }} 1280w" sizes="(max-width: 900px) 92vw, 520px" width="1280" height="860" alt="ReckonERP accounts dashboard, campaign studio, integrations and AI assistant screens" fetchpriority="high" decoding="async"></picture>
+    <picture><source data-dark data-media="(prefers-color-scheme: dark)" media="(prefers-color-scheme: dark)" srcset="{{ hero_image_dark_640|e }} 640w, {{ hero_image_dark|e }} 1280w" sizes="(max-width: 900px) 92vw, 520px"><img src="{{ hero_image|e }}" srcset="{{ hero_image_640|e }} 640w, {{ hero_image|e }} 1280w" sizes="(max-width: 900px) 92vw, 520px" width="1280" height="860" alt="{{ tr("ReckonERP accounts dashboard, campaign studio, integrations and AI assistant screens") }}" fetchpriority="high" decoding="async"></picture>
   </div>
 </section>
 
 <section class="ai-band" aria-labelledby="ai-h">
   <div class="wrap cols">
     <div>
-      <p class="eyebrow">Reckon AI inside every module</p>
-      <h2 id="ai-h">AI that works on your own records, with a person in charge</h2>
+      <p class="eyebrow">{{ tr("Reckon AI inside every module") }}</p>
+      <h2 id="ai-h">{{ tr("AI that works on your own records, with a person in charge") }}</h2>
       <ul class="tick">
         {% for point in ai_points %}<li>{{ point|e }}</li>{% endfor %}
       </ul>
       <p class="note">{{ ai_note|e }}</p>
-      <div class="actions"><a class="btn solid lg" href="/features/reckon-ai-assistant">Meet Reckon AI</a><a class="btn lg" href="/reckonerp-signup">Sign up</a></div>
+      <div class="actions"><a class="btn solid lg" href="{{ u("/features/reckon-ai-assistant") }}">{{ tr("Meet Reckon AI") }}</a><a class="btn lg" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a></div>
     </div>
-    <img src="/assets/reckon_saas_platform/images/illus-ai.svg" width="480" height="320" alt="AI assistant drafting a reply that waits for a person to approve" loading="lazy" decoding="async">
+    <img src="/assets/reckon_saas_platform/images/illus-ai.svg" width="480" height="320" alt="{{ tr("AI assistant drafting a reply that waits for a person to approve") }}" loading="lazy" decoding="async">
   </div>
 </section>
 
 <section aria-labelledby="show-h">
   <div class="wrap">
-    <div class="head"><h2 id="show-h">ERP, CRM, automation and AI working together</h2><p>One platform instead of four tools that never quite talk to each other.</p></div>
+    <div class="head"><h2 id="show-h">{{ tr("ERP, CRM, automation and AI working together") }}</h2><p>{{ tr("One platform instead of four tools that never quite talk to each other.") }}</p></div>
     <ul class="bento">
       {% for s in showcase %}
       <li class="tile"><img src="{{ s.image.src|e }}" width="{{ s.image.width }}" height="{{ s.image.height }}" alt="{{ s.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ s.title|e }}</h3><p>{{ s.text|e }}</p></li>
@@ -48,10 +48,10 @@
 <section class="alt" aria-labelledby="int-h">
   <div class="wrap">
     <div class="head">
-      <h2 id="int-h">Connects the channels your customers use</h2>
-      <p>WhatsApp, social, SMS, voice, email and AI services. <a href="/integrations">See every integration</a>.</p>
+      <h2 id="int-h">{{ tr("Connects the channels your customers use") }}</h2>
+      <p>{{ tr("WhatsApp, social, SMS, voice, email and AI services.") }} <a href="{{ u("/integrations") }}">{{ tr("See every integration") }}</a>.</p>
     </div>
-    <div class="ctl"><button type="button" data-marquee-toggle aria-pressed="false">Pause scrolling</button></div>
+    <div class="ctl"><button type="button" data-marquee-toggle aria-pressed="false" data-pause="{{ tr("Pause scrolling") }}" data-play="{{ tr("Play scrolling") }}">{{ tr("Pause scrolling") }}</button></div>
   </div>
   {{ m.marquee(page.integrations[:15], glyphs, "Messaging, social, voice and email integrations") }}
   {{ m.marquee(page.integrations[15:], glyphs, "AI, search and platform integrations", True) }}
@@ -60,10 +60,10 @@
 
 <section aria-labelledby="mod-h">
   <div class="wrap">
-    <div class="head"><h2 id="mod-h">ERP modules</h2><p>Subscribe to one module or several. Each runs in your own company workspace.</p></div>
+    <div class="head"><h2 id="mod-h">{{ tr("ERP modules") }}</h2><p>{{ tr("Subscribe to one module or several. Each runs in your own company workspace.") }}</p></div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">About {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About") }} {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -72,7 +72,7 @@
 {% if page.latest_articles %}
 <section class="home-blog" aria-labelledby="blog-h">
   <div class="wrap wide">
-    <div class="head"><h2 id="blog-h">From the blog</h2><p>Guides, tutorials and weekly updates. <a href="/blog">All articles</a></p></div>
+    <div class="head"><h2 id="blog-h">{{ tr("From the blog") }}</h2><p>{{ tr("Guides, tutorials and weekly updates.") }} <a href="{{ u("/blog") }}">{{ tr("All articles") }}</a></p></div>
     {{ m.article_cards(page.latest_articles) }}
   </div>
 </section>
@@ -80,17 +80,17 @@
 
 <section aria-labelledby="dep-h">
   <div class="wrap">
-    <div class="head"><h2 id="dep-h">Deploy it your way</h2><p>Start on the shared cloud today. Move to a dedicated cloud or your own servers when you need to.</p></div>
+    <div class="head"><h2 id="dep-h">{{ tr("Deploy it your way") }}</h2><p>{{ tr("Start on the shared cloud today. Move to a dedicated cloud or your own servers when you need to.") }}</p></div>
     <ul class="grid">
       {% for d in deployments %}<li><article class="card"><h3>{{ d.title|e }}</h3><p>{{ d.text|e }}</p></article></li>{% endfor %}
     </ul>
-    <p class="note">Customisation, implementation, data migration, AI and integration tools are additional. <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">Ask us for a quote on WhatsApp</a>.</p>
+    <p class="note">{{ tr("Customisation, implementation, data migration, AI and integration tools are additional.") }} <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us for a quote on WhatsApp") }}</a>.</p>
   </div>
 </section>
 
 <section aria-labelledby="svc-h">
   <div class="wrap">
-    <div class="head"><h2 id="svc-h">Our services</h2><p>Multi-currency, multi-language and easy to customise for enterprise packages.</p></div>
+    <div class="head"><h2 id="svc-h">{{ tr("Our services") }}</h2><p>{{ tr("Multi-currency, multi-language and easy to customise for enterprise packages.") }}</p></div>
     <ul class="grid">
       {% for title, text in services %}<li><article class="card"><h3>{{ title|e }}</h3><p>{{ text|e }}</p></article></li>{% endfor %}
     </ul>
@@ -99,10 +99,10 @@
 
 <section class="alt" aria-labelledby="feat-h">
   <div class="wrap">
-    <div class="head"><h2 id="feat-h">What the platform gives you</h2><p>Each feature has its own page.</p></div>
+    <div class="head"><h2 id="feat-h">{{ tr("What the platform gives you") }}</h2><p>{{ tr("Each feature has its own page.") }}</p></div>
     <ul class="grid">
       {% for f in page.features %}
-      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="/features/{{ f.slug|e }}">Learn more<span class="sr"> about {{ f.title|e }}</span></a></article></li>
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ f.title|e }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -110,11 +110,11 @@
 
 <section aria-labelledby="how-h">
   <div class="wrap">
-    <div class="head"><h2 id="how-h">Start in three steps</h2></div>
+    <div class="head"><h2 id="how-h">{{ tr("Start in three steps") }}</h2></div>
     <ol class="steps">
-      <li><h3>Choose</h3><p>Pick a module and a plan that fits your company.</p></li>
-      <li><h3>Verify</h3><p>Confirm your email and phone number so only real owners get a workspace.</p></li>
-      <li><h3>Work</h3><p>Your workspace is set up with starting data and opens in your browser.</p></li>
+      <li><h3>{{ tr("Choose") }}</h3><p>{{ tr("Pick a module and a plan that fits your company.") }}</p></li>
+      <li><h3>{{ tr("Verify") }}</h3><p>{{ tr("Confirm your email and phone number so only real owners get a workspace.") }}</p></li>
+      <li><h3>{{ tr("Work") }}</h3><p>{{ tr("Your workspace is set up with starting data and opens in your browser.") }}</p></li>
     </ol>
   </div>
 </section>

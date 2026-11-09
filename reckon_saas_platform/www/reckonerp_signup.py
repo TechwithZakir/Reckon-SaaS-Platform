@@ -59,10 +59,10 @@ def _add_site_chrome(context) -> None:
     from reckon_saas_platform import marketing
 
     try:
-        marketing.shared_context(context, marketing.get_modules())
+        marketing.shared_context(context, marketing.get_modules(), context.lang)
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Signup page site chrome")
-        marketing.shared_context(context, [])
+        marketing.shared_context(context, [], context.lang)
 
 
 def _request_language() -> str:

@@ -3,6 +3,31 @@
   var d=document;
   d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});
   d.addEventListener('keydown',function(e){if(e.key==='Escape')d.querySelectorAll('nav.main details[open]').forEach(function(x){x.open=false})});
+  var root=d.documentElement;
+  function dark(){var a=root.getAttribute('data-theme');if(a)return a==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)}
+  function paintTheme(){
+    var isDark=dark(),a=root.getAttribute('data-theme');
+    d.querySelectorAll('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String((b.getAttribute('data-theme-set')==='dark')===isDark))});
+    d.querySelectorAll('picture source[data-dark]').forEach(function(s){s.media=a?(a==='dark'?'all':'not all'):s.getAttribute('data-media')});
+    var m=d.querySelector('meta[name=theme-color]');if(m)m.content=isDark?'#0b1626':'#0b78ab';
+  }
+  d.querySelectorAll('[data-theme-set]').forEach(function(b){b.addEventListener('click',function(){
+    var v=b.getAttribute('data-theme-set');root.setAttribute('data-theme',v);try{localStorage.setItem('reckon_theme',v)}catch(e){}paintTheme();
+  })});
+  paintTheme();
+  var sets=d.querySelectorAll('.cur-set');
+  if(sets.length){
+    var avail=[];sets.forEach(function(s){if(avail.indexOf(s.getAttribute('data-cur'))<0)avail.push(s.getAttribute('data-cur'))});
+    var tz='';try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){}
+    var saved=null;try{saved=localStorage.getItem('reckon_cur')}catch(e){}
+    var pick=avail.indexOf(saved)>-1?saved:((tz==='Asia/Dhaka'&&avail.indexOf('BDT')>-1)?'BDT':(avail.indexOf('USD')>-1?'USD':avail[0]));
+    function showCur(v){
+      sets.forEach(function(s){s.style.display=s.getAttribute('data-cur')===v?'grid':'none'});
+      d.querySelectorAll('[data-cur-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-cur-set')===v))});
+    }
+    if(avail.length>1)showCur(pick);
+    d.querySelectorAll('[data-cur-set]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-cur-set');try{localStorage.setItem('reckon_cur',v)}catch(e){}showCur(v)})});
+  }
   var chat=d.querySelector('[data-chat]');
   if(chat){
     var fab=chat.querySelector('.chat-fab'),panel=chat.querySelector('.chat-panel'),form=chat.querySelector('form');

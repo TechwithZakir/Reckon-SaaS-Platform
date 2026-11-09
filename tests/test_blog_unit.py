@@ -436,7 +436,7 @@ class BlogWiringTests(unittest.TestCase):
         for field in ("seo_agent_articles_per_run", "seo_blog_notes"):
             self.assertIn(field, names)
         header = (PKG / "templates" / "marketing" / "header.html").read_text(encoding="utf-8")
-        self.assertIn('href="/blog"', header)
+        self.assertIn('u("/blog")', header)
         self.assertTrue(re.search(r"seo_blog_enabled", (PKG / "blog_agent.py").read_text(encoding="utf-8")))
 
 

@@ -1,27 +1,28 @@
 {% extends "reckon_saas_platform/templates/marketing/base.html" %}
 
 {% block content %}
-{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
 {{ m.crumbs(page.trail) }}
 <section class="page-hero">
   <div class="wrap">
     <div class="head">
-      <p class="eyebrow">Pricing</p>
+      <p class="eyebrow">{{ tr("Pricing") }}</p>
       <h1>{{ page.h1|e }}</h1>
-      <p class="lead">Each module is its own subscription with its own plan, so you pay only for what you use. Prices, billing periods and trial days are exactly what you will see at signup.</p>
+      <p class="lead">{{ tr("Each module is its own subscription with its own plan, so you pay only for what you use. Prices, billing periods and trial days are exactly what you will see at signup.") }}</p>
     </div>
+    {{ m.currency_switch(page.currencies) }}
     {% if page.priced %}
     {% for mod in page.priced %}
     <div class="price-mod">
-      <a href="{{ mod.url|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="{{ mod.name|e }} module illustration" loading="lazy" decoding="async"></a>
-      <h2><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></h2>
+      <a href="{{ u(mod.url)|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="{{ mod.name|e }} module illustration" loading="lazy" decoding="async"></a>
+      <h2><a href="{{ u(mod.url)|e }}">{{ mod.name|e }}</a></h2>
     </div>
     {{ m.plan_cards(mod) }}
     {% endfor %}
     {% else %}
-    <p>Plans are shown when you sign up. <a href="/reckonerp-signup">Start here</a>.</p>
+    <p>{{ tr("Plans are shown when you sign up.") }} <a href="{{ u("/reckonerp-signup") }}">{{ tr("Start here") }}</a>.</p>
     {% endif %}
-    <p class="note" style="margin-top:24px">Implementation, data migration, training, customisation, on-site support, and AI and integration usage are quoted separately. <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">Ask us on WhatsApp</a>.</p>
+    <p class="note" style="margin-top:24px">{{ tr("Implementation, data migration, training, customisation, on-site support, and AI and integration usage are quoted separately.") }} <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us on WhatsApp") }}</a>.</p>
   </div>
 </section>
 {{ m.faq(page.faqs, "Pricing questions") }}

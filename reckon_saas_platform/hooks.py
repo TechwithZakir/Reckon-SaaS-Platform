@@ -77,6 +77,16 @@ doc_events = {
 home_page = "index"
 
 website_route_rules = [
+    {"from_route": "/bn", "to_route": "index"},
+    {"from_route": "/bn/features", "to_route": "reckon_features"},
+    {"from_route": "/bn/features/<slug>", "to_route": "reckon_features"},
+    {"from_route": "/bn/industries", "to_route": "reckon_industries"},
+    {"from_route": "/bn/industries/<slug>", "to_route": "reckon_industries"},
+    {"from_route": "/bn/modules", "to_route": "reckon_modules"},
+    {"from_route": "/bn/modules/<slug>", "to_route": "reckon_modules"},
+    {"from_route": "/bn/integrations", "to_route": "reckon_integrations"},
+    {"from_route": "/bn/pricing", "to_route": "reckon_pricing"},
+    {"from_route": "/bn/faq", "to_route": "reckon_faq"},
     {"from_route": "/features", "to_route": "reckon_features"},
     {"from_route": "/features/<slug>", "to_route": "reckon_features"},
     {"from_route": "/industries", "to_route": "reckon_industries"},

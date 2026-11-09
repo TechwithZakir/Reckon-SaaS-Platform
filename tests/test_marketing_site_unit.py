@@ -524,7 +524,13 @@ class MarketingDataTests(unittest.TestCase):
             xml = marketing.sitemap_xml(BASE, modules)
             paths = marketing.public_paths(modules)
         locs = re.findall(r"<loc>([^<]+)</loc>", xml)
-        self.assertEqual(locs, [BASE + p for p in paths])
+        roots = ("features", "modules", "industries", "pricing", "faq", "integrations")
+        expected = []
+        for p in paths:
+            expected.append(BASE + p)
+            if p == "/" or p.split("/")[1] in roots:
+                expected.append(BASE + ("/bn" if p == "/" else "/bn" + p))  # every translated page has a Bangla twin
+        self.assertEqual(locs, expected)
         self.assertIn(f"{BASE}/reckonerp-signup", locs)
         self.assertIn(f"{BASE}/modules/sales_agent", locs)
         self.assertEqual(len(locs), len(set(locs)))
@@ -637,6 +643,7 @@ class MarketingRenderTests(unittest.TestCase):
             frappe.utils.nowdate = Mock(return_value="2026-11-05")
             modules = _modules(marketing, frappe)
             known = set(marketing.public_paths(modules)) | {"/", "/login", marketing.SIGNUP, "/blog", "/blog/rss.xml"}
+            known |= {("/bn" if p == "/" else "/bn" + p) for p in list(known) if p == "/" or p.split("/")[1] in ("features", "modules", "industries", "pricing", "faq", "integrations")}
             rendered = []
             for page in all_pages(marketing, modules):
                 if page["path"] == "/":

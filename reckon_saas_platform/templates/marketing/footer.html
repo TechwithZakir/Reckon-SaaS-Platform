@@ -1,29 +1,29 @@
 <footer class="foot">
   <div class="wrap">
     <div class="cols4">
-      <div><h2>ReckonERP</h2><p>Cloud ERP with built-in AI for growing businesses, built on ERPNext.</p></div>
-      <div><h2>Features</h2><ul>{% for f in nav_features %}<li><a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a></li>{% endfor %}</ul></div>
-      <div><h2>Modules</h2><ul>{% for m in nav_modules %}<li><a href="{{ m.url|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
-      <div><h2>Company</h2><ul><li><a href="/pricing">Pricing</a></li><li><a href="/integrations">Integrations</a></li><li><a href="/blog">Blog</a></li><li><a href="/faq">FAQ</a></li><li><a href="/reckonerp-signup">Sign up</a></li><li><a href="/login">Log in</a></li></ul></div>
+      <div><h2>{{ tr("ReckonERP") }}</h2><p>{{ tr("Cloud ERP with built-in AI for growing businesses, built on ERPNext.") }}</p></div>
+      <div><h2>{{ tr("Features") }}</h2><ul>{% for f in nav_features %}<li><a href="{{ u("/features/" ~ f.slug)|e }}">{{ f.title|e }}</a></li>{% endfor %}</ul></div>
+      <div><h2>{{ tr("Modules") }}</h2><ul>{% for m in nav_modules %}<li><a href="{{ u(m.url)|e }}">{{ m.name|e }}</a></li>{% endfor %}</ul></div>
+      <div><h2>{{ tr("Company") }}</h2><ul><li><a href="{{ u("/pricing") }}">{{ tr("Pricing") }}</a></li><li><a href="{{ u("/integrations") }}">{{ tr("Integrations") }}</a></li><li><a href="{{ u("/blog") }}">{{ tr("Blog") }}</a></li><li><a href="{{ u("/faq") }}">{{ tr("FAQ") }}</a></li><li><a href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a></li><li><a href="{{ u("/login") }}">{{ tr("Log in") }}</a></li></ul></div>
     </div>
-    <nav class="foot-seo" aria-label="Popular solutions">
-      <a href="/">Cloud ERP software in Bangladesh</a>
+    <nav class="foot-seo" aria-label="{{ tr("Popular solutions") }}">
+      <a href="{{ u("/") }}">{{ tr("Cloud ERP software in Bangladesh") }}</a>
       {% set seo_labels = {"distribution": "Distribution management software", "accounts": "Accounting and inventory software", "hrms": "HR and payroll software", "crm": "CRM software", "sales_agent": "AI sales agent"} %}
-      {% for m in nav_modules %}{% if seo_labels.get(m.key) %}<a href="{{ m.url|e }}">{{ seo_labels[m.key]|e }}</a>{% endif %}{% endfor %}
-      <a href="/features/ai-agent-development">AI agent development and automation</a>
-      <a href="/industries">ERP software by industry</a>
-      <a href="/blog">ERP and AI automation guides</a>
+      {% for m in nav_modules %}{% if seo_labels.get(m.key) %}<a href="{{ u(m.url)|e }}">{{ seo_labels[m.key]|e }}</a>{% endif %}{% endfor %}
+      <a href="{{ u("/features/ai-agent-development") }}">{{ tr("AI agent development and automation") }}</a>
+      <a href="{{ u("/industries") }}">{{ tr("ERP software by industry") }}</a>
+      <a href="{{ u("/blog") }}">{{ tr("ERP and AI automation guides") }}</a>
     </nav>
     <div class="foot-bottom">
-      <a class="foot-logo" href="/" aria-label="ReckonERP home"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP" loading="lazy" decoding="async"></a>
+      <a class="foot-logo" href="{{ u("/") }}" aria-label="{{ tr("ReckonERP home") }}"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="{{ tr("ReckonERP") }}" loading="lazy" decoding="async"></a>
       <address class="contact">
-        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><span class="sr">Website: </span><a href="{{ company_site|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
-        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v12H3zM3 7l9 7 9-7"/></svg></span><span class="sr">Mail Address: </span><a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
-        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h4l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-3z"/></svg></span><span class="sr">WhatsApp / Cell: </span><a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
-        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></span><span class="sr">Address: </span><a href="{{ map_url|e }}" rel="noopener">{{ address_text|e }}</a><span class="hours">&nbsp;&middot; {{ open_hours|e }}</span></div>
-        {% for link in social_profiles %}<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span class="sr">Social profile: </span><a href="{{ link|e }}" rel="me noopener">{{ link|replace("https://www.", "")|replace("https://", "")|trim("/")|e }}</a></div>{% endfor %}
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><span class="sr">{{ tr("Website:") }} </span><a href="{{ u(company_site)|e }}" rel="noopener">{{ company_site|replace("https://", "")|replace("/", "")|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18v12H3zM3 7l9 7 9-7"/></svg></span><span class="sr">{{ tr("Mail Address:") }} </span><a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h4l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-3z"/></svg></span><span class="sr">{{ tr("WhatsApp / Cell:") }} </span><a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ whatsapp_display|e }}</a></div>
+        <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></span><span class="sr">{{ tr("Address:") }} </span><a href="{{ u(map_url)|e }}" rel="noopener">{{ address_text|e }}</a><span class="hours">{{ tr("&nbsp;&middot;") }} {{ open_hours|e }}</span></div>
+        {% for link in social_profiles %}<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span class="sr">{{ tr("Social profile:") }} </span><a href="{{ u(link)|e }}" rel="me noopener">{{ link|replace("https://www.", "")|replace("https://", "")|trim("/")|e }}</a></div>{% endfor %}
       </address>
     </div>
-    <p class="note">&copy; {{ year|e }} {{ publisher|e }}<span class="powered">{{ powered_by|e }}</span></p>
+    <p class="note">{{ tr("&copy;") }} {{ year|e }} {{ publisher|e }}<span class="powered">{{ powered_by|e }}</span></p>
   </div>
 </footer>

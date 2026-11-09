@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang or 'en' }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,8 +9,12 @@
 <link rel="alternate" type="application/rss+xml" title="ReckonERP blog" href="/blog/rss.xml">
 <meta name="theme-color" content="#0b78ab">
 <link rel="canonical" href="{{ page.canonical|e }}">
-<link rel="alternate" hreflang="en" href="{{ page.canonical|e }}">
+{% if page.alt_en %}<link rel="alternate" hreflang="en" href="{{ page.alt_en|e }}">
+<link rel="alternate" hreflang="bn" href="{{ page.alt_bn|e }}">
+<link rel="alternate" hreflang="x-default" href="{{ page.alt_en|e }}">
+{% else %}<link rel="alternate" hreflang="{{ lang or 'en' }}" href="{{ page.canonical|e }}">
 <link rel="alternate" hreflang="x-default" href="{{ page.canonical|e }}">
+{% endif %}
 {% if tracking.verify_google %}<meta name="google-site-verification" content="{{ tracking.verify_google|e }}">
 {% endif %}{% if tracking.verify_bing %}<meta name="msvalidate.01" content="{{ tracking.verify_bing|e }}">
 {% endif %}{% if tracking.verify_meta %}<meta name="facebook-domain-verification" content="{{ tracking.verify_meta|e }}">
@@ -18,8 +22,9 @@
 <link rel="icon" href="{{ icon|e }}" type="image/png">
 <link rel="apple-touch-icon" href="{{ icon|e }}">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="en_US">
-<meta property="og:locale:alternate" content="bn_BD">
+{% if lang == 'bn' %}<meta property="og:locale" content="bn_BD">
+<meta property="og:locale:alternate" content="en_US">{% else %}<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="bn_BD">{% endif %}
 <meta property="og:site_name" content="{{ page.site_name|e }}">
 <meta property="og:title" content="{{ page.title|e }}">
 <meta property="og:description" content="{{ page.description|e }}">
@@ -30,7 +35,8 @@
 <meta name="twitter:description" content="{{ page.description|e }}">
 <meta name="twitter:image" content="{{ page.og_image|e }}">
 {% for block in page.jsonld %}<script type="application/ld+json">{{ block }}</script>
-{% endfor %}<style>{% include "reckon_saas_platform/templates/marketing/style.css" %}</style>
+{% endfor %}<script>(function(){try{var t=localStorage.getItem("reckon_theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()</script>
+<style>{% include "reckon_saas_platform/templates/marketing/style.css" %}</style>
 </head>
 <body>
 {% include "reckon_saas_platform/templates/marketing/header.html" %}
@@ -47,7 +53,7 @@
   var b=d.querySelector('[data-marquee-toggle]');
   if(b){b.addEventListener('click',function(){
     var p=b.getAttribute('aria-pressed')!=='true';
-    b.setAttribute('aria-pressed',p);b.textContent=p?'Play scrolling':'Pause scrolling';
+    b.setAttribute('aria-pressed',p);b.textContent=p?b.getAttribute('data-play'):b.getAttribute('data-pause');
     rows.forEach(function(r){r.classList.toggle('paused',p)});
   })}
 })();

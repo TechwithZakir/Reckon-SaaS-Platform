@@ -15,26 +15,35 @@
 {% macro article_cards(items) %}
 <ul class="grid">
   {% for a in items %}
-  <li><article class="card">{% if a.image %}<a href="{{ a.url|e }}" tabindex="-1" aria-hidden="true"><img src="{{ a.image|e }}" width="1200" height="630" alt="Cover image: {{ a.title|e }}" loading="lazy" decoding="async"></a>{% endif %}<p class="eyebrow" style="margin:0">{{ a.category|e }}</p><h3><a href="{{ a.url|e }}" style="color:inherit;text-decoration:none">{{ a.title|e }}</a></h3><p>{{ a.summary|e }}</p><a class="more" href="{{ a.url|e }}">Read<span class="sr">: {{ a.title|e }}</span></a></article></li>
+  <li><article class="card">{% if a.image %}<a href="{{ u(a.url)|e }}" tabindex="-1" aria-hidden="true"><img src="{{ a.image|e }}" width="1200" height="630" alt="Cover image: {{ a.title|e }}" loading="lazy" decoding="async"></a>{% endif %}<p class="eyebrow" style="margin:0">{{ a.category|e }}</p><h3><a href="{{ u(a.url)|e }}" style="color:inherit;text-decoration:none">{{ a.title|e }}</a></h3><p>{{ a.summary|e }}</p><a class="more" href="{{ u(a.url)|e }}">{{ tr("Read") }}<span class="sr">: {{ a.title|e }}</span></a></article></li>
   {% endfor %}
 </ul>
 {% endmacro %}
 
 {% macro plan_cards(mod) %}
-<ul class="grid plans">
-  {% for plan in mod.plans %}
+{% set sets = mod.plans_by_currency if mod.plans_by_currency else {"": mod.plans} %}
+{% for cur, plans in sets.items() %}
+<ul class="grid plans cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}">
+  {% for plan in plans %}
   <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong>{{ plan.price_text|e }}</strong></p>
-    {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ plan.trial_days }}-day free trial</p>{% endif %}
+    {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</p>{% endif %}
     {% if plan.features %}<ul class="tick">{% for f in plan.features[:6] %}<li>{{ f|e }}</li>{% endfor %}</ul>{% endif %}
-    <a class="btn solid" href="/reckonerp-signup?module={{ mod.key|e }}">Choose {{ plan.name|e }}</a></article></li>
+    <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key)|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
   {% endfor %}
 </ul>
+{% endfor %}
+{% endmacro %}
+
+{% macro currency_switch(currencies) %}
+{% if currencies and currencies|length > 1 %}
+<div class="rk-cur" role="group" aria-label="{{ tr("Currency") }}">{% for c in currencies %}<button type="button" data-cur-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>
+{% endif %}
 {% endmacro %}
 
 {% macro faq(faqs, heading) %}
 {% if faqs %}
 <section aria-labelledby="faq-h"><div class="wrap">
-  <div class="head"><h2 id="faq-h">{{ heading|e }}</h2></div>
+  <div class="head"><h2 id="faq-h">{{ tr(heading)|e }}</h2></div>
   {% for q, a in faqs %}
   <details class="faq"><summary>{{ q|e }}</summary><p>{{ a|e }}</p></details>
   {% endfor %}
@@ -44,16 +53,16 @@
 
 {% macro cta(title, text, signup_href) %}
 <section><div class="wrap"><div class="band">
-  <h2>{{ title|e }}</h2>
-  <p>{{ text|e }}</p>
-  <div class="actions" style="justify-content:center"><a class="btn solid lg" href="{{ signup_href|e }}">Sign up</a><a class="btn lg" href="/login">Log in</a></div>
+  <h2>{{ tr(title)|e }}</h2>
+  <p>{{ tr(text)|e }}</p>
+  <div class="actions" style="justify-content:center"><a class="btn solid lg" href="{{ u(signup_href)|e }}">{{ tr("Sign up") }}</a><a class="btn lg" href="{{ u("/login") }}">{{ tr("Log in") }}</a></div>
 </div></div></section>
 {% endmacro %}
 
 {% macro crumbs(trail) %}
 {% if trail|length > 1 %}
-<nav class="crumbs wrap" aria-label="Breadcrumb"><ol>
-  {% for name, path in trail %}<li>{% if loop.last %}<span aria-current="page">{{ name|e }}</span>{% else %}<a href="{{ path|e }}">{{ name|e }}</a>{% endif %}</li>{% endfor %}
+<nav class="crumbs wrap" aria-label="{{ tr("Breadcrumb") }}"><ol>
+  {% for name, path in trail %}<li>{% if loop.last %}<span aria-current="page">{{ name|e }}</span>{% else %}<a href="{{ u(path)|e }}">{{ name|e }}</a>{% endif %}</li>{% endfor %}
 </ol></nav>
 {% endif %}
 {% endmacro %}

@@ -1,26 +1,26 @@
 {% extends "reckon_saas_platform/templates/marketing/base.html" %}
 
 {% block content %}
-{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
 {{ m.crumbs(page.trail) }}
 {% if page.industry %}
 <section class="page-hero">
   <div class="wrap">
     <div class="head">
-      <p class="eyebrow">Industry</p>
+      <p class="eyebrow">{{ tr("Industry") }}</p>
       <h1>{{ page.h1|e }}</h1>
       <p class="lead">{{ page.industry.intro|e }}</p>
-      <div class="actions"><a class="btn solid lg" href="/reckonerp-signup">Sign up</a><a class="btn lg" href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">Ask us on WhatsApp</a></div>
+      <div class="actions"><a class="btn solid lg" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a><a class="btn lg" href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us on WhatsApp") }}</a></div>
     </div>
     <div class="cols">
       <div>
-        <h2>Ready in the standard modules</h2>
+        <h2>{{ tr("Ready in the standard modules") }}</h2>
         <p>{{ page.standard_note|e }}</p>
         <ul class="tick">{% for point in page.industry.standard %}<li>{{ point|e }}</li>{% endfor %}</ul>
       </div>
       <div>
-        <h2>Set up for you on request</h2>
-        <p>These parts are customisation after a requirement analysis, quoted separately.</p>
+        <h2>{{ tr("Set up for you on request") }}</h2>
+        <p>{{ tr("These parts are customisation after a requirement analysis, quoted separately.") }}</p>
         <ul class="tick">{% for point in page.industry.custom %}<li>{{ point|e }}</li>{% endfor %}</ul>
       </div>
     </div>
@@ -29,10 +29,10 @@
 {% if page.fit_modules %}
 <section class="alt" aria-labelledby="fit-h">
   <div class="wrap">
-    <div class="head"><h2 id="fit-h">Modules that fit</h2></div>
+    <div class="head"><h2 id="fit-h">{{ tr("Modules that fit") }}</h2></div>
     <ul class="grid">
       {% for mod in page.fit_modules %}
-      <li><article class="card"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ mod.url|e }}">See {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("See") }} {{ mod.name|e }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -41,10 +41,10 @@
 {{ m.faq(page.faqs, "Questions about ERP for " ~ (page.industry.name|lower)) }}
 <section aria-labelledby="more-h">
   <div class="wrap">
-    <div class="head"><h2 id="more-h">Other industries</h2></div>
+    <div class="head"><h2 id="more-h">{{ tr("Other industries") }}</h2></div>
     <ul class="grid">
       {% for i in page.industries %}
-      <li><article class="card"><h3>{{ i.name|e }}</h3><p>{{ i.description|e }}</p><a class="more" href="/industries/{{ i.slug|e }}">Learn more<span class="sr"> about {{ i.name|e }}</span></a></article></li>
+      <li><article class="card"><h3>{{ i.name|e }}</h3><p>{{ i.description|e }}</p><a class="more" href="{{ u("/industries/" ~ i.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ i.name|e }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -53,13 +53,13 @@
 <section class="page-hero">
   <div class="wrap">
     <div class="head">
-      <p class="eyebrow">Industries</p>
+      <p class="eyebrow">{{ tr("Industries") }}</p>
       <h1>{{ page.h1|e }}</h1>
-      <p class="lead">The same cloud ERP, with the parts each sector needs. Standard modules are ready now; sector-specific steps are set up with you.</p>
+      <p class="lead">{{ tr("The same cloud ERP, with the parts each sector needs. Standard modules are ready now; sector-specific steps are set up with you.") }}</p>
     </div>
     <ul class="grid">
       {% for i in page.industries %}
-      <li><article class="card"><h2 style="font-size:1.1rem">{{ i.name|e }}</h2><p>{{ i.description|e }}</p><a class="more" href="/industries/{{ i.slug|e }}">Learn more<span class="sr"> about {{ i.name|e }}</span></a></article></li>
+      <li><article class="card"><h2 style="font-size:1.1rem">{{ i.name|e }}</h2><p>{{ i.description|e }}</p><a class="more" href="{{ u("/industries/" ~ i.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ i.name|e }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>

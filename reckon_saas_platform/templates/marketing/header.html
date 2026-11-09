@@ -1,33 +1,34 @@
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">{{ tr("Skip to content") }}</a>
 <header class="top">
   <div class="wrap bar">
-    <a class="brand" href="/" aria-label="ReckonERP home">
-      <img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="ReckonERP logo" decoding="async" fetchpriority="high">
-      <span>ReckonERP</span>
+    <a class="brand" href="{{ u("/") }}" aria-label="{{ tr("ReckonERP home") }}">
+      <img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="{{ tr("ReckonERP logo") }}" decoding="async" fetchpriority="high">
+      <span>{{ tr("ReckonERP") }}</span>
     </a>
-    <nav class="main" aria-label="Main">
-      <a href="/">Home</a>
-      <details class="dd"><summary>Features</summary>
+    <nav class="main" aria-label="{{ tr("Main") }}">
+      <a href="{{ u("/") }}">{{ tr("Home") }}</a>
+      <details class="dd"><summary>{{ tr("Features") }}</summary>
         <div class="panel">
-          {% for f in nav_features %}<a href="/features/{{ f.slug|e }}">{{ f.title|e }}</a>{% endfor %}
-          <a href="/features"><strong>All features</strong></a>
+          {% for f in nav_features %}<a href="{{ u("/features/" ~ f.slug)|e }}">{{ f.title|e }}</a>{% endfor %}
+          <a href="{{ u("/features") }}"><strong>{{ tr("All features") }}</strong></a>
         </div>
       </details>
-      <details class="dd"><summary>Modules</summary>
+      <details class="dd"><summary>{{ tr("Modules") }}</summary>
         <div class="panel">
-          {% for m in nav_modules %}<a href="{{ m.url|e }}">{{ m.name|e }}</a>{% endfor %}
-          <a href="/modules"><strong>All modules</strong></a>
+          {% for m in nav_modules %}<a href="{{ u(m.url)|e }}">{{ m.name|e }}</a>{% endfor %}
+          <a href="{{ u("/modules") }}"><strong>{{ tr("All modules") }}</strong></a>
         </div>
       </details>
-      <a href="/industries">Industries</a>
-      <a href="/pricing">Pricing</a>
-      <a href="/integrations">Integrations</a>
-      <a href="/blog">Blog</a>
+      <a href="{{ u("/industries") }}">{{ tr("Industries") }}</a>
+      <a href="{{ u("/pricing") }}">{{ tr("Pricing") }}</a>
+      <a href="{{ u("/integrations") }}">{{ tr("Integrations") }}</a>
+      <a href="{{ u("/blog") }}">{{ tr("Blog") }}</a>
     </nav>
-    {% if lang_links %}<nav class="rk-lang" aria-label="Language"><a href="{{ lang_links.bn }}" data-lang="bn" class="{% if lang == 'bn' %}is-active{% endif %}" lang="bn">বাংলা</a><a href="{{ lang_links.en }}" data-lang="en" class="{% if lang == 'en' %}is-active{% endif %}" lang="en">English</a></nav>{% endif %}
+    {% if lang_links %}<nav class="rk-lang" aria-label="{{ tr("Language") }}"><a href="{{ lang_links.bn }}" data-lang="bn" class="{% if lang == 'bn' %}is-active{% endif %}" lang="bn">বাংলা</a><a href="{{ lang_links.en }}" data-lang="en" class="{% if lang == 'en' %}is-active{% endif %}" lang="en">{{ tr("English") }}</a></nav>{% endif %}
+    {% if show_theme %}<div class="rk-theme" role="group" aria-label="{{ tr("Theme") }}"><button type="button" data-theme-set="dark" aria-pressed="false">{{ tr("Dark") }}</button><button type="button" data-theme-set="light" aria-pressed="false">{{ tr("Light") }}</button></div>{% endif %}
     <div class="actions">
-      <a class="btn" href="/login">Log in</a>
-      <a class="btn solid" href="/reckonerp-signup">Sign up</a>
+      <a class="btn" href="{{ u("/login") }}">{{ tr("Log in") }}</a>
+      <a class="btn solid" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a>
     </div>
   </div>
 </header>

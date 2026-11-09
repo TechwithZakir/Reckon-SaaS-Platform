@@ -1,7 +1,7 @@
 {% if tracking and tracking.enabled %}
-<div class="consent" data-consent role="region" aria-label="Cookie notice" hidden>
-  <p>We use cookies for analytics and advertising measurement. Accept to allow them, or decline to browse without them.</p>
-  <div class="actions"><button type="button" class="btn solid" data-consent-yes>Accept</button><button type="button" class="btn" data-consent-no>Decline</button></div>
+<div class="consent" data-consent role="region" aria-label="{{ tr("Cookie notice") }}" hidden>
+  <p>{{ tr("We use cookies for analytics and advertising measurement. Accept to allow them, or decline to browse without them.") }}</p>
+  <div class="actions"><button type="button" class="btn solid" data-consent-yes>{{ tr("Accept") }}</button><button type="button" class="btn" data-consent-no>{{ tr("Decline") }}</button></div>
 </div>
 <script>
 (function(){

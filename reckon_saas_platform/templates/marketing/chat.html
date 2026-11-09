@@ -1,14 +1,14 @@
 <div class="chat" data-chat data-wa="{{ whatsapp_number|e }}">
   <div class="chat-panel" id="chat-panel" role="dialog" aria-labelledby="chat-h" hidden>
-    <h2 id="chat-h">Chat with ReckonERP</h2>
-    <p>Ask about modules, pricing, deployment or AI. We reply on WhatsApp.</p>
+    <h2 id="chat-h">{{ tr("Chat with ReckonERP") }}</h2>
+    <p>{{ tr("Ask about modules, pricing, deployment or AI. We reply on WhatsApp.") }}</p>
     <form data-chat-form>
-      <label>Your name<input name="n" autocomplete="name" maxlength="60"></label>
-      <label>Message<textarea name="m" rows="3" maxlength="500" required></textarea></label>
-      <button class="btn solid" type="submit">Continue on WhatsApp</button>
+      <label>{{ tr("Your name") }}<input name="n" autocomplete="name" maxlength="60"></label>
+      <label>{{ tr("Message") }}<textarea name="m" rows="3" maxlength="500" required></textarea></label>
+      <button class="btn solid" type="submit">{{ tr("Continue on WhatsApp") }}</button>
     </form>
-    <p class="note">Nothing is sent until you press the button; WhatsApp then opens with your message ready. Prefer email? <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></p>
+    <p class="note">{{ tr("Nothing is sent until you press the button; WhatsApp then opens with your message ready. Prefer email?") }} <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a></p>
   </div>
-  <button type="button" class="chat-fab" aria-expanded="false" aria-controls="chat-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>Chat</span></button>
+  <button type="button" class="chat-fab" aria-expanded="false" aria-controls="chat-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><span>{{ tr("Chat") }}</span></button>
 </div>
 {% include "reckon_saas_platform/templates/marketing/tracking.html" %}

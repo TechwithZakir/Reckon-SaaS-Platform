@@ -1,5 +1,7 @@
 :root{--bg:#fff;--bg2:#f4f8fc;--ink:#0d2240;--mut:#51627a;--line:#dbe4ef;--card:#fff;--brand:#0b78ab;--brand2:#139bd9;--on:#fff;--green:#2a9a00;--r:14px;color-scheme:light dark}
-@media(prefers-color-scheme:dark){:root{--bg:#0b1626;--bg2:#10203a;--ink:#e8eef8;--mut:#a3b3c9;--line:#243a5a;--card:#12253f;--brand:#5cc3f0;--brand2:#139bd9;--on:#04121f;--green:#6bdc3a}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1626;--bg2:#10203a;--ink:#e8eef8;--mut:#a3b3c9;--line:#243a5a;--card:#12253f;--brand:#5cc3f0;--brand2:#139bd9;--on:#04121f;--green:#6bdc3a}}
+:root[data-theme="dark"]{--bg:#0b1626;--bg2:#10203a;--ink:#e8eef8;--mut:#a3b3c9;--line:#243a5a;--card:#12253f;--brand:#5cc3f0;--brand2:#139bd9;--on:#04121f;--green:#6bdc3a;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,"Noto Sans Bengali",sans-serif;-webkit-text-size-adjust:100%}
@@ -60,3 +62,11 @@ footer.foot .powered{margin-left:12px;font-weight:700}
 .consent{position:fixed;left:16px;bottom:16px;z-index:40;max-width:min(520px,calc(100vw - 32px));background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 16px 48px rgba(0,0,0,.3)}
 .consent[hidden]{display:none}
 .consent p{margin:0 0 12px;font-size:.92rem}
+
+.rk-theme,.rk-lang,.rk-cur{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.rk-theme button,.rk-cur button,.rk-lang a{font:inherit;font-size:13px;font-weight:700;padding:6px 12px;border:0;background:transparent;color:var(--mut);cursor:pointer;text-decoration:none;line-height:1.2}
+.rk-theme button[aria-pressed="true"],.rk-cur button[aria-pressed="true"],.rk-lang a.is-active{background:var(--brand);color:var(--on)}
+.rk-theme button:focus-visible,.rk-cur button:focus-visible,.rk-lang a:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.rk-cur{margin:0 0 8px}
+.cur-set:not(.primary){display:none}
+@media(max-width:720px){.rk-theme button,.rk-lang a{padding:6px 9px}}

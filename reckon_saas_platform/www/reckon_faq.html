@@ -1,14 +1,14 @@
 {% extends "reckon_saas_platform/templates/marketing/base.html" %}
 
 {% block content %}
-{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
 {{ m.crumbs(page.trail) }}
 <section class="page-hero">
   <div class="wrap">
     <div class="head">
-      <p class="eyebrow">FAQ</p>
+      <p class="eyebrow">{{ tr("FAQ") }}</p>
       <h1>{{ page.h1|e }}</h1>
-      <p class="lead">Pricing, deployment, implementation, licences, AI and support, answered in one place.</p>
+      <p class="lead">{{ tr("Pricing, deployment, implementation, licences, AI and support, answered in one place.") }}</p>
     </div>
     {% for group in page.groups %}
     <h2 style="margin-top:28px;font-size:1.4rem">{{ group.title|e }}</h2>

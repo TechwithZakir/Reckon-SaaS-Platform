@@ -19,7 +19,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 import frappe
 
-from reckon_saas_platform import module_assets, module_content
+from reckon_saas_platform import marketing_bn, module_assets, module_content
 
 SITE_NAME = "ReckonERP"
 BRAND_NAME = SITE_NAME
@@ -1005,7 +1005,11 @@ def get_modules() -> list[dict]:
         features = [feature_label(k) for k in feature_keys]
         inclusions = list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS)
         exclusions = list(details.get("exclusions") or []) + list(module_content.COMMON_EXCLUSIONS)
-        plans = all_plans.get(key, [])
+        by_currency: dict[str, list[dict]] = {}
+        for plan in all_plans.get(key, []):
+            by_currency.setdefault(plan["currency"], []).append(plan)
+        currencies = sorted(by_currency, key=lambda c: (c != "BDT", c))
+        plans = by_currency[currencies[0]] if currencies else []
         own_faqs = list(details.get("faqs") or copy.get("faqs") or [])
         modules.append(
             {
@@ -1018,6 +1022,8 @@ def get_modules() -> list[dict]:
                 "inclusions": inclusions,
                 "exclusions": exclusions,
                 "plans": plans,
+                "plans_by_currency": {c: by_currency[c] for c in currencies},
+                "currencies": currencies,
                 "banner": module_assets.banner(key, label),
                 "tagline": copy.get("tagline") or description,
                 "seo_title": copy.get("seo_title") or "",
@@ -1210,6 +1216,15 @@ def seo_overrides() -> dict:
     return result
 
 
+def current_lang() -> str:
+    """``bn`` for pages served under ``/bn``, otherwise ``en``."""
+    request = getattr(frappe.local, "request", None)
+    path = getattr(request, "path", "")
+    if isinstance(path, str) and (path == marketing_bn.PREFIX or path.startswith(marketing_bn.PREFIX + "/")):
+        return marketing_bn.LANG
+    return "en"
+
+
 def make_page(
     base: str,
     *,
@@ -1231,6 +1246,19 @@ def make_page(
     approved = seo_overrides()["pages"].get(path)
     if approved:
         title, description = approved["title"], approved["description"]
+    translatable = marketing_bn.is_translatable(path)
+    lang = current_lang() if translatable else "en"
+    canonical = f"{base}{path}"
+    twins = {}
+    if translatable:
+        twins = {"alt_en": f"{base}{path}", "alt_bn": f"{base}{marketing_bn.bn_path(path)}", "alt_en_path": path, "alt_bn_path": marketing_bn.bn_path(path)}
+    if lang == "bn":
+        link = marketing_bn.make_url_filter("bn")
+        title, description, h1 = (marketing_bn.translate(x) for x in (title, description, h1))
+        faqs = marketing_bn.deep(list(faqs or []))
+        trail = [(marketing_bn.translate(name), link(where)) for name, where in trail]
+        extra = marketing_bn.deep(extra)
+        canonical = f"{base}{marketing_bn.bn_path(path)}"
     ld = []
     if path == HOME:
         ld.append(organization_ld(base, same_as))
@@ -1247,7 +1275,9 @@ def make_page(
         "title": title,
         "description": description,
         "h1": h1,
-        "canonical": f"{base}{path}",
+        "canonical": canonical,
+        "lang": lang,
+        **twins,
         "og_image": og_image or f"{base}{LOGO_SOCIAL}",
         "site_name": SITE_NAME,
         "trail": trail,
@@ -1394,6 +1424,7 @@ def pricing_page(base: str, modules: list[dict]) -> dict:
         faqs=[row for row in HOME_FAQS if any(w in row[0].lower() for w in ("pricing", "implementation", "ai and integration", "licences"))],
         modules=modules,
         priced=[m for m in modules if m["plans"]],
+        currencies=sorted({c for m in modules for c in m.get("currencies", [])}, key=lambda c: (c != "BDT", c)),
     )
 
 
@@ -1509,6 +1540,8 @@ def sitemap_xml(base: str, modules: list[dict]) -> str:
         lastmod = modified.get(path)
         stamp = f"<lastmod>{xml_escape(lastmod)}</lastmod>" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", lastmod or "") else ""
         rows.append(f"<url><loc>{xml_escape(base + path)}</loc>{stamp}</url>")
+        if marketing_bn.is_translatable(path):
+            rows.append(f"<url><loc>{xml_escape(base + marketing_bn.bn_path(path))}</loc>{stamp}</url>")
     urls = "".join(rows)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -1711,9 +1744,12 @@ def get_profiles() -> list[str]:
     return list(dict.fromkeys([FACEBOOK_URL, *found]))[:12]
 
 
-def shared_context(context, modules: list[dict]) -> None:
+def shared_context(context, modules: list[dict], lang: str = "en") -> None:
     """Header, footer and chat data used by every public page, signup included."""
     context.tracking = get_tracking()
+    context.tr = marketing_bn.make_translator(lang)
+    context.u = marketing_bn.make_url_filter(lang)
+    context.show_theme = False
     context.nav_features = FEATURE_LIST
     context.nav_modules = modules
     context.support_email = SUPPORT_EMAIL
@@ -1733,7 +1769,12 @@ def shared_context(context, modules: list[dict]) -> None:
 
 def apply_context(context, page: dict, modules: list[dict]) -> None:
     """Put a page description and the shared header/footer data on a web context."""
-    shared_context(context, modules)
+    lang = page.get("lang") or "en"
+    shared_context(context, modules, lang)
+    context.lang = lang
+    context.show_theme = True
+    if page.get("alt_en"):
+        context.lang_links = {"en": page["alt_en_path"], "bn": page["alt_bn_path"]}
     context.page = page
     context.glyphs = GLYPHS
     context.icon = ICON
@@ -1751,6 +1792,10 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.services = SERVICES
     context.company_summary = COMPANY_SUMMARY
     context.expertise = EXPERTISE
+    if lang == "bn":
+        for name in ("services", "ai_points", "ai_note", "showcase", "deployments", "company_summary", "expertise",
+                     "trademark_note", "nav_features", "nav_modules"):
+            setattr(context, name, marketing_bn.deep(getattr(context, name)))
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1
@@ -1770,6 +1815,8 @@ def requested(name: str) -> str:
         request = getattr(frappe.local, "request", None)
         path = (getattr(request, "path", "") or "").strip("/")
         parts = path.split("/")
+        if parts and parts[0] == marketing_bn.PREFIX.strip("/"):
+            parts = parts[1:]
         value = parts[1] if len(parts) > 1 else ""
     return str(value or "").strip().lower()
 

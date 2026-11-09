@@ -1,7 +1,7 @@
 {% extends "reckon_saas_platform/templates/marketing/base.html" %}
 
 {% block content %}
-{% import "reckon_saas_platform/templates/marketing/macros.html" as m %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
 {{ m.crumbs(page.trail) }}
 {% if page.article %}
 <article class="page-hero">
