@@ -94,6 +94,42 @@ class LanguageHelperTests(unittest.TestCase):
             self.assertIn(f"from reckon_saas_platform.www.{twin_target} import get_context", (PKG / "www" / f"{target}.py").read_text(encoding="utf-8"))
         self.assertEqual(len([r for r in rules if r.startswith("/bn") and "<" not in r]), 7)
 
+    def test_module_headlines_audiences_benefits_and_common_lists_are_all_translated(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            from reckon_saas_platform import module_content
+
+            bn = marketing.marketing_bn
+            missing = []
+            for key, copy in marketing.MODULE_COPY.items():
+                for text in [copy["headline"], copy["audience"], copy["tagline"], copy["seo_title"], *copy["benefits"]]:
+                    if bn.translate(text) == text:
+                        missing.append((key, text))
+            for text in [*module_content.COMMON_INCLUSIONS, *module_content.COMMON_EXCLUSIONS]:
+                if bn.translate(text) == text:
+                    missing.append(("common", text))
+        self.assertEqual(missing, [])
+
+    def test_the_translated_text_keeps_technical_words_in_english_and_never_uses_old_transliterations(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            values = " ".join(marketing.marketing_bn.BN.values())
+        for good in ("ERP", "CRM", "AI", "Workspace", "Cloud", "Integration", "Customization", "Plan"):
+            self.assertIn(good, values)
+        for stiff in ("ইআরপি", "সিআরএম", "অটোমেশন", "ওয়ার্কস্পেস", "ইন্টিগ্রেশন করুন", "ক্লাউড", "কাস্টমাইজেশন", "ইমপ্লিমেন্টেশন", "ডেপ্লয়মেন্ট", "ডাটা মাইগ্রেশন"):
+            self.assertNotIn(stiff, values, stiff)
+
+    def test_every_sentence_template_keeps_its_slot_in_the_translation(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            table = marketing.marketing_bn.BN
+        for key, value in table.items():
+            self.assertEqual(key.count("{name}"), value.count("{name}"), key)
+            self.assertEqual(key.count("{n}"), value.count("{n}"), key)
+
+    def test_the_framework_name_is_scrubbed_from_module_text(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            self.assertEqual(marketing.scrub_brand("then follow them up from Frappe CRM, with approval"), "then follow them up from CRM, with approval")
+            self.assertEqual(marketing.scrub_brand("Built on Frappe."), "Built on.")
+            self.assertEqual(marketing.scrub_brand("Nothing to change"), "Nothing to change")
+
 
 @unittest.skipUnless(jinja2, "jinja2 is not installed")
 class BanglaPageTests(unittest.TestCase):

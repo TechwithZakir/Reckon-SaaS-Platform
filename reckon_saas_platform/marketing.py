@@ -871,6 +871,13 @@ HOME_FAQS = (
 
 
 # --- Helpers -------------------------------------------------------------------
+def scrub_brand(text: str) -> str:
+    """Public copy never names the framework: "Frappe CRM" reads "CRM", and a bare "Frappe" is dropped."""
+    text = re.sub(r"\bFrappe\s+(?=[A-Z])", "", text or "")
+    text = re.sub(r"\s*\bFrappe\b\s*", " ", text).strip()
+    return re.sub(r"\s+([.,;:!?])", r"\1", text)
+
+
 def humanise(key: str) -> str:
     """``dsr_cash_custody`` -> ``DSR cash custody`` for keys with no written label."""
     words = key.strip().replace("_", " ").split()
@@ -997,7 +1004,7 @@ def get_modules() -> list[dict]:
         record = record or {}
         copy = MODULE_COPY.get(key, {})
         label = record.get("module_name") or definition.get("label") or humanise(key)
-        description = record.get("description") or definition.get("description") or ""
+        description = scrub_brand(record.get("description") or definition.get("description") or "")
         feature_keys = [
             line.strip() for line in (record.get("features") or "").splitlines() if line.strip()
         ] or list(definition.get("subscription_features") or [])

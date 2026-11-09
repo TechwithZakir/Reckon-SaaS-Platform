@@ -281,6 +281,59 @@ BN = {
     "ERP software for your industry": "আপনার ইন্ডাস্ট্রির জন্য ERP সফটওয়্যার",
 }
 
+
+# Module pages: headline, description, audience, benefits, and what every subscription includes or excludes.
+BN.update(
+    {
+        ".": "।",
+        "FMCG distribution software for route sales, collections and stock": "রুট সেলস, আদায় ও স্টকের জন্য FMCG ডিস্ট্রিবিউশন সফটওয়্যার",
+        "Accounting and inventory software for growing small businesses": "বর্ধনশীল ছোট ব্যবসার জন্য Accounting ও Inventory সফটওয়্যার",
+        "AI sales agent for finding and following up B2B customers": "B2B গ্রাহক খুঁজে বের করা ও ফলো-আপের জন্য AI Sales Agent",
+        "HR, attendance, leave and payroll software for small businesses": "ছোট ব্যবসার জন্য HR, উপস্থিতি, ছুটি ও Payroll সফটওয়্যার",
+        "CRM software for leads, deals and sales teams": "লিড, ডিল ও সেলস টিমের জন্য CRM সফটওয়্যার",
+        "Bangla-first SR/DSR distribution for FMCG businesses: routes, deliveries, collections and stock in one place.": "FMCG ব্যবসার জন্য বাংলা-আগে SR/DSR ডিস্ট্রিবিউশন: রুট, ডেলিভারি, আদায় ও স্টক এক জায়গায়।",
+        "Sales, purchase, stock and accounting for any small business: invoices, bills, payments, inventory and Tally-style books in Bangla and English.": "যেকোনো ছোট ব্যবসার জন্য বিক্রি, ক্রয়, স্টক ও হিসাব: ইনভয়েস, বিল, পেমেন্ট, ইনভেন্টরি আর ট্যালি-ধাঁচের খাতা—বাংলা ও ইংরেজিতে।",
+        "Find, research and qualify B2B customers in Bangladesh, then follow them up from CRM, with human approval before any message is sent.": "বাংলাদেশের B2B গ্রাহক খুঁজুন, যাচাই করুন ও বাছাই করুন, তারপর CRM থেকে ফলো-আপ করুন; কোনো বার্তা পাঠানোর আগে থাকে মানুষের অনুমোদন।",
+        "Compact HR and payroll for small businesses: employees, attendance and shifts, leave and payroll, one Company per tenant.": "ছোট ব্যবসার জন্য সহজ HR ও Payroll: কর্মী, উপস্থিতি ও শিফট, ছুটি এবং বেতন—প্রতি গ্রাহকের জন্য একটি আলাদা Company।",
+        "Leads, deals and organizations for sales teams, one Company per tenant.": "সেলস টিমের জন্য লিড, ডিল ও প্রতিষ্ঠান—প্রতি গ্রাহকের জন্য একটি আলাদা Company।",
+        "FMCG distributors, wholesalers and van-sales teams": "FMCG ডিস্ট্রিবিউটর, পাইকারি ব্যবসায়ী ও ভ্যান-সেলস টিম",
+        "Shops, traders and small companies that need clean books": "দোকান, ট্রেডার ও ছোট কোম্পানি, যাদের পরিচ্ছন্ন হিসাব দরকার",
+        "B2B sales teams, with strong coverage of Bangladesh": "B2B সেলস টিম, বাংলাদেশের জন্য বিশেষ সহায়তাসহ",
+        "Small and growing companies that run HR from spreadsheets": "যেসব ছোট ও বর্ধনশীল কোম্পানি স্প্রেডশিটে HR চালায়",
+        "Sales teams that track leads in spreadsheets or chat threads": "যেসব সেলস টিম স্প্রেডশিট বা চ্যাটে লিডের হিসাব রাখে",
+        "Plan SR and DSR routes and see what each team delivered": "SR ও DSR-এর রুট সাজান এবং দেখুন প্রতিটি দল কী ডেলিভারি দিল",
+        "Track retailer dues and collect against them in the field": "রিটেইলারের বকেয়া হিসাব রাখুন এবং মাঠেই আদায় করুন",
+        "Know the cash each DSR is carrying, to the taka": "প্রতিটি DSR-এর কাছে কত নগদ টাকা আছে, টাকায় টাকায় জানুন",
+        "Handle goods supplied by principals alongside your own stock": "প্রিন্সিপালের সরবরাহ করা পণ্য নিজের স্টকের পাশাপাশি সামলান",
+        "Raise sales invoices and quotations, and record purchase bills and orders": "বিক্রয় ইনভয়েস ও কোটেশন তৈরি করুন, আর ক্রয়ের বিল ও অর্ডার লিখে রাখুন",
+        "Keep stock and warehouses in step with what you buy and sell": "যা কিনছেন ও বিক্রি করছেন, স্টক ও গুদামের হিসাব তার সাথে মিলিয়ে রাখুন",
+        "Record cash, bank and payments in one place": "নগদ, ব্যাংক ও পেমেন্ট এক জায়গায় লিখুন",
+        "Read the books in a Tally-style view, in Bangla or English": "ট্যালি-ধাঁচের ভিউতে বাংলা বা ইংরেজিতে হিসাবের খাতা দেখুন",
+        "Run discovery campaigns to find businesses worth contacting": "যোগাযোগের উপযুক্ত ব্যবসা খুঁজে পেতে Discovery ক্যাম্পেইন চালান",
+        "Research each lead from its website and keep the evidence": "প্রতিটি লিডের ওয়েবসাইট থেকে তথ্য খুঁজুন এবং প্রমাণ সংরক্ষণ করুন",
+        "Score leads with fixed rules, then sync them to your CRM": "নির্দিষ্ট নিয়মে লিড স্কোর করুন, তারপর CRM-এ সিঙ্ক করুন",
+        "Send email, SMS and WhatsApp follow-ups only after a person approves": "ইমেইল, SMS ও WhatsApp ফলো-আপ পাঠান শুধু একজন মানুষ অনুমোদন দেওয়ার পরে",
+        "Keep one record per employee": "প্রতিটি কর্মীর জন্য একটি রেকর্ড রাখুন",
+        "Record attendance and organise shifts": "উপস্থিতি লিখুন ও শিফট সাজান",
+        "Let employees request leave and managers approve it": "কর্মীরা ছুটির আবেদন করবেন, ম্যানেজাররা অনুমোদন দেবেন",
+        "Run payroll from the attendance and leave you recorded": "রেকর্ড করা উপস্থিতি ও ছুটি থেকেই Payroll চালান",
+        "Capture and track every lead": "প্রতিটি লিড সংগ্রহ করুন ও অনুসরণ করুন",
+        "Move deals through your pipeline": "আপনার Pipeline-এ ডিলগুলো এগিয়ে নিন",
+        "Keep organizations and contacts together": "প্রতিষ্ঠান ও যোগাযোগের তথ্য একসাথে রাখুন",
+        "Give owners and the team the access each needs": "মালিক ও দলের প্রত্যেককে যতটুকু অ্যাক্সেস দরকার তা-ই দিন",
+        "Your own private company workspace, separate from every other customer": "অন্য সব গ্রাহক থেকে আলাদা, শুধু আপনার নিজের কোম্পানির Workspace",
+        "Use in English or Bangla where the screens are translated": "যেসব স্ক্রিন অনুবাদ করা আছে সেগুলো ইংরেজি বা বাংলায় ব্যবহার করা যায়",
+        "Roles so each team member sees only what they need": "রোলের মাধ্যমে প্রত্যেকে শুধু প্রয়োজনীয় তথ্যই দেখতে পান",
+        "Hosted, backed-up cloud service with software updates": "হোস্টেড ও ব্যাকআপসহ Cloud সার্ভিস, সফটওয়্যার আপডেটসহ",
+        "Basic help by email and WhatsApp on how to use the module": "মডিউল কীভাবে ব্যবহার করবেন তা নিয়ে ইমেইল ও WhatsApp-এ প্রাথমিক সহায়তা",
+        "Data migration from spreadsheets or other software (quoted separately)": "স্প্রেডশিট বা অন্য সফটওয়্যার থেকে Data migration (আলাদা কোটেশনে)",
+        "Custom screens, reports, print formats and workflows beyond the standard module": "Standard মডিউলের বাইরে কাস্টম স্ক্রিন, রিপোর্ট, প্রিন্ট ফরম্যাট ও Workflow",
+        "Training sessions, on-site visits and requirement workshops (paid services)": "প্রশিক্ষণ সেশন, অন-সাইট ভিজিট ও প্রয়োজন বিশ্লেষণ ওয়ার্কশপ (সশুল্ক সেবা)",
+        "Third-party charges such as SMS, WhatsApp, email or AI provider usage": "SMS, WhatsApp, ইমেইল বা AI প্রোভাইডার ব্যবহারের মতো তৃতীয় পক্ষের চার্জ",
+        "Hardware and devices such as printers, scanners and phones": "প্রিন্টার, স্ক্যানার ও ফোনের মতো হার্ডওয়্যার ও ডিভাইস",
+    }
+)
+
 # "Prefix ... | suffix" titles and "Questions about X" headings, matched when there is no exact entry.
 SUFFIXES = {
     " | ReckonERP": " | ReckonERP",
