@@ -29,7 +29,7 @@
     <div class="head"><h2 id="more-h">{{ tr("More features") }}</h2></div>
     <ul class="grid">
       {% for f in page.features %}
-      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ f.title|e }}</span></a></article></li>
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about {name}")|replace("{name}", f.title|e) }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -44,7 +44,7 @@
     </div>
     <ul class="grid">
       {% for f in page.features %}
-      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h2 style="font-size:1.1rem">{{ f.title|e }}</h2><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ f.title|e }}</span></a></article></li>
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h2 style="font-size:1.1rem">{{ f.title|e }}</h2><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about {name}")|replace("{name}", f.title|e) }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>

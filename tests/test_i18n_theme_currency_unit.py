@@ -117,7 +117,7 @@ class BanglaPageTests(unittest.TestCase):
         self.assertIn(f'<link rel="canonical" href="{BASE}/bn">', html)
         for needle in (f'hreflang="en" href="{BASE}/"', f'hreflang="bn" href="{BASE}/bn"', f'hreflang="x-default" href="{BASE}/"', 'property="og:locale" content="bn_BD"'):
             self.assertIn(needle, html, needle)
-        for needle in ("মডিউল", "সাইন আপ", "লগইন", "ইআরপি মডিউল", "আপনার ইআরপি, এখন সাথে"):
+        for needle in ("মডিউল", "সাইন আপ", "লগইন", "ERP Module", "আপনার ERP, এখন", "সব লেজার পড়তে পারে এমন AI-এর সাথে"):
             self.assertIn(needle, html, needle)
         self.assertEqual(len(re.findall(r"<h1[ >]", html)), 1)
         self.assertTrue(BENGALI.search(page["title"]) and BENGALI.search(page["description"]))
@@ -153,7 +153,8 @@ class BanglaPageTests(unittest.TestCase):
         self.assertTrue(BENGALI.search(page["title"]) and page["title"].endswith("| ReckonERP"))
         self.assertIn('href="/bn/modules"', html)
         page, html, _m = self.render("/bn/features/modular-erp", lambda m, mods: m.feature_page(BASE, m.get_feature("modular-erp")))
-        self.assertIn("মডুলার ইআরপি", page["title"])
+        self.assertIn("Modular ERP", page["title"])
+        self.assertTrue(page["title"].endswith("ReckonERP ফিচার"))
         page, html, _m = self.render("/bn/industries/garments", lambda m, mods: m.industry_page(BASE, m.get_industry("garments"), mods))
         self.assertIn("গার্মেন্টস", page["title"])
         breadcrumbs = [json.loads(b) for b in page["jsonld"] if '"BreadcrumbList"' in b][0]

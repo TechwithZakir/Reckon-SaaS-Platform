@@ -18,7 +18,7 @@
       <h2 style="font-size:1.3rem">{{ tr("What you can do") }}</h2>
       <ul class="tick">{% for b in page.module.benefits %}<li>{{ b|e }}</li>{% endfor %}</ul>
       {% endif %}
-      <div class="actions"><a class="btn solid lg" href="{{ u(page.signup_url)|e }}">{{ tr("Sign up for") }} {{ page.module.name|e }}</a><a class="btn lg" href="{{ u("/login") }}">{{ tr("Log in") }}</a></div>
+      <div class="actions"><a class="btn solid lg" href="{{ u(page.signup_url)|e }}">{{ tr("Sign up for {name}")|replace("{name}", page.module.name|e) }}</a><a class="btn lg" href="{{ u("/login") }}">{{ tr("Log in") }}</a></div>
     </div>
     <aside class="card" aria-label="{{ tr("Module details") }}">
       {% if page.module.image %}<img src="{{ page.module.image.src|e }}" width="{{ page.module.image.width }}" height="{{ page.module.image.height }}" alt="{{ page.module.image.alt|e }}" decoding="async">{% endif %}
@@ -32,14 +32,14 @@
 </section>
 <section aria-labelledby="ov-h">
   <div class="wrap prose">
-    <h2 id="ov-h">{{ tr("About") }} {{ page.module.name|e }}</h2>
+    <h2 id="ov-h">{{ tr("About {name}")|replace("{name}", page.module.name|e) }}</h2>
     {% for paragraph in page.module.overview %}<p>{{ paragraph|e }}</p>{% endfor %}
   </div>
 </section>
 {% if page.module.highlights %}
 <section class="alt" aria-labelledby="in-h">
   <div class="wrap">
-    <div class="head"><h2 id="in-h">{{ tr("What is inside") }} {{ page.module.name|e }}</h2></div>
+    <div class="head"><h2 id="in-h">{{ tr("What is inside {name}")|replace("{name}", page.module.name|e) }}</h2></div>
     <ul class="grid">
       {% for title, text in page.module.highlights %}<li><article class="card"><h3>{{ title|e }}</h3>{% if text %}<p>{{ text|e }}</p>{% endif %}</article></li>{% endfor %}
     </ul>
@@ -49,16 +49,16 @@
 {% if page.module.use_cases %}
 <section aria-labelledby="uc-h">
   <div class="wrap">
-    <div class="head"><h2 id="uc-h">{{ tr("Who uses") }} {{ page.module.name|e }}</h2></div>
+    <div class="head"><h2 id="uc-h">{{ tr("Who uses {name}")|replace("{name}", page.module.name|e) }}</h2></div>
     <ul class="tick">{% for u in page.module.use_cases %}<li>{{ u|e }}</li>{% endfor %}</ul>
   </div>
 </section>
 {% endif %}
 <section class="alt" aria-labelledby="price-h">
   <div class="wrap">
-    <div class="head"><h2 id="price-h">{{ page.module.name|e }} {{ tr("plans and pricing") }}</h2><p>{{ tr("Subscribe online. Your invoice arrives by email with a PDF, and a link by SMS.") }}</p></div>
+    <div class="head"><h2 id="price-h">{{ tr("{name} plans and pricing")|replace("{name}", page.module.name|e) }}</h2><p>{{ tr("Subscribe online. Your invoice arrives by email with a PDF, and a link by SMS.") }}</p></div>
     {% if page.module.plans %}{{ m.currency_switch(page.module.currencies) }}{{ m.plan_cards(page.module) }}{% else %}<p>{{ tr("Plans are shown at signup.") }} <a href="{{ u(page.signup_url)|e }}">{{ tr("Start here") }}</a>.</p>{% endif %}
-    <p class="note">{{ tr("See") }} <a href="{{ u("/pricing") }}">{{ tr("all plans") }}</a>{{ tr(". Implementation, training, customisation and on-site support are quoted separately.") }}</p>
+    <p class="note"><a href="{{ u("/pricing") }}">{{ tr("See all plans") }}</a>. {{ tr("Implementation, training, customisation and on-site support are quoted separately.") }}</p>
   </div>
 </section>
 <section aria-labelledby="inc-h">
@@ -71,7 +71,7 @@
 {% if page.module_articles %}
 <section aria-labelledby="art-h">
   <div class="wrap">
-    <div class="head"><h2 id="art-h">{{ tr("Guides for") }} {{ page.module.name|e }}</h2></div>
+    <div class="head"><h2 id="art-h">{{ tr("Guides for {name}")|replace("{name}", page.module.name|e) }}</h2></div>
     {{ m.article_cards(page.module_articles) }}
   </div>
 </section>
@@ -82,7 +82,7 @@
     <div class="head"><h2 id="other-h">{{ tr("Other modules") }}</h2></div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About") }} {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About {name}")|replace("{name}", mod.name|e) }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -99,7 +99,7 @@
     </div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h2 style="font-size:1.1rem">{{ mod.name|e }}</h2><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About") }} {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h2 style="font-size:1.1rem">{{ mod.name|e }}</h2><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About {name}")|replace("{name}", mod.name|e) }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -109,7 +109,7 @@
     <div class="head"><h2 id="fam-h">{{ tr("More from Reckon, on request") }}</h2><p>{{ page.family_note|e }}</p></div>
     <ul class="grid">
       {% for app in page.family %}
-      <li><article class="card"><h3>{{ app.name|e }}</h3><p>{{ app.text|e }}</p>{% if app.url %}<a class="more" href="{{ u(app.url)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ app.name|e }}</span></a>{% endif %}</article></li>
+      <li><article class="card"><h3>{{ app.name|e }}</h3><p>{{ app.text|e }}</p>{% if app.url %}<a class="more" href="{{ u(app.url)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about {name}")|replace("{name}", app.name|e) }}</span></a>{% endif %}</article></li>
       {% endfor %}
     </ul>
     <p class="note"><a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask about these on WhatsApp") }}</a> {{ tr("or write to") }} <a href="mailto:{{ support_email|e }}">{{ support_email|e }}</a>.</p>

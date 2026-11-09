@@ -63,7 +63,7 @@
     <div class="head"><h2 id="mod-h">{{ tr("ERP modules") }}</h2><p>{{ tr("Subscribe to one module or several. Each runs in your own company workspace.") }}</p></div>
     <ul class="grid">
       {% for mod in page.modules %}
-      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About") }} {{ mod.name|e }}</a></article></li>
+      <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About {name}")|replace("{name}", mod.name|e) }}</a></article></li>
       {% endfor %}
     </ul>
   </div>
@@ -102,7 +102,7 @@
     <div class="head"><h2 id="feat-h">{{ tr("What the platform gives you") }}</h2><p>{{ tr("Each feature has its own page.") }}</p></div>
     <ul class="grid">
       {% for f in page.features %}
-      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about") }} {{ f.title|e }}</span></a></article></li>
+      <li><article class="card"><span class="ico">{{ m.icon(glyphs[f.icon]) }}</span><h3>{{ f.title|e }}</h3><p>{{ f.summary|e }}</p><a class="more" href="{{ u("/features/" ~ f.slug)|e }}">{{ tr("Learn more") }}<span class="sr"> {{ tr("about {name}")|replace("{name}", f.title|e) }}</span></a></article></li>
       {% endfor %}
     </ul>
   </div>
