@@ -768,6 +768,7 @@ class LocalSeoTests(unittest.TestCase):
         self.assertEqual(local["address"]["streetAddress"], "Uttara")
         self.assertEqual(local["telephone"], "+8801325-009955")
         self.assertEqual((local["openingHoursSpecification"]["opens"], local["openingHoursSpecification"]["closes"]), ("09:00", "19:00"))
+        self.assertEqual(local["openingHoursSpecification"]["dayOfWeek"], ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"])
         self.assertTrue(local["hasMap"].startswith("https://share.google/"))
         self.assertIn("https://www.facebook.com/reckontechnologies/", local["sameAs"])
 
@@ -790,7 +791,8 @@ class TrackingLoaderTests(unittest.TestCase):
         self.assertNotIn("else if(T.ga4)", source)
         self.assertIn("if(T.gtm){", source)
         self.assertIn("if(T.ga4){", source)
-        self.assertIn("if(T.pixel&&!T.gtm){", source)  # the container owns the Pixel when Tag Manager is set
+        self.assertIn("if(T.pixel&&!T.gtm){", source)
+        self.assertIn("timeZone==='Asia/Dhaka'", source)  # Bangladesh visitors skip the banner, others are asked first  # the container owns the Pixel when Tag Manager is set
 
 
 if __name__ == "__main__":

@@ -37,7 +37,9 @@
   }
   var box=document.querySelector('[data-consent]');
   var saved=stored();
-  if(!T.consent||saved==='yes'){load();return}
+  // Visitors in Bangladesh browse without the banner; everyone else, including the US, UK and EU, is asked first.
+  var home=false;try{home=Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Dhaka'}catch(e){}
+  if(!T.consent||home||saved==='yes'){load();return}
   if(saved==='no')return;
   box.hidden=false;
   box.querySelector('[data-consent-yes]').addEventListener('click',function(){store('yes');box.hidden=true;load()});

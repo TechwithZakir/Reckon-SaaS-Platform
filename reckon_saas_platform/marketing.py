@@ -33,9 +33,10 @@ LEGAL_NAME = "ReckonERP by Reckon Technologies Ltd."
 FACEBOOK_URL = "https://www.facebook.com/reckontechnologies/"
 ADDRESS_TEXT = "Uttara, Dhaka, Bangladesh"
 MAP_URL = "https://share.google/TPBZbPvw4CzCOQBtI"
-OPEN_HOURS_TEXT = "9 am - 7 pm"
-# Opening days were not stated; every day is assumed. Change here if the office closes on some days.
-OPEN_HOURS_SPEC = {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "09:00", "closes": "19:00"}
+OPEN_HOURS_TEXT = "Sun-Thu 9 am - 7 pm (Bangladesh); Mon-Fri for global teams, overlapping US and UK hours"
+# The Bangladesh team works Sunday to Thursday; the global team (US and UK overlap) works Monday to Friday,
+# with hours set by the overlap, so only the Bangladesh hours are given as structured data.
+OPEN_HOURS_SPEC = {"@type": "OpeningHoursSpecification", "dayOfWeek": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], "opens": "09:00", "closes": "19:00"}
 
 HOME = "/"
 FEATURES = "/features"
@@ -852,8 +853,10 @@ HOME_FAQS = (
     ),
     (
         "Where is Reckon Technologies based?",
-        "Reckon Technologies Ltd. is in Uttara, Dhaka, Bangladesh, open 9 am to 7 pm. Reach "
-        "us by email or WhatsApp, and we serve companies in Bangladesh and worldwide.",
+        "Reckon Technologies Ltd. is in Uttara, Dhaka, Bangladesh. The Bangladesh team works "
+        "Sunday to Thursday, 9 am to 7 pm, and our global team works Monday to Friday, "
+        "overlapping US and UK hours. Reach us by email or WhatsApp; we serve companies in "
+        "Bangladesh and worldwide.",
     ),
     (
         "Can I use it in Bangla?",
