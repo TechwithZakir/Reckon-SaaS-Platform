@@ -871,6 +871,20 @@ HOME_FAQS = (
 
 
 # --- Helpers -------------------------------------------------------------------
+def refresh_public_pages(doc=None, method=None) -> None:
+    """Drop the cached public pages after a plan, module or setting changes.
+
+    Prices, plans and module cards are read from SaaS Plan and SaaS Module records, but Frappe keeps
+    each rendered page until its cache is cleared, so an edit would otherwise stay hidden.
+    """
+    try:
+        from frappe.website.utils import clear_website_cache
+
+        clear_website_cache()
+    except Exception:
+        frappe.clear_cache()
+
+
 def scrub_brand(text: str) -> str:
     """Public copy never names the framework: "Frappe CRM" reads "CRM", and a bare "Frappe" is dropped."""
     text = re.sub(r"\bFrappe\s+(?=[A-Z])", "", text or "")

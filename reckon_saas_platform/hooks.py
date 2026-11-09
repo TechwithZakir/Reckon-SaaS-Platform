@@ -62,6 +62,20 @@ doc_events = {
         "validate": "reckon_saas_platform.tenant_security.validate_user_tenant_roles",
     },
     # Team and module access follow every assignment, for every tenant module.
+    # Public pages show these records, so any change refreshes the cached pages straight away.
+    "SaaS Plan": {
+        "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
+        "on_update": "reckon_saas_platform.marketing.refresh_public_pages",
+        "on_trash": "reckon_saas_platform.marketing.refresh_public_pages",
+    },
+    "SaaS Module": {
+        "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
+        "on_update": "reckon_saas_platform.marketing.refresh_public_pages",
+        "on_trash": "reckon_saas_platform.marketing.refresh_public_pages",
+    },
+    "SaaS Platform Settings": {
+        "on_update": "reckon_saas_platform.marketing.refresh_public_pages",
+    },
     "Tenant User Assignment": {
         "after_insert": "reckon_saas_platform.team.sync_tenant_user_access",
         "on_update": "reckon_saas_platform.team.sync_tenant_user_access",

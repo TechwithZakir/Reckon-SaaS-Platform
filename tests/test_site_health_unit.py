@@ -44,6 +44,23 @@ class SiteHealthTests(unittest.TestCase):
         self.assertRegex(css, r"@media\(max-width:720px\)\{\s*header\.top \.bar\{gap:6px 10px\}")
         self.assertIn("min-height:32px", css)
 
+    def test_changing_a_plan_module_or_setting_refreshes_the_cached_public_pages(self):
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        for doctype in ("SaaS Plan", "SaaS Module"):
+            block = hooks[hooks.index(f'"{doctype}": {{'):]
+            block = block[: block.index("},")]
+            for event in ("after_insert", "on_update", "on_trash"):
+                self.assertIn(f'"{event}": "reckon_saas_platform.marketing.refresh_public_pages"', block, f"{doctype} {event}")
+        settings = hooks[hooks.index('"SaaS Platform Settings": {'):]
+        self.assertIn("refresh_public_pages", settings[: settings.index("},")])
+
+    def test_refresh_public_pages_clears_the_page_cache_and_never_raises(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.clear_cache = Mock()
+            marketing.refresh_public_pages()  # falls back to the general cache when the website cache is unavailable
+            marketing.refresh_public_pages(doc=Mock(), method="on_update")
+        self.assertEqual(frappe.clear_cache.call_count, 2)  # one per call, in this stub the website cache module is absent
+
 
 if __name__ == "__main__":
     unittest.main()
