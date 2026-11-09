@@ -55,6 +55,7 @@ SITE = {
     "Configurable attendance consequences and payroll additions that follow your own company policy.": "আপনার কোম্পানির নিজস্ব নীতি অনুযায়ী কনফিগারযোগ্য উপস্থিতির ফলাফল ও Payroll-এর সংযোজন।",
     "Restaurant and central kitchen": "রেস্টুরেন্ট ও সেন্ট্রাল কিচেন",
     "Branches that share a central store and kitchen: requisition, stock movement, production, delivery and branch-wise sales.": "যেসব ব্রাঞ্চ একটি সেন্ট্রাল স্টোর ও কিচেন ভাগ করে নেয়: রিকুইজিশন, স্টক স্থানান্তর, প্রোডাকশন, ডেলিভারি ও ব্রাঞ্চ অনুযায়ী বিক্রি।",
+    "Google Business Profile": "Google Business Profile",
     "Messaging": "মেসেজিং",
     "Social and lead forms": "সোশ্যাল ও লিড ফর্ম",
     "Voice and SMS": "ভয়েস ও SMS",

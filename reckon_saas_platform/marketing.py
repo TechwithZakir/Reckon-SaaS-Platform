@@ -33,6 +33,7 @@ LEGAL_NAME = "ReckonERP by Reckon Technologies Ltd."
 FACEBOOK_URL = "https://www.facebook.com/reckontechnologies/"
 ADDRESS_TEXT = "Uttara, Dhaka, Bangladesh"
 MAP_URL = "https://share.google/TPBZbPvw4CzCOQBtI"
+GOOGLE_PROFILE_URL = "https://share.google/JA0itouXUgeC46uB4"  # the Google Business Profile
 OPEN_HOURS_TEXT = "Sun-Thu 9 am - 7 pm (Bangladesh); Mon-Fri for global teams, overlapping US and UK hours"
 # The Bangladesh team works Sunday to Thursday; the global team (US and UK overlap) works Monday to Friday,
 # with hours set by the overlap, so only the Bangladesh hours are given as structured data.
@@ -1809,7 +1810,7 @@ def get_profiles() -> list[str]:
         return []
     links = [line.strip() for line in str(text).splitlines()]
     found = [link for link in links if re.fullmatch(r"https://[^\s\"'<>]{4,200}", link)]
-    return list(dict.fromkeys([FACEBOOK_URL, *found]))[:12]
+    return list(dict.fromkeys([FACEBOOK_URL, GOOGLE_PROFILE_URL, *found]))[:12]
 
 
 def shared_context(context, modules: list[dict], lang: str = "en") -> None:

@@ -326,7 +326,7 @@ class MarketingDataTests(unittest.TestCase):
             frappe.get_cached_doc = Mock(return_value=_Dict(social_profiles="https://www.linkedin.com/company/x\njavascript:alert(1)\nhttps://a.b/c d"))
             profiles = marketing.get_profiles()
             home = marketing.home_page(BASE, _modules(marketing, frappe), None, profiles)
-        self.assertEqual(profiles, ["https://www.facebook.com/reckontechnologies/", "https://www.linkedin.com/company/x"])
+        self.assertEqual(profiles, ["https://www.facebook.com/reckontechnologies/", "https://share.google/JA0itouXUgeC46uB4", "https://www.linkedin.com/company/x"])
         self.assertEqual(json.loads(home["jsonld"][0])["sameAs"], profiles)
 
     def test_seo_check_flags_problems_and_fingerprints_content(self):
@@ -716,7 +716,8 @@ class MarketingRenderTests(unittest.TestCase):
         self.assertIn('href="https://wa.me/8801325009955"', html)
         self.assertIn("+8801325-009955", html)
         self.assertIn('class="foot-logo"', html)
-        self.assertEqual(html.count('<span class="ic">'), 5)  # website, mail, WhatsApp, address, Facebook
+        self.assertEqual(html.count('<span class="ic">'), 6)  # website, mail, WhatsApp, address, Facebook, Google Business Profile
+        self.assertIn("Google Business Profile", html)
         self.assertIn("Uttara, Dhaka, Bangladesh", html)
         self.assertIn('rel="me noopener"', html)
         self.assertNotIn("<strong>Mail Address</strong>", html)  # icon-only; the label is for screen readers
