@@ -91,7 +91,9 @@ class LanguageHelperTests(unittest.TestCase):
             self.assertTrue((PKG / "www" / f"{target}.py").exists(), target)
             template = (PKG / "www" / f"{target}.html").read_text(encoding="utf-8")
             self.assertIn(f'{{% extends "reckon_saas_platform/www/{twin_target}.html" %}}', template, target)
-            self.assertIn(f"from reckon_saas_platform.www.{twin_target} import get_context", (PKG / "www" / f"{target}.py").read_text(encoding="utf-8"))
+            code = (PKG / "www" / f"{target}.py").read_text(encoding="utf-8")
+            self.assertIn(f"from reckon_saas_platform.www import {twin_target} as _english_page", code)
+            self.assertIn('frappe.local.reckon_forced_lang = "bn"', code)  # the raw route name must also render Bangla
         self.assertEqual(len([r for r in rules if r.startswith("/bn") and "<" not in r]), 7)
 
     def test_module_headlines_audiences_benefits_and_common_lists_are_all_translated(self):

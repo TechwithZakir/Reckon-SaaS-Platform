@@ -1263,6 +1263,8 @@ def seo_overrides() -> dict:
 
 def current_lang() -> str:
     """``bn`` for pages served under ``/bn``, otherwise ``en``."""
+    if getattr(frappe.local, "reckon_forced_lang", None) == marketing_bn.LANG:
+        return marketing_bn.LANG  # set by the Bangla route files, whatever address was used
     request = getattr(frappe.local, "request", None)
     path = getattr(request, "path", "")
     if isinstance(path, str) and (path == marketing_bn.PREFIX or path.startswith(marketing_bn.PREFIX + "/")):

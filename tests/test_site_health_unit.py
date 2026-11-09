@@ -114,6 +114,16 @@ class SiteHealthTests(unittest.TestCase):
         self.assertEqual(address, "উত্তরা, ঢাকা, বাংলাদেশ")
         self.assertIn("রবি–বৃহস্পতি", hours)
 
+    def test_a_forced_language_beats_the_request_path(self):
+        """``/reckon_bn_home`` is a raw address for the Bangla page; it must not cache an English copy."""
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.local.request = Mock(path="/reckon_bn_home")
+            self.assertEqual(marketing.current_lang(), "en")
+            frappe.local.reckon_forced_lang = "bn"
+            self.assertEqual(marketing.current_lang(), "bn")
+            page = marketing.pricing_page(BASE, _modules(marketing, frappe))
+        self.assertEqual((page["lang"], page["canonical"]), ("bn", f"{BASE}/bn/pricing"))
+
 
 if __name__ == "__main__":
     unittest.main()
