@@ -301,7 +301,8 @@ class MarketingDataTests(unittest.TestCase):
             modules = _modules(marketing, frappe, records=[record])
             xml = marketing.sitemap_xml(BASE, modules)
         self.assertIn(f"<loc>{BASE}/modules/accounts</loc><lastmod>2026-11-01</lastmod>", xml)
-        self.assertIn(f"<loc>{BASE}/modules/distribution</loc></url>", xml)
+        self.assertIn(f"<loc>{BASE}/modules/distribution</loc>", xml)
+        self.assertIn(f'<xhtml:link rel="alternate" hreflang="bn" href="{BASE}/bn/modules/distribution"/>', xml)  # each page names its Bangla twin
         self.assertIn(f"<loc>{BASE}/faq</loc>", xml)
 
     def test_faq_page_and_llms_full_cover_the_questions(self):
@@ -504,7 +505,7 @@ class MarketingDataTests(unittest.TestCase):
             module = marketing.module_page(BASE, modules[0], modules)
             features = marketing.features_page(BASE)
         kinds = lambda page: [json.loads(b)["@type"] for b in page["jsonld"]]  # noqa: E731
-        self.assertEqual(kinds(home), ["Organization", "ProfessionalService", "SoftwareApplication", "FAQPage"])
+        self.assertEqual(kinds(home), ["Organization", "ProfessionalService", "WebSite", "SoftwareApplication", "FAQPage"])
         self.assertEqual(json.loads(home["jsonld"][0])["email"], "hello@reckon.tech")
         self.assertEqual(kinds(module), ["SoftwareApplication", "FAQPage", "BreadcrumbList"])
         self.assertEqual(kinds(features), ["BreadcrumbList"])

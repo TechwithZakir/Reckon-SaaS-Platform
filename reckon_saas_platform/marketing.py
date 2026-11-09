@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 import re
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from xml.sax.saxutils import escape as xml_escape
 
 import frappe
@@ -113,6 +113,8 @@ CRAWLERS = (
     "cohere-ai",
 )
 PRIVATE_PATHS = (
+    "/reckon_",
+    "/index",
     "/app",
     "/desk",
     "/api",
@@ -1108,18 +1110,24 @@ def organization_ld(base: str, same_as=None) -> dict:
     data = {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": f"{base}/#organization",
         "name": SITE_NAME,
         "legalName": PUBLISHER,
         "url": f"{base}/",
         "logo": f"{base}{LOGO_SOCIAL}",
         "email": SUPPORT_EMAIL,
+        "description": COMPANY_SUMMARY,
         "areaServed": ["Bangladesh", "Worldwide"],
         "address": {"@type": "PostalAddress", "addressCountry": "BD"},
         "knowsLanguage": ["en", "bn"],
+        "knowsAbout": ["Cloud ERP", "CRM", "HR and payroll software", "Distribution management", "Accounting software", "AI agents", "Business automation"],
         "contactPoint": {
             "@type": "ContactPoint",
             "contactType": "customer support",
             "email": SUPPORT_EMAIL,
+            "telephone": WHATSAPP_DISPLAY,
+            "availableLanguage": ["English", "Bengali"],
+            "areaServed": ["BD", "Worldwide"],
         },
     }
     if same_as:
@@ -1127,11 +1135,25 @@ def organization_ld(base: str, same_as=None) -> dict:
     return data
 
 
+def website_ld(base: str) -> dict:
+    return {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": f"{base}/#website",
+        "name": SITE_NAME,
+        "url": f"{base}/",
+        "inLanguage": ["en", "bn"],
+        "publisher": {"@id": f"{base}/#organization"},
+    }
+
+
 def local_business_ld(base: str, same_as=None) -> dict:
     """The office in Uttara, Dhaka, with phone, hours and a map link, for local search."""
     data = {
         "@context": "https://schema.org",
         "@type": "ProfessionalService",
+        "@id": f"{base}/#office",
+        "parentOrganization": {"@id": f"{base}/#organization"},
         "name": LEGAL_NAME,
         "legalName": PUBLISHER,
         "url": f"{base}/",
@@ -1145,7 +1167,8 @@ def local_business_ld(base: str, same_as=None) -> dict:
             "addressLocality": "Dhaka",
             "addressCountry": "BD",
         },
-        "areaServed": ["Bangladesh", "Worldwide"],
+        "areaServed": [{"@type": "City", "name": "Dhaka"}, {"@type": "Country", "name": "Bangladesh"}, "Worldwide"],
+        "knowsLanguage": ["en", "bn"],
         "openingHoursSpecification": OPEN_HOURS_SPEC,
         "hasMap": MAP_URL,
     }
@@ -1172,10 +1195,11 @@ def software_ld(base: str, name: str, description: str, path: str, offers=None) 
     return data
 
 
-def faq_ld(faqs) -> dict:
+def faq_ld(faqs, lang: str = "en") -> dict:
     return {
         "@context": "https://schema.org",
         "@type": "FAQPage",
+        "inLanguage": lang,
         "mainEntity": [
             {
                 "@type": "Question",
@@ -1284,10 +1308,11 @@ def make_page(
     if path == HOME:
         ld.append(organization_ld(base, same_as))
         ld.append(local_business_ld(base, same_as))
+        ld.append(website_ld(base))
     if software:
         ld.append(software_ld(base, software[0], software[1], path, software[2] if len(software) > 2 else None))
     if faqs:
-        ld.append(faq_ld(faqs))
+        ld.append(faq_ld(faqs, lang))
     ld += list(extra_ld or [])
     if len(trail) > 1:
         ld.append(breadcrumb_ld(base, trail))
@@ -1428,7 +1453,7 @@ def plan_offers(base: str, module: dict) -> list[dict]:
             "url": f"{base}{signup_url(module['key'])}",
             "availability": "https://schema.org/InStock",
         }
-        for plan in module["plans"]
+        for plan in (p for group in (module.get("plans_by_currency") or {"": module["plans"]}).values() for p in group)
         if len(plan["currency"]) == 3 and plan["price"] > 0
     ]
 
@@ -1453,6 +1478,10 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
     description = (module["tagline"] + " " + module["description"]).strip()
     if len(description) > 158:
         description = module["tagline"] if len(module["tagline"]) > 70 else description[:155].rstrip() + "..."
+    if current_lang() == "bn":
+        full = marketing_bn.translate(module["tagline"]) + " " + marketing_bn.translate(module["description"])
+        cut = full[:155].rsplit(" ", 1)[0].rstrip(",;:।") if len(full) > 158 else full
+        description = marketing_bn.translate(module["description"]) if len(cut) < 100 else cut + ("…" if len(full) > 158 else "")
     return make_page(
         base,
         path=module["url"],
@@ -1560,13 +1589,21 @@ def sitemap_xml(base: str, modules: list[dict]) -> str:
     for path in public_paths(modules, articles):
         lastmod = modified.get(path)
         stamp = f"<lastmod>{xml_escape(lastmod)}</lastmod>" if re.fullmatch(r"\d{4}-\d{2}-\d{2}", lastmod or "") else ""
-        rows.append(f"<url><loc>{xml_escape(base + path)}</loc>{stamp}</url>")
         if marketing_bn.is_translatable(path):
-            rows.append(f"<url><loc>{xml_escape(base + marketing_bn.bn_path(path))}</loc>{stamp}</url>")
+            en_url, bn_url = xml_escape(base + path), xml_escape(base + marketing_bn.bn_path(path))
+            alternates = (
+                f'<xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>'
+                f'<xhtml:link rel="alternate" hreflang="bn" href="{bn_url}"/>'
+                f'<xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>'
+            )
+            rows.append(f"<url><loc>{en_url}</loc>{stamp}{alternates}</url>")
+            rows.append(f"<url><loc>{bn_url}</loc>{stamp}{alternates}</url>")
+        else:
+            rows.append(f"<url><loc>{xml_escape(base + path)}</loc>{stamp}</url>")
     urls = "".join(rows)
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n'
+        f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">{urls}</urlset>\n'
     )
 
 
@@ -1602,7 +1639,8 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     lines += ["", "## More from Reckon (on request)", ""]
     for app in FAMILY_APPS:
         lines.append(f"- {app['name']}: {app['text']}")
-    lines += ["", "## Features", ""]
+    lines += ["", "## Languages", "", f"- English: {base}/", f"- Bangla (বাংলা): {base}{marketing_bn.PREFIX}", ""]
+    lines += ["## Features", ""]
     for feature in FEATURE_LIST:
         lines.append(f"- [{feature['title']}]({base}{feature_url(feature['slug'])}): {feature['summary']}")
     from reckon_saas_platform.industries import INDUSTRIES
@@ -1673,6 +1711,7 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
     for item in INDUSTRIES:
         out += [f"### {item['title']}", f"URL: {base}{industry_url(item['slug'])}", "", item["intro"], ""]
         out += [f"- {point}" for point in item["standard"]] + [""]
+    out += ["## Languages", "", f"The whole public site is available in English ({base}/) and in Bangla ({base}{marketing_bn.PREFIX}).", ""]
     out += ["## Deployment options", ""]
     out += [f"- {item['title']}: {item['text']}" for item in DEPLOYMENTS] + ["", AI_NOTE, ""]
     out += ["## Integrations and channels", "", ", ".join(item["name"] for item in integrations) + ".", ""]
@@ -1819,7 +1858,15 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
     context.services = SERVICES
     context.company_summary = COMPANY_SUMMARY
     context.expertise = EXPERTISE
+    request = getattr(frappe.local, "request", None)
+    served = getattr(request, "path", "")
+    if isinstance(served, str) and served and not page.get("noindex"):
+        # /reckon_pricing, /reckon_bn_home and /index render the same page as its public address; keep them out of search.
+        if (served.rstrip("/") or "/") != ((urlparse(page["canonical"]).path.rstrip("/")) or "/"):
+            page["noindex"] = True
     if lang == "bn":
+        for name in ("address_text", "open_hours"):
+            setattr(context, name, marketing_bn.translate(getattr(context, name)))
         for name in ("services", "ai_points", "ai_note", "showcase", "deployments", "company_summary", "expertise",
                      "trademark_note", "nav_features", "nav_modules"):
             setattr(context, name, marketing_bn.deep(getattr(context, name)))

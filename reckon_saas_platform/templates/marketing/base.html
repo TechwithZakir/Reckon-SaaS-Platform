@@ -30,7 +30,7 @@
 <meta property="og:description" content="{{ page.description|e }}">
 <meta property="og:url" content="{{ page.canonical|e }}">
 <meta property="og:image" content="{{ page.og_image|e }}">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="{% if page.og_image and 'reckonerp-logo' not in page.og_image %}summary_large_image{% else %}summary{% endif %}">
 <meta name="twitter:title" content="{{ page.title|e }}">
 <meta name="twitter:description" content="{{ page.description|e }}">
 <meta name="twitter:image" content="{{ page.og_image|e }}">

@@ -312,10 +312,10 @@ class CurrencySwitchTests(unittest.TestCase):
         self.assertNotIn('class="rk-cur"', html)
         self.assertEqual(len(re.findall(r'class="grid plans cur-set', html)), 1)
 
-    def test_offers_in_search_data_use_the_default_currency_only(self):
+    def test_offers_in_search_data_cover_every_currency(self):
         module, _pricing, _html, marketing, modules = self.build([plan("Starter", 500, "BDT"), plan("Starter USD", 5, "USD")])
         offers = marketing.plan_offers(BASE, module)
-        self.assertEqual({o["priceCurrency"] for o in offers}, {"BDT"})
+        self.assertEqual({o["priceCurrency"] for o in offers}, {"BDT", "USD"})  # so "how much in USD" is answerable from the page data
 
     def test_choosing_a_plan_links_to_signup_and_bangla_pages_keep_the_language(self):
         with platform_modules("marketing") as (frappe, (marketing,)):

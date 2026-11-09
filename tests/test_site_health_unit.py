@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import Mock
 
-from frappe_stub import platform_modules
-from test_marketing_site_unit import BASE, _modules
+from frappe_stub import _Dict, platform_modules
+from test_marketing_site_unit import BASE, _modules, all_pages
 
 PKG = Path(__file__).resolve().parents[1] / "reckon_saas_platform"
 
@@ -60,6 +61,59 @@ class SiteHealthTests(unittest.TestCase):
             marketing.refresh_public_pages()  # falls back to the general cache when the website cache is unavailable
             marketing.refresh_public_pages(doc=Mock(), method="on_update")
         self.assertEqual(frappe.clear_cache.call_count, 2)  # one per call, in this stub the website cache module is absent
+
+    def test_duplicate_raw_routes_are_disallowed_and_marked_noindex(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            robots = marketing.robots_txt(BASE)
+            modules = _modules(marketing, frappe)
+            page = marketing.pricing_page(BASE, modules)
+            frappe.local.request = Mock(path="/reckon_pricing")  # the template's own address, not the public one
+            marketing.apply_context(_Dict(), page, modules)
+            duplicate = page["noindex"]
+            real = marketing.pricing_page(BASE, modules)
+            frappe.local.request = Mock(path="/pricing")
+            marketing.apply_context(_Dict(), real, modules)
+        self.assertIn("Disallow: /reckon_" + chr(10), robots)
+        self.assertIn("Disallow: /index" + chr(10), robots)
+        self.assertNotIn("Disallow: /industries", robots)
+        self.assertTrue(duplicate)
+        self.assertFalse(real["noindex"])
+
+    def test_bangla_titles_stay_short_enough_not_to_be_cut_in_results(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            bn = marketing.marketing_bn
+            modules = _modules(marketing, frappe)
+            frappe.local.request = Mock(path="/bn")
+            titles = [bn.translate(p["title"]) for p in all_pages(marketing, modules)]
+        self.assertTrue(titles)
+        self.assertLessEqual(max(len(t) for t in titles), 58, [t for t in titles if len(t) > 58])
+
+    def test_structured_data_has_stable_ids_language_and_service_area(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(social_profiles=""))
+            home = marketing.home_page(BASE, _modules(marketing, frappe), None, marketing.get_profiles())
+            blocks = {json.loads(b)["@type"]: json.loads(b) for b in home["jsonld"]}
+        org, office, site = blocks["Organization"], blocks["ProfessionalService"], blocks["WebSite"]
+        self.assertEqual(org["@id"], f"{BASE}/#organization")
+        self.assertEqual(office["parentOrganization"], {"@id": org["@id"]})
+        self.assertEqual(site["publisher"], {"@id": org["@id"]})
+        self.assertEqual(site["inLanguage"], ["en", "bn"])
+        self.assertEqual(org["contactPoint"]["availableLanguage"], ["English", "Bengali"])
+        self.assertIn({"@type": "City", "name": "Dhaka"}, office["areaServed"])
+        self.assertEqual(blocks["FAQPage"]["inLanguage"], "en")
+
+    def test_llms_files_point_to_the_bangla_edition_and_the_bangla_footer_is_translated(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-09")
+            modules = _modules(marketing, frappe)
+            short, full = marketing.llms_txt(BASE, modules), marketing.llms_full_txt(BASE, modules)
+            bn = marketing.marketing_bn
+            address, hours = bn.translate(marketing.ADDRESS_TEXT), bn.translate(marketing.OPEN_HOURS_TEXT)
+        self.assertIn(f"{BASE}/bn", short)
+        self.assertIn("## Languages", short)
+        self.assertIn(f"{BASE}/bn", full)
+        self.assertEqual(address, "উত্তরা, ঢাকা, বাংলাদেশ")
+        self.assertIn("রবি–বৃহস্পতি", hours)
 
 
 if __name__ == "__main__":
