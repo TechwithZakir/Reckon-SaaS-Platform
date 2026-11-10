@@ -1858,6 +1858,14 @@ def get_profiles() -> list[str]:
 def shared_context(context, modules: list[dict], lang: str = "en") -> None:
     """Header, footer and chat data used by every public page, signup included."""
     context.tracking = get_tracking()
+    # Not called ``company``: the signup page already uses that name for the vendor's own details.
+    context.company_links = {
+        "name": company_links.COMPANY_NAME,
+        "url": company_links.COMPANY_URL,
+        "services": company_links.SERVICES,
+        "industries_url": company_links.INDUSTRIES_URL,
+        "contact_url": company_links.CONTACT_URL,
+    }
     context.tr = marketing_bn.make_translator(lang)
     context.u = marketing_bn.make_url_filter(lang)
     context.show_theme = False
@@ -1909,13 +1917,6 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
         for name in ("services", "ai_points", "ai_note", "showcase", "deployments", "company_summary", "expertise",
                      "trademark_note", "nav_features", "nav_modules"):
             setattr(context, name, marketing_bn.deep(getattr(context, name)))
-    context.company = {
-        "name": company_links.COMPANY_NAME,
-        "url": company_links.COMPANY_URL,
-        "services": company_links.SERVICES,
-        "industries_url": company_links.INDUSTRIES_URL,
-        "contact_url": company_links.CONTACT_URL,
-    }
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1

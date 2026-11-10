@@ -136,6 +136,18 @@ class SiteHealthTests(unittest.TestCase):
         field = next(f for f in json.loads(path.read_text(encoding="utf-8"))["fields"] if f["fieldname"] == "meta_pixel_in_tag_manager")
         self.assertEqual((field["fieldtype"], field["default"]), ("Check", "0"))
 
+    def test_company_links_do_not_clash_with_the_signup_pages_own_company_variable(self):
+        """The signup page passes the vendor's details as ``company``; the footer must use its own name."""
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            context = _Dict(company={"name": "Vendor", "phone": "1"})  # what the signup page sets
+            marketing.shared_context(context, [], "en")
+        self.assertEqual(context.company_links["url"], "https://www.reckon.tech/")
+        self.assertEqual(context.company["name"], "Vendor")  # untouched
+        for name in ("footer.html",):
+            text = (PKG / "templates" / "marketing" / name).read_text(encoding="utf-8")
+            self.assertNotRegex(text, r"company\.(url|name|services)")
+            self.assertIn("company_links.services", text)
+
 
 if __name__ == "__main__":
     unittest.main()

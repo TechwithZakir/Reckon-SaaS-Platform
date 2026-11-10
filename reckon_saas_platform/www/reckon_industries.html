@@ -51,7 +51,7 @@
 </section>
 <section aria-label="{{ tr("Reckon Technologies") }}">
   <div class="wrap">
-    <p class="cross-line">{{ tr("Implementation for {name} companies by Reckon Technologies")|replace("{name}", page.industry.name|e) }} &mdash; <a href="{{ company.industries_url|e }}">{{ tr("see all industries we serve") }}</a> &middot; <a href="{{ company.contact_url|e }}">{{ tr("Book a consultation") }}</a></p>
+    <p class="cross-line">{{ tr("Implementation for {name} companies by Reckon Technologies")|replace("{name}", page.industry.name|e) }} &mdash; <a href="{{ company_links.industries_url|e }}">{{ tr("see all industries we serve") }}</a> &middot; <a href="{{ company_links.contact_url|e }}">{{ tr("Book a consultation") }}</a></p>
   </div>
 </section>
 {% else %}
