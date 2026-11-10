@@ -70,8 +70,59 @@ class UserLimitWiringTests(unittest.TestCase):
             a = {**plan("A", 1, "BDT"), "max_users": 5, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             b = {**plan("B", 2, "BDT"), "max_users": 0, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             rows = marketing.comparison_matrix([a, b])["rows"]
-        self.assertEqual([r["feature"] for r in rows], ["Users", "X"])
+        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X"])
         self.assertEqual([c["users"] for c in rows[0]["cells"]], [5, 0])
+
+
+class FileStorageTests(unittest.TestCase):
+    def run_hook(self, limit, used_bytes, size, company="Acme"):
+        with platform_modules("plan_limits") as (frappe, (limits,)):
+            frappe.get_all = Mock(return_value=["PLAN"])
+            frappe.db.get_value = Mock(return_value=limit)
+            frappe.db.sql = Mock(return_value=[[used_bytes]])
+            frappe.throw = Mock(side_effect=Exception("full"))
+            frappe.log_error = Mock()
+            limits.file_company = Mock(return_value=company)
+            doc = Mock(**{"get.side_effect": lambda k, d=None: {"file_size": size}.get(k, d)})
+            limits.check_file_storage(doc)
+            return doc, frappe
+
+    def test_an_upload_past_the_plan_storage_is_refused(self):
+        with self.assertRaises(Exception) as ctx:
+            self.run_hook(limit=1, used_bytes=900_000, size=200_000)  # 1 MB plan, 0.9 MB used, 0.2 MB new
+        self.assertEqual(str(ctx.exception), "full")
+
+    def test_an_upload_within_the_storage_is_stamped_with_its_company(self):
+        doc, _frappe = self.run_hook(limit=1, used_bytes=100, size=200_000)
+        doc.set.assert_called_with("reckon_company", "Acme")
+
+    def test_blank_storage_is_unlimited_and_files_without_a_company_are_not_counted(self):
+        self.run_hook(limit=0, used_bytes=10**12, size=10**9)
+        doc, _frappe = self.run_hook(limit=1, used_bytes=0, size=10**9, company=None)
+        doc.set.assert_not_called()
+
+    def test_a_broken_check_never_blocks_an_upload(self):
+        with platform_modules("plan_limits") as (frappe, (limits,)):
+            frappe.log_error = Mock()
+            limits.file_company = Mock(side_effect=RuntimeError("boom"))
+            limits.check_file_storage(Mock())
+            frappe.log_error.assert_called_once()
+
+    def test_wiring_and_the_plan_field(self):
+        hooks = (PKG / "hooks.py").read_text(encoding="utf-8")
+        self.assertIn('"before_insert": "reckon_saas_platform.plan_limits.check_file_storage"', hooks)
+        self.assertIn("ensure_file_storage_tracking()", (PKG / "install.py").read_text(encoding="utf-8"))
+        data = json.loads((PKG / "saas_platform" / "doctype" / "saas_plan" / "saas_plan.json").read_text(encoding="utf-8"))
+        self.assertEqual(next(f for f in data["fields"] if f["fieldname"] == "max_storage_mb")["fieldtype"], "Int")
+
+    def test_comparison_shows_file_storage_after_users(self):
+        with platform_modules("marketing") as (_f, (marketing,)):
+            a = {**plan("A", 1, "BDT"), "max_storage_mb": 500, "comparison": [{"feature": "X", "included": True, "value": ""}]}
+            b = {**plan("B", 2, "BDT"), "max_storage_mb": 2048, "comparison": [{"feature": "X", "included": True, "value": ""}]}
+            c = {**plan("C", 3, "BDT"), "max_storage_mb": 0, "comparison": [{"feature": "X", "included": True, "value": ""}]}
+            rows = marketing.comparison_matrix([a, b, c])["rows"]
+        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X"])
+        self.assertEqual([x["text"] for x in rows[1]["cells"]], ["500 MB", "2 GB", ""])
 
 
 if __name__ == "__main__":

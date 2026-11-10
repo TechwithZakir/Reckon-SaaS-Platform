@@ -44,6 +44,17 @@ def after_migrate() -> None:
     ensure_site_branding()
     refresh_site_seo()
     audit_tenant_roles()
+    ensure_file_storage_tracking()
+
+
+def ensure_file_storage_tracking() -> None:
+    """Never let the storage bookkeeping stop a migrate."""
+    try:
+        from reckon_saas_platform.plan_limits import ensure_file_company_field
+
+        ensure_file_company_field()
+    except Exception:
+        frappe.log_error(title="File storage tracking setup failed")
 
 
 def ensure_marketing_home() -> None:

@@ -972,6 +972,11 @@ def _plan_rows(plan_names: list[str]) -> dict[str, list[dict]]:
     return rows
 
 
+def _storage_text(mb) -> str:
+    mb = int(mb or 0)
+    return f"{mb / 1024:g} GB" if mb >= 1024 else (f"{mb} MB" if mb else "")
+
+
 def comparison_matrix(plans: list[dict]) -> dict:
     """Plans side by side: one row per feature, one cell per plan.
 
@@ -997,6 +1002,8 @@ def comparison_matrix(plans: list[dict]) -> dict:
         rows.append({"feature": labels[key], "cells": cells})
     if rows and "users" not in order:  # how many people can use the workspace comes from the plan's Maximum Users, first in the table
         rows.insert(0, {"feature": "Users", "users": True, "cells": [{"included": True, "value": "", "users": int(p.get("max_users") or 0)} for p in plans]})
+    if rows and "file storage" not in order:
+        rows.insert(1, {"feature": "File storage", "storage": True, "cells": [{"included": True, "value": "", "text": _storage_text(p.get("max_storage_mb"))} for p in plans]})
     return {"plans": plans, "rows": rows}
 
 
@@ -1009,7 +1016,7 @@ def get_plans() -> dict[str, list[dict]]:
         rows = frappe.get_all(
             "SaaS Plan",
             filters={"enabled": 1},
-            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "features", "modified"],
+            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified"],
             order_by="price asc",
             ignore_permissions=True,
         )
@@ -1037,6 +1044,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "price_text": _price_text(price, symbol, cycle),
                 "trial_days": int(row.get("trial_days") or 0),
                 "max_users": int(row.get("max_users") or 0),
+                "max_storage_mb": int(row.get("max_storage_mb") or 0),
                 "modified": str(row.get("modified") or "")[:10],
                 "comparison": comparison.get(row.get("name"), []),
                 "features": [feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()],

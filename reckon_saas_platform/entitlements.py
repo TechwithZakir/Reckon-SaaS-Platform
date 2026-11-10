@@ -26,3 +26,6 @@ def effective_user_limit(limits: list[int | None]) -> int | None:
     if not limits or any(not limit or int(limit) <= 0 for limit in limits):
         return None
     return max(int(limit) for limit in limits)
+
+
+effective_limit = effective_user_limit  # one rule serves every plan limit: blank or zero is unlimited, else the best plan wins

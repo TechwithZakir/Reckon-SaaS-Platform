@@ -76,6 +76,9 @@ doc_events = {
     "SaaS Platform Settings": {
         "on_update": "reckon_saas_platform.marketing.refresh_public_pages",
     },
+    "File": {
+        "before_insert": "reckon_saas_platform.plan_limits.check_file_storage",
+    },
     "Tenant User Assignment": {
         "after_insert": "reckon_saas_platform.team.sync_tenant_user_access",
         "on_update": "reckon_saas_platform.team.sync_tenant_user_access",

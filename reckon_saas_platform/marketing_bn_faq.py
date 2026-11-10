@@ -60,6 +60,7 @@ SITE = {
     "ReckonERP is a cloud ERP with built-in AI for growing businesses in Bangladesh and worldwide, made by Reckon Technologies Ltd.": "ReckonERP বাংলাদেশ ও বিশ্বজুড়ে বর্ধনশীল ব্যবসার জন্য AI সহ একটি Cloud ERP, Reckon Technologies Ltd.-এর তৈরি।",
     "Features": "ফিচার",
     "Users": "ইউজার",
+    "File storage": "ফাইল স্টোরেজ",
     "Up to {n}": "সর্বোচ্চ {n} জন",
     "Unlimited": "আনলিমিটেড",
     "Included": "অন্তর্ভুক্ত",

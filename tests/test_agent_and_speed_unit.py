@@ -100,7 +100,7 @@ class PageTests(unittest.TestCase):
         bdt = sets[0]
         self.assertEqual(re.findall(r'<span class="cmp-plan">(.*?)</span>', bdt), ["Basic", "Pro"])
         rows = {r[0]: r[1] for r in re.findall(r'<tr><th scope="row">(.*?)</th>(.*?)</tr>', bdt, re.S)}
-        self.assertEqual(list(rows), ["Users", "Reports", "API access", "Audit log"])  # features line up by wording, once each
+        self.assertEqual(list(rows), ["Users", "File storage", "Reports", "API access", "Audit log"])  # features line up by wording, once each
         self.assertIn("Up to 5", rows["Users"])
         self.assertIn("Unlimited", rows["Users"])
         self.assertEqual(rows["API access"].count("cmp-no"), 1)  # Basic: not included, Pro: included
@@ -125,7 +125,7 @@ class PageTests(unittest.TestCase):
     def test_comparison_matrix_falls_back_to_the_plan_feature_list(self):
         with platform_modules("marketing") as (_frappe, (marketing,)):
             matrix = marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": ["One", "Two"], "comparison": []}])
-            self.assertEqual([r["feature"] for r in matrix["rows"]], ["Users", "One", "Two"])
+            self.assertEqual([r["feature"] for r in matrix["rows"]], ["Users", "File storage", "One", "Two"])
             self.assertEqual(marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": [], "comparison": []}])["rows"], [])
 
     def test_plan_has_an_editable_comparison_table(self):
