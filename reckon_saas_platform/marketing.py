@@ -949,6 +949,54 @@ def _price_text(price: float, symbol: str, cycle: str) -> str:
     return f"{symbol}{amount} per {CYCLE_WORDS.get(cycle, (cycle or 'period').lower())}"
 
 
+def _plan_rows(plan_names: list[str]) -> dict[str, list[dict]]:
+    """Comparison feature lines per plan, in the order the vendor entered them."""
+    rows: dict[str, list[dict]] = {}
+    try:
+        found = frappe.get_all(
+            "SaaS Plan Feature",
+            filters={"parenttype": "SaaS Plan", "parent": ["in", plan_names]},
+            fields=["parent", "feature", "included", "value"],
+            order_by="idx asc",
+            ignore_permissions=True,
+        )
+    except Exception:
+        return rows
+    for row in found:
+        parent, text = row.get("parent"), str(row.get("feature") or "").strip()
+        if parent and text:
+            rows.setdefault(parent, []).append(
+                {"feature": text, "included": bool(row.get("included", 1)), "value": str(row.get("value") or "").strip()}
+            )
+    return rows
+
+
+def comparison_matrix(plans: list[dict]) -> dict:
+    """Plans side by side: one row per feature, one cell per plan.
+
+    Features line up by wording (ignoring case). A plan that does not list a feature shows it as not included.
+    Plans with no comparison lines of their own fall back to their feature list, so the table is never empty
+    while the plans have features.
+    """
+    lines = [p.get("comparison") or [{"feature": f, "included": True, "value": ""} for f in p.get("features") or []] for p in plans]
+    order: list[str] = []
+    labels: dict[str, str] = {}
+    for plan_lines in lines:
+        for line in plan_lines:
+            key = line["feature"].casefold()
+            if key not in labels:
+                labels[key] = line["feature"]
+                order.append(key)
+    rows = []
+    for key in order:
+        cells = []
+        for plan_lines in lines:
+            hit = next((x for x in plan_lines if x["feature"].casefold() == key), None)
+            cells.append({"included": bool(hit and (hit["included"] or hit["value"])), "value": hit["value"] if hit and hit["included"] else ""})
+        rows.append({"feature": labels[key], "cells": cells})
+    return {"plans": plans, "rows": rows}
+
+
 def get_plans() -> dict[str, list[dict]]:
     """Enabled SaaS Plans grouped by module key, cheapest first, as the site shows them."""
     plans: dict[str, list[dict]] = {}
@@ -964,6 +1012,7 @@ def get_plans() -> dict[str, list[dict]]:
         )
     except Exception:
         return plans
+    comparison = _plan_rows([r.get("name") for r in rows if r.get("name")])
     for row in rows:
         key = row.get("saas_module")
         try:
@@ -985,6 +1034,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "price_text": _price_text(price, symbol, cycle),
                 "trial_days": int(row.get("trial_days") or 0),
                 "modified": str(row.get("modified") or "")[:10],
+                "comparison": comparison.get(row.get("name"), []),
                 "features": [feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()],
             }
         )
@@ -1048,6 +1098,12 @@ def get_modules() -> list[dict]:
                 "exclusions": exclusions,
                 "plans": plans,
                 "plans_by_currency": {c: by_currency[c] for c in currencies},
+                # the side-by-side table is used once the vendor has entered comparison lines for any plan of the module
+                "comparison_by_currency": {
+                    c: matrix for c in currencies if (matrix := comparison_matrix(by_currency[c]))["rows"]
+                }
+                if any(p.get("comparison") for group in by_currency.values() for p in group)
+                else {},
                 "currencies": currencies,
                 "banner": module_assets.banner(key, label),
                 "tagline": copy.get("tagline") or description,
@@ -1751,6 +1807,10 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
         out += [f"- {item}" for item in module["benefits"] + module["features"]] + [""]
         for currency, plans in (module.get("plans_by_currency") or {}).items():
             trial = max((p["trial_days"] for p in plans), default=0)
+            for plan in plans:
+                lines = plan.get("comparison") or []
+                if lines:
+                    out += [f"{plan['name']} ({currency}) includes: " + "; ".join(x["feature"] + (f" ({x['value']})" if x["value"] else "") for x in lines if x["included"]) + ".", ""]
             out += [f"Plans in {currency}: " + "; ".join(f"{p['name']} {p['price_text']}" for p in plans) + (f". Free trial up to {trial} days." if trial else "."), ""]
     out += ["## More from Reckon (on request)", ""]
     out += [f"- {app['name']}: {app['text']}" for app in FAMILY_APPS] + ["", FAMILY_NOTE, "", "## Features", ""]

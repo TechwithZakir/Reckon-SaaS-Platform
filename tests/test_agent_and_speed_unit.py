@@ -76,23 +76,69 @@ class PageTests(unittest.TestCase):
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(REPO_ROOT)))
             return env.get_template(f"reckon_saas_platform/www/{template}.html").render(**context)
 
-    def test_pricing_page_has_a_real_table_of_every_plan(self):
-        html = self.render("reckon_pricing", lambda m, mods: m.pricing_page(BASE, mods), "/pricing")
-        table = re.search(r'<table class="plans-table".*?</table>', html, re.S).group(0)
-        self.assertIn('aria-labelledby="cmp-h"', table)
-        self.assertEqual(table.count('<th scope="col">'), 4)
-        rows = re.findall(r"<tr><th scope=\"row\">.*?</tr>", table, re.S)
-        self.assertEqual(len(rows), 3)  # one row per plan, every currency
-        text = re.sub(r"<[^>]+>", " ", table)
-        for needle in ("৳500 per month", "$5 per month", "৳1,000 per month", "14-day free trial"):
-            self.assertIn(needle, text)
-        self.assertIn("&ndash;", rows[-1] if "Std" in rows[-1] else table)  # a plan with no trial shows a dash
+    def _compare_page(self, path):
+        def line(feature, included=True, value=""):
+            return {"feature": feature, "included": included, "value": value}
 
-    def test_bangla_pricing_table_is_translated(self):
-        html = self.render("reckon_pricing", lambda m, mods: m.pricing_page(BASE, mods), "/bn/pricing")
-        self.assertIn("সব Plan-এর তুলনা", html)
-        self.assertIn("প্রতি মাসে ৳500", re.search(r'<table class="plans-table".*?</table>', html, re.S).group(0))
-        self.assertIn("১৪" if False else "14 দিনের ফ্রি ট্রায়াল", html)
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-10")
+            basic = {**plan("Basic", 500, "BDT"), "comparison": [line("Users", value="Up to 5"), line("Reports"), line("API access", False)]}
+            pro = {**plan("Pro", 900, "BDT"), "comparison": [line("users", value="Unlimited"), line("Reports"), line("API access"), line("Audit log")]}
+            usd = {**plan("Basic USD", 5, "USD"), "comparison": [line("Users", value="Up to 5")]}
+            marketing.get_plans = Mock(return_value={"distribution": [basic, pro, usd], "accounts": [plan("Std", 1000, "BDT", trial=0)]})
+            modules = _modules(marketing, frappe)
+            frappe.local.request = Mock(path=path)
+            context = _Dict()
+            marketing.apply_context(context, marketing.pricing_page(BASE, modules), modules)
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(REPO_ROOT)))
+            return env.get_template("reckon_saas_platform/www/reckon_pricing.html").render(**context), modules
+
+    def test_pricing_compares_the_plans_of_a_module_side_by_side(self):
+        html, modules = self._compare_page("/pricing")
+        sets = re.findall(r'<table class="cmp-table">.*?</table>', html, re.S)
+        self.assertEqual(len(sets), 2)  # BDT and USD for the module with comparison lines
+        bdt = sets[0]
+        self.assertEqual(re.findall(r'<span class="cmp-plan">(.*?)</span>', bdt), ["Basic", "Pro"])
+        rows = {r[0]: r[1] for r in re.findall(r'<tr><th scope="row">(.*?)</th>(.*?)</tr>', bdt, re.S)}
+        self.assertEqual(list(rows), ["Users", "Reports", "API access", "Audit log"])  # features line up by wording, once each
+        self.assertIn("Up to 5", rows["Users"])
+        self.assertIn("Unlimited", rows["Users"])
+        self.assertEqual(rows["API access"].count("cmp-no"), 1)  # Basic: not included, Pro: included
+        self.assertEqual(rows["Audit log"].count("cmp-no"), 1)  # Basic does not list it
+        self.assertIn("14-day free trial", bdt)
+        self.assertEqual(bdt.count("Choose "), 2)
+        self.assertNotIn("plans-table", html)
+        # a module whose plans have no comparison lines keeps the simple plan cards
+        self.assertIn('class="card"', html)
+
+    def test_bangla_comparison_labels_are_translated(self):
+        html, _ = self._compare_page("/bn/pricing")
+        self.assertIn("অন্তর্ভুক্ত নয়", html)
+        self.assertIn("প্রতি মাসে ৳500", re.search(r'<table class="cmp-table">.*?</table>', html, re.S).group(0))
+
+    def test_module_without_comparison_lines_keeps_plan_cards_even_if_plans_list_features(self):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            marketing.get_plans = Mock(return_value={"distribution": [{**plan("A", 1, "BDT"), "comparison": []}]})
+            module = next(m for m in _modules(marketing, frappe) if m["key"] == "distribution")
+        self.assertEqual(module["comparison_by_currency"], {})
+
+    def test_comparison_matrix_falls_back_to_the_plan_feature_list(self):
+        with platform_modules("marketing") as (_frappe, (marketing,)):
+            matrix = marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": ["One", "Two"], "comparison": []}])
+            self.assertEqual([r["feature"] for r in matrix["rows"]], ["One", "Two"])
+            self.assertEqual(marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": [], "comparison": []}])["rows"], [])
+
+    def test_plan_has_an_editable_comparison_table(self):
+        import json
+
+        base = PKG / "saas_platform" / "doctype"
+        plan_json = json.loads((base / "saas_plan" / "saas_plan.json").read_text(encoding="utf-8"))
+        field = next(f for f in plan_json["fields"] if f["fieldname"] == "comparison_features")
+        self.assertEqual((field["fieldtype"], field["options"]), ("Table", "SaaS Plan Feature"))
+        self.assertIn("comparison_features", plan_json["field_order"])
+        child = json.loads((base / "saas_plan_feature" / "saas_plan_feature.json").read_text(encoding="utf-8"))
+        self.assertEqual(child["istable"], 1)
+        self.assertEqual([f["fieldname"] for f in child["fields"]], ["feature", "included", "value"])
 
     def test_home_page_says_in_plain_words_what_the_product_is(self):
         html = self.render("index", lambda m, mods: m.home_page(BASE, mods))

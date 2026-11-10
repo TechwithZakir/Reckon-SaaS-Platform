@@ -114,8 +114,20 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 
 .hero-def{margin:14px 0 0;max-width:60ch}
 .table-wrap{overflow-x:auto;margin:12px 0}
-.plans-table{width:100%;border-collapse:collapse;font-size:.95rem}
-.plans-table th,.plans-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.plans-table thead th{color:var(--mut);font-weight:700;border-bottom:2px solid var(--line)}
-.plans-table tbody th{font-weight:700}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.cmp-set{grid-template-columns:minmax(0,1fr)}
+.cmp-table{width:100%;min-width:560px;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cmp-table thead th{padding:20px 16px;text-align:center;vertical-align:bottom;border-bottom:1px solid var(--line);font-weight:400}
+.cmp-plan{display:block;font-size:1.05rem;font-weight:800}
+.cmp-price{display:block;margin-top:6px;font-size:1.35rem;font-weight:800}
+.cmp-trial{display:block;margin-top:4px;font-size:.85rem;color:var(--mut)}
+.cmp-table tbody th{text-align:left;font-weight:600;padding:12px 16px;width:34%}
+.cmp-table tbody td{text-align:center;padding:12px 16px}
+.cmp-table tbody tr+tr th,.cmp-table tbody tr+tr td{border-top:1px solid var(--line)}
+.cmp-table tbody tr:nth-child(even){background:color-mix(in srgb,var(--line) 22%,transparent)}
+.cmp-table tfoot td{padding:18px 16px;text-align:center;border-top:1px solid var(--line)}
+.cmp-table tfoot .btn{white-space:nowrap}
+.cmp-yes{display:inline-block;width:14px;height:8px;border-left:3px solid var(--green);border-bottom:3px solid var(--green);transform:rotate(-45deg)}
+.cmp-no{color:var(--mut)}
+@media(max-width:720px){.cmp-table tbody th{position:sticky;left:0;background:var(--card);min-width:130px;width:auto}}
 footer.foot ul a,.foot-seo a,.foot-svc a{display:inline-block;padding:3px 0}

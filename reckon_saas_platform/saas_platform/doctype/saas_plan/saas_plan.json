@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "document_type": "Document",
  "engine": "InnoDB",
- "field_order": ["plan_name", "plan_version", "saas_module", "enabled", "currency", "price", "billing_cycle", "trial_days", "grace_days", "features"],
+ "field_order": ["plan_name", "plan_version", "saas_module", "enabled", "currency", "price", "billing_cycle", "trial_days", "grace_days", "features", "section_comparison", "comparison_features"],
  "fields": [
   {"fieldname": "plan_name", "fieldtype": "Data", "label": "Plan Name", "reqd": 1, "unique": 1, "in_list_view": 1},
   {"fieldname": "plan_version", "fieldtype": "Data", "label": "Plan Version", "default": "1", "reqd": 1},
@@ -16,10 +16,12 @@
   {"fieldname": "billing_cycle", "fieldtype": "Select", "label": "Billing Cycle", "options": "Monthly\nQuarterly\nYearly", "default": "Monthly"},
   {"fieldname": "trial_days", "fieldtype": "Int", "label": "Trial Days", "default": "0", "non_negative": 1, "description": "Free days after signup before a payment is due. 0 means no trial."},
   {"fieldname": "grace_days", "fieldtype": "Int", "label": "Grace Days", "default": "0", "non_negative": 1, "description": "Days a tenant keeps access after the trial or paid period ends while a payment is due. After that, Desk is locked until payment is verified."},
-  {"fieldname": "features", "fieldtype": "Small Text", "label": "Features"}
+  {"fieldname": "features", "fieldtype": "Small Text", "label": "Features"},
+  {"fieldname": "section_comparison", "fieldtype": "Section Break", "label": "Pricing Page Comparison"},
+  {"fieldname": "comparison_features", "fieldtype": "Table", "label": "Comparison Features", "options": "SaaS Plan Feature", "description": "Rows of the side-by-side plan table on the pricing page. Use the same Feature wording on each plan of a module so the plans line up; a plan without a row shows a dash."}
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-10-18 18:00:00.000000",
+ "modified": "2026-11-10 00:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Plan",
  "naming_rule": "By fieldname",

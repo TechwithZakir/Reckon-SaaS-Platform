@@ -1,0 +1,22 @@
+{
+ "actions": [],
+ "creation": "2026-11-10 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["feature", "included", "value"],
+ "fields": [
+  {"fieldname": "feature", "fieldtype": "Data", "label": "Feature", "reqd": 1, "in_list_view": 1, "description": "The same wording on every plan of a module lines the plans up in one row, e.g. Users."},
+  {"fieldname": "included", "fieldtype": "Check", "label": "Included", "default": "1", "in_list_view": 1},
+  {"fieldname": "value", "fieldtype": "Data", "label": "Value", "in_list_view": 1, "description": "Optional detail shown instead of a tick, e.g. Up to 5 or Unlimited."}
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "modified": "2026-11-10 00:00:00.000000",
+ "module": "SaaS Platform",
+ "name": "SaaS Plan Feature",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

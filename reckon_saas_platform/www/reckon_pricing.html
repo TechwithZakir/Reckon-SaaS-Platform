@@ -17,21 +17,10 @@
       <a href="{{ u(mod.url)|e }}" tabindex="-1" aria-hidden="true"><img class="price-thumb" src="{{ mod.banner.src|e }}" width="96" height="54" alt="{{ mod.name|e }} module illustration" loading="lazy" decoding="async"></a>
       <h2><a href="{{ u(mod.url)|e }}">{{ mod.name|e }}</a></h2>
     </div>
-    {{ m.plan_cards(mod) }}
+    {{ m.plan_compare(mod) }}
     {% endfor %}
     {% else %}
     <p>{{ tr("Plans are shown when you sign up.") }} <a href="{{ u("/reckonerp-signup") }}">{{ tr("Start here") }}</a>.</p>
-    {% endif %}
-    {% if page.priced %}
-    <h2 id="cmp-h" style="margin-top:40px;font-size:1.5rem">{{ tr("Compare all plans") }}</h2>
-    <div class="table-wrap"><table class="plans-table" aria-labelledby="cmp-h">
-      <thead><tr><th scope="col">{{ tr("Module") }}</th><th scope="col">{{ tr("Plan") }}</th><th scope="col">{{ tr("Price") }}</th><th scope="col">{{ tr("Free trial") }}</th></tr></thead>
-      <tbody>
-      {% for mod in page.priced %}{% for cur, plans in (mod.plans_by_currency or {"": mod.plans}).items() %}{% for plan in plans %}
-      <tr><th scope="row"><a href="{{ u(mod.url)|e }}">{{ mod.name|e }}</a></th><td>{{ plan.name|e }}</td><td>{{ plan.price_text|e }}</td><td>{% if plan.trial_days %}{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}{% else %}&ndash;{% endif %}</td></tr>
-      {% endfor %}{% endfor %}{% endfor %}
-      </tbody>
-    </table></div>
     {% endif %}
     <p class="note" style="margin-top:24px">{{ tr("Implementation, data migration, training, customisation, on-site support, and AI and integration usage are quoted separately.") }} <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us on WhatsApp") }}</a>.</p>
   </div>

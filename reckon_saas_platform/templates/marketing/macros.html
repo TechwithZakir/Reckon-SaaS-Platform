@@ -34,6 +34,26 @@
 {% endfor %}
 {% endmacro %}
 
+{% macro plan_compare(mod) %}
+{% if mod.comparison_by_currency %}
+{% for cur, cmp in mod.comparison_by_currency.items() %}
+<div class="cur-set cmp-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}">
+  <div class="table-wrap" tabindex="0" role="region" aria-label="{{ mod.name|e }}">
+  <table class="cmp-table">
+    <thead><tr><td class="cmp-corner"><span class="sr">{{ tr("Features") }}</span></td>
+      {% for plan in cmp.plans %}<th scope="col"><span class="cmp-plan">{{ plan.name|e }}</span><span class="cmp-price">{{ plan.price_text|e }}</span>{% if plan.trial_days %}<span class="cmp-trial">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</span>{% endif %}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in cmp.rows %}<tr><th scope="row">{{ row.feature|e }}</th>
+        {% for cell in row.cells %}<td>{% if cell.value %}{{ cell.value|e }}{% elif cell.included %}<span class="cmp-yes" role="img" aria-label="{{ tr("Included") }}"></span>{% else %}<span class="cmp-no" role="img" aria-label="{{ tr("Not included") }}">&ndash;</span>{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr><td></td>{% for plan in cmp.plans %}<td><a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></td>{% endfor %}</tr></tfoot>
+  </table></div>
+</div>
+{% endfor %}
+{% else %}{{ plan_cards(mod) }}{% endif %}
+{% endmacro %}
+
 {% macro currency_switch(currencies) %}
 {% if currencies and currencies|length > 1 %}
 <div class="rk-cur" role="group" aria-label="{{ tr("Currency") }}">{% for c in currencies %}<button type="button" data-cur-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>
