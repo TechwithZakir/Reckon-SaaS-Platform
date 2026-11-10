@@ -120,6 +120,21 @@ class PageTests(unittest.TestCase):
         bn, _ = self._compare_page("/bn/pricing")
         self.assertIn("Plan-এর মূল্য শুধু সফটওয়্যারের জন্য", bn)
 
+    def test_manuals_and_videos_say_coming_soon_until_the_setting_is_on(self):
+        html, _ = self._compare_page("/pricing")
+        self.assertIn("coming soon", html)
+        self.assertIn("are being prepared", html)
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(learning_guides_ready=1))
+            self.assertTrue(marketing.learning_ready())
+            frappe.get_cached_doc = Mock(return_value=_Dict())
+            self.assertFalse(marketing.learning_ready())
+            modules = _modules(marketing, frappe)
+            rows = marketing.comparison_matrix([{**plan("A", 1, "BDT"), "comparison": [{"feature": "Training videos", "included": True, "value": ""}]}])["rows"]
+        self.assertEqual([r["feature"] for r in rows if r["learning"]], ["Training videos"])  # the table shows these as coming soon while the setting is off
+        self.assertTrue(any("(coming soon)" in i for i in modules[0]["inclusions"]))
+        self.assertTrue(any("being prepared" in a for _q, a in modules[0]["faqs"]))
+
     def test_bangla_comparison_labels_are_translated(self):
         html, _ = self._compare_page("/bn/pricing")
         self.assertIn("অন্তর্ভুক্ত নয়", html)

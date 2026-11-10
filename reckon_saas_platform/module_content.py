@@ -16,13 +16,15 @@ COMMON_EXCLUSIONS = (
     "Third-party charges such as SMS, WhatsApp, email or AI provider usage",
     "Hardware and devices such as printers, scanners and phones",
 )
+LEARNING_INCLUSION = "Bangla and English user manuals and training videos, so your team can learn the module on its own"
+LEARNING_SOON = "Bangla and English user manuals and training videos (coming soon)"
+
 COMMON_INCLUSIONS = (
     "Your own private company workspace, separate from every other customer",
     "Use in English or Bangla where the screens are translated",
     "Roles so each team member sees only what they need",
     "Hosted, backed-up cloud service with software updates",
     "Basic help by email and WhatsApp on how to use the module",
-    "Bangla and English user manuals and training videos, so your team can learn the module on its own",
 )
 
 MODULE_DETAILS = {
@@ -160,7 +162,7 @@ MODULE_DETAILS = {
 }
 
 
-def service_faqs(name: str, plans: list[dict], inclusions: list[str], exclusions: list[str]) -> list[tuple[str, str]]:
+def service_faqs(name: str, plans: list[dict], inclusions: list[str], exclusions: list[str], learning_ready: bool = False) -> list[tuple[str, str]]:
     """The questions every buyer asks about price, support and services, answered for ``name``."""
     if plans:
         listing = "; ".join(f"{p['name']}: {p['price_text']}" for p in plans)
@@ -183,7 +185,11 @@ def service_faqs(name: str, plans: list[dict], inclusions: list[str], exclusions
         (f"What is included in the {name} subscription?", "Included: " + "; ".join(inclusions) + "."),
         (f"What is not included in {name}?", "Not included: " + "; ".join(exclusions) + ". Ask us for a quote for any of these."),
         (f"What support do I get with {name}?", "Basic help by email and WhatsApp on how to use the module is included with your subscription. Faster response, a named contact or regular check-ins are available as paid support on request."),
-        (f"Do you provide training for {name}?", "You can learn it on your own: the subscription includes Bangla and English user manuals and training videos. If you would like us to train your team online or in person, in English or Bangla, that is a paid service, quoted separately."),
+        (f"Do you provide training for {name}?", (
+                "You can learn it on your own: the subscription includes Bangla and English user manuals and training videos. If you would like us to train your team online or in person, in English or Bangla, that is a paid service, quoted separately."
+                if learning_ready
+                else "Bangla and English user manuals and training videos are being prepared and will be part of the subscription. Until then, and for hands-on help, we can train your team online or in person, in English or Bangla. Training is a paid service, quoted separately."
+            )),
         ("Can you support us on-site?", "On-site support is available on request and quoted separately, including travel. Most customers start online and ask for a visit only when they need one."),
         ("Do you do requirement analysis before we start?", "Self-service signup needs none. If your process is complex, we offer a paid requirement analysis: we study how you work, map it to the module and tell you what is covered, what needs configuration and what would need customisation."),
         (f"Can {name} be customised for us?", "Yes. Additional customisations such as extra fields, reports, print formats, workflows and integrations are quoted after requirement analysis. For full control we also offer dedicated cloud and on-premises installation."),

@@ -972,6 +972,9 @@ def _plan_rows(plan_names: list[str]) -> dict[str, list[dict]]:
     return rows
 
 
+LEARNING_ROWS = {"bangla and english user manuals", "training videos"}
+
+
 def _storage_text(mb) -> str:
     mb = int(mb or 0)
     return f"{mb / 1024:g} GB" if mb >= 1024 else (f"{mb} MB" if mb else "")
@@ -1004,6 +1007,8 @@ def comparison_matrix(plans: list[dict]) -> dict:
         rows.insert(0, {"feature": "Users", "users": True, "cells": [{"included": True, "value": "", "users": int(p.get("max_users") or 0)} for p in plans]})
     if rows and "file storage" not in order:
         rows.insert(1, {"feature": "File storage", "storage": True, "cells": [{"included": True, "value": "", "text": _storage_text(p.get("max_storage_mb"))} for p in plans]})
+    for row in rows:
+        row["learning"] = row["feature"].casefold() in LEARNING_ROWS
     return {"plans": plans, "rows": rows}
 
 
@@ -1090,7 +1095,9 @@ def get_modules() -> list[dict]:
         ] or list(definition.get("subscription_features") or [])
         details = module_content.MODULE_DETAILS.get(key, {})
         features = [feature_label(k) for k in feature_keys]
+        ready = learning_ready()
         inclusions = list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS)
+        inclusions.append(module_content.LEARNING_INCLUSION if ready else module_content.LEARNING_SOON)
         exclusions = list(details.get("exclusions") or []) + list(module_content.COMMON_EXCLUSIONS)
         by_currency: dict[str, list[dict]] = {}
         for plan in all_plans.get(key, []):
@@ -1124,7 +1131,7 @@ def get_modules() -> list[dict]:
                 "audience": copy.get("audience") or "",
                 "benefits": list(copy.get("benefits") or []),
                 "features": features,
-                "faqs": own_faqs + module_content.service_faqs(label, plans, inclusions[: len(details.get("inclusions") or features)], exclusions),
+                "faqs": own_faqs + module_content.service_faqs(label, plans, inclusions[: len(details.get("inclusions") or features)], exclusions, ready),
                 "url": module_url(key),
                 "modified": str(record.get("modified") or "")[:10],
                 "image": illustration(MODULE_ILLUSTRATION.get(key, "erp")),
@@ -1903,6 +1910,14 @@ TRACKING_PATTERNS = {
 }
 
 
+def learning_ready() -> bool:
+    """Whether the user manuals and training videos are published (SaaS Platform Settings)."""
+    try:
+        return bool(frappe.get_cached_doc("SaaS Platform Settings").get("learning_guides_ready"))
+    except Exception:
+        return False
+
+
 def get_tracking() -> dict:
     """Analytics, pixel and site-verification IDs from SaaS Platform Settings.
 
@@ -1940,6 +1955,7 @@ def get_profiles() -> list[str]:
 def shared_context(context, modules: list[dict], lang: str = "en") -> None:
     """Header, footer and chat data used by every public page, signup included."""
     context.tracking = get_tracking()
+    context.learning_ready = learning_ready()
     # Not called ``company``: the signup page already uses that name for the vendor's own details.
     context.company_links = {
         "name": company_links.COMPANY_NAME,
