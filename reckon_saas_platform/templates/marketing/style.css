@@ -131,3 +131,6 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .cmp-no{color:var(--mut)}
 @media(max-width:720px){.cmp-table tbody th{position:sticky;left:0;background:var(--card);min-width:130px;width:auto}}
 footer.foot ul a,.foot-seo a,.foot-svc a{display:inline-block;padding:3px 0}
+
+ul.plain{list-style:disc;padding-left:22px;margin:0 0 20px;display:grid;gap:10px}
+.cover{margin-top:12px}

@@ -328,6 +328,7 @@ BN.update(
         "Roles so each team member sees only what they need": "রোলের মাধ্যমে প্রত্যেকে শুধু প্রয়োজনীয় তথ্যই দেখতে পান",
         "Hosted, backed-up cloud service with software updates": "হোস্টেড ও ব্যাকআপসহ Cloud সার্ভিস, সফটওয়্যার আপডেটসহ",
         "Basic help by email and WhatsApp on how to use the module": "মডিউল কীভাবে ব্যবহার করবেন তা নিয়ে ইমেইল ও WhatsApp-এ প্রাথমিক সহায়তা",
+        "Bangla and English user manuals and training videos, so your team can learn the module on its own": "বাংলা ও ইংরেজি ইউজার ম্যানুয়াল ও ট্রেনিং ভিডিও, যাতে আপনার দল নিজেরাই মডিউলটি শিখে নিতে পারে",
         "Data migration from spreadsheets or other software (quoted separately)": "স্প্রেডশিট বা অন্য সফটওয়্যার থেকে Data migration (আলাদা কোটেশনে)",
         "Custom screens, reports, print formats and workflows beyond the standard module": "Standard মডিউলের বাইরে কাস্টম স্ক্রিন, রিপোর্ট, প্রিন্ট ফরম্যাট ও Workflow",
         "Training sessions, on-site visits and requirement workshops (paid services)": "প্রশিক্ষণ সেশন, অন-সাইট ভিজিট ও প্রয়োজন বিশ্লেষণ ওয়ার্কশপ (সশুল্ক সেবা)",

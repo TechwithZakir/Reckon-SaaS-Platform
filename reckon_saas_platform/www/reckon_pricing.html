@@ -22,6 +22,21 @@
     {% else %}
     <p>{{ tr("Plans are shown when you sign up.") }} <a href="{{ u("/reckonerp-signup") }}">{{ tr("Start here") }}</a>.</p>
     {% endif %}
+    <h2 id="cover-h" style="margin-top:44px;font-size:1.5rem">{{ tr("What the plan price covers") }}</h2>
+    <p class="note">{{ tr("The plan price is for the software only. You can start on your own with the manuals and videos, and ask us for help only where you want it.") }}</p>
+    <ul class="grid cover" aria-labelledby="cover-h">
+      <li><article class="card"><h3>{{ tr("Included in the plan price") }}</h3><ul class="tick">
+        <li>{{ tr("The software, hosted and backed up, with updates") }}</li>
+        <li>{{ tr("Bangla and English user manuals") }}</li>
+        <li>{{ tr("Training videos to learn at your own pace") }}</li>
+        <li>{{ tr("Help by email and WhatsApp on how to use the module") }}</li></ul></article></li>
+      <li><article class="card"><h3>{{ tr("Optional services, quoted separately") }}</h3><ul class="plain">
+        <li>{{ tr("Implementation and setup") }}</li>
+        <li>{{ tr("Data migration from your spreadsheets or old software") }}</li>
+        <li>{{ tr("Team training, online or in person, in Bangla or English") }}</li>
+        <li>{{ tr("Customisation and on-site support") }}</li></ul>
+        <a class="btn" href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us on WhatsApp") }}</a></article></li>
+    </ul>
     <p class="note" style="margin-top:24px">{{ tr("Implementation, data migration, training, customisation, on-site support, and AI and integration usage are quoted separately.") }} <a href="https://wa.me/{{ whatsapp_number|e }}" rel="noopener">{{ tr("Ask us on WhatsApp") }}</a>.</p>
   </div>
 </section>

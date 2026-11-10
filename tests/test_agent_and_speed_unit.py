@@ -111,6 +111,15 @@ class PageTests(unittest.TestCase):
         # a module whose plans have no comparison lines keeps the simple plan cards
         self.assertIn('class="card"', html)
 
+    def test_pricing_says_the_price_is_for_the_software_and_services_are_extra(self):
+        html, _ = self._compare_page("/pricing")
+        self.assertIn("The plan price is for the software only.", html)
+        block = html[html.index('id="cover-h"'):]
+        for needle in ("Bangla and English user manuals", "Training videos to learn at your own pace", "Optional services, quoted separately", "Implementation and setup"):
+            self.assertIn(needle, block)
+        bn, _ = self._compare_page("/bn/pricing")
+        self.assertIn("Plan-এর মূল্য শুধু সফটওয়্যারের জন্য", bn)
+
     def test_bangla_comparison_labels_are_translated(self):
         html, _ = self._compare_page("/bn/pricing")
         self.assertIn("অন্তর্ভুক্ত নয়", html)

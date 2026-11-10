@@ -22,6 +22,7 @@ COMMON_INCLUSIONS = (
     "Roles so each team member sees only what they need",
     "Hosted, backed-up cloud service with software updates",
     "Basic help by email and WhatsApp on how to use the module",
+    "Bangla and English user manuals and training videos, so your team can learn the module on its own",
 )
 
 MODULE_DETAILS = {
@@ -182,7 +183,7 @@ def service_faqs(name: str, plans: list[dict], inclusions: list[str], exclusions
         (f"What is included in the {name} subscription?", "Included: " + "; ".join(inclusions) + "."),
         (f"What is not included in {name}?", "Not included: " + "; ".join(exclusions) + ". Ask us for a quote for any of these."),
         (f"What support do I get with {name}?", "Basic help by email and WhatsApp on how to use the module is included with your subscription. Faster response, a named contact or regular check-ins are available as paid support on request."),
-        (f"Do you provide training for {name}?", "Yes, as a paid service. We can train your team online or in person, in English or Bangla. Training is quoted separately and is not part of the subscription."),
+        (f"Do you provide training for {name}?", "You can learn it on your own: the subscription includes Bangla and English user manuals and training videos. If you would like us to train your team online or in person, in English or Bangla, that is a paid service, quoted separately."),
         ("Can you support us on-site?", "On-site support is available on request and quoted separately, including travel. Most customers start online and ask for a visit only when they need one."),
         ("Do you do requirement analysis before we start?", "Self-service signup needs none. If your process is complex, we offer a paid requirement analysis: we study how you work, map it to the module and tell you what is covered, what needs configuration and what would need customisation."),
         (f"Can {name} be customised for us?", "Yes. Additional customisations such as extra fields, reports, print formats, workflows and integrations are quoted after requirement analysis. For full control we also offer dedicated cloud and on-premises installation."),
