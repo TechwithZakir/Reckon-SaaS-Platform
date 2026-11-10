@@ -14,6 +14,7 @@ class TenantUserAssignment(Document):
         self._validate_company_is_immutable()
         self._validate_unique_active_default()
         self._validate_user_has_no_platform_roles()
+        self._validate_plan_user_limit()
 
     def _set_defaults(self) -> None:
         if not self.active:
@@ -52,3 +53,12 @@ class TenantUserAssignment(Document):
         from reckon_saas_platform.tenant_security import assert_user_has_no_platform_roles
 
         assert_user_has_no_platform_roles(self.user)
+
+    def _validate_plan_user_limit(self) -> None:
+        if not self.active or not self.company or not self.user:
+            return
+        if not self.is_new() and frappe.db.get_value(self.doctype, self.name, "active"):
+            return  # already counted; edits to a live assignment are not a new seat
+        from reckon_saas_platform.tenant_security import assert_user_limit_allows
+
+        assert_user_limit_allows(self.company, self.user)

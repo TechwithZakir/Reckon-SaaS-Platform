@@ -208,6 +208,9 @@ def add_team_member(
         "Tenant User Assignment", filters={"user": email, "active": 1, "company": ["!=", company]}, pluck="name"
     ):
         frappe.throw(_("This user already belongs to another company."))
+    from reckon_saas_platform.tenant_security import assert_user_limit_allows
+
+    assert_user_limit_allows(company, email)  # before a login is created for someone who would not fit
     if not frappe.db.exists("User", email):
         # Created as the system: Frappe also creates the user's contact, which belongs to no one tenant.
         caller = frappe.session.user

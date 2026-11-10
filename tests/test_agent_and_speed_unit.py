@@ -125,7 +125,7 @@ class PageTests(unittest.TestCase):
     def test_comparison_matrix_falls_back_to_the_plan_feature_list(self):
         with platform_modules("marketing") as (_frappe, (marketing,)):
             matrix = marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": ["One", "Two"], "comparison": []}])
-            self.assertEqual([r["feature"] for r in matrix["rows"]], ["One", "Two"])
+            self.assertEqual([r["feature"] for r in matrix["rows"]], ["Users", "One", "Two"])
             self.assertEqual(marketing.comparison_matrix([{**plan("A", 1, "BDT"), "features": [], "comparison": []}])["rows"], [])
 
     def test_plan_has_an_editable_comparison_table(self):

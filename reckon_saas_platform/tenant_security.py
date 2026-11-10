@@ -323,3 +323,36 @@ def _load_module_overrides() -> None:
 
 
 _load_module_overrides()
+
+
+LIVE_SUBSCRIPTION_STATUSES = ("Pending", "Trial", "Active", "Due", "Grace")
+
+
+def company_user_limit(company: str) -> int | None:
+    """The company's user limit from its live subscriptions' plans, or ``None`` when unlimited."""
+    from reckon_saas_platform.entitlements import effective_user_limit
+
+    plans = frappe.get_all(
+        "SaaS Subscription",
+        filters={"company": company, "status": ["in", LIVE_SUBSCRIPTION_STATUSES]},
+        pluck="plan",
+        ignore_permissions=True,
+    )
+    return effective_user_limit([frappe.db.get_value("SaaS Plan", plan, "max_users") for plan in plans if plan])
+
+
+def assert_user_limit_allows(company: str | None, user: str | None) -> None:
+    """Refuse to give a new person access when the company is already at its plan's user limit."""
+    if not company or not user:
+        return
+    limit = company_user_limit(company)
+    if not limit:
+        return
+    people = set(frappe.get_all("Tenant User Assignment", filters={"company": company, "active": 1}, pluck="user"))
+    if user in people:
+        return  # already counted
+    if len(people) >= limit:
+        frappe.throw(
+            _("Your plan allows {0} users and all of them are in use. Remove a user or move to a larger plan to add more.").format(limit),
+            title=_("User limit reached"),
+        )
