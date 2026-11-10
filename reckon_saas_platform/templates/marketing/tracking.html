@@ -30,13 +30,15 @@
       !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(w,d,'script','https://connect.facebook.net/en_US/fbevents.js');
       w.fbq('init',T.pixel);w.fbq('track','PageView');
     }
-    // Conversion signals: people heading to signup, and people opening the WhatsApp chat.
+    // Conversion signals: people heading to signup, and people opening the WhatsApp chat. They go to the data layer (for Tag Manager),
+    // to Meta, and straight to GA4, so the conversion is recorded even while the container has no tags.
+    function ga(name,params){if(T.ga4&&w.gtag)w.gtag('event',name,params||{})}
     d.addEventListener('click',function(e){
       var a=e.target.closest&&e.target.closest('a[href^="/reckonerp-signup"]');
-      if(a){w.dataLayer.push({event:'signup_click'});if(w.fbq)w.fbq('track','Lead')}
+      if(a){w.dataLayer.push({event:'signup_click'});ga('signup_click',{link_url:a.getAttribute('href')});if(w.fbq)w.fbq('track','Lead')}
     });
     d.addEventListener('submit',function(e){
-      if(e.target&&e.target.matches&&e.target.matches('[data-chat-form]')){w.dataLayer.push({event:'whatsapp_chat'});if(w.fbq)w.fbq('track','Contact')}
+      if(e.target&&e.target.matches&&e.target.matches('[data-chat-form]')){w.dataLayer.push({event:'whatsapp_chat'});ga('whatsapp_chat');if(w.fbq)w.fbq('track','Contact')}
     },true);
   }
   var box=document.querySelector('[data-consent]');

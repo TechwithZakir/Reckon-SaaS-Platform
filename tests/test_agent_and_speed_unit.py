@@ -115,6 +115,12 @@ class SpeedTests(unittest.TestCase):
         css = (PKG / "templates" / "marketing" / "style.css").read_text(encoding="utf-8")
         self.assertIn("footer.foot ul a,.foot-seo a,.foot-svc a{display:inline-block;padding:3px 0}", css)
 
+    def test_conversion_events_reach_ga4_directly_as_well_as_the_data_layer_and_meta(self):
+        source = (PKG / "templates" / "marketing" / "tracking.html").read_text(encoding="utf-8")
+        self.assertIn("function ga(name,params){if(T.ga4&&w.gtag)w.gtag('event',name,params||{})}", source)
+        self.assertIn("w.dataLayer.push({event:'signup_click'});ga('signup_click',{link_url:a.getAttribute('href')});if(w.fbq)w.fbq('track','Lead')", source)
+        self.assertIn("w.dataLayer.push({event:'whatsapp_chat'});ga('whatsapp_chat');if(w.fbq)w.fbq('track','Contact')", source)
+
 
 if __name__ == "__main__":
     unittest.main()
