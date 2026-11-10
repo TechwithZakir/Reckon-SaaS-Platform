@@ -17,6 +17,11 @@
     </nav>
     {% endif %}
     {{ page.article_html }}
+    {% if page.consultant_view %}
+    <aside class="cross" aria-labelledby="cv-h">
+      <p><strong id="cv-h">Consultant's view:</strong> <a href="{{ page.consultant_view.url|e }}">{{ page.consultant_view.title|e }}</a> &mdash; how Reckon Technologies approaches this in client projects.</p>
+    </aside>
+    {% endif %}
     <div class="actions" style="margin:28px 0"><a class="btn solid lg" href="/reckonerp-signup">Sign up</a><a class="btn lg" href="/blog">More articles</a></div>
   </div>
 </article>

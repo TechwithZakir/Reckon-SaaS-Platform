@@ -14,6 +14,10 @@
       <a href="{{ u("/industries") }}">{{ tr("ERP software by industry") }}</a>
       <a href="{{ u("/blog") }}">{{ tr("ERP and AI automation guides") }}</a>
     </nav>
+    <nav class="foot-svc" aria-label="{{ tr("Services") }}">
+      <strong>{{ tr("Services") }}</strong>
+      {% for label, link in company.services %}<a href="{{ link|e }}">{{ tr(label) }}</a>{% endfor %}
+    </nav>
     <div class="foot-bottom">
       <a class="foot-logo" href="{{ u("/") }}" aria-label="{{ tr("ReckonERP home") }}"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="{{ tr("ReckonERP") }}" loading="lazy" decoding="async"></a>
       <address class="contact">
@@ -24,6 +28,7 @@
         {% for link in social_profiles %}<div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span><span class="sr">{{ tr("Social profile:") }} </span><a href="{{ u(link)|e }}" rel="me noopener">{% if "share.google" in link %}{{ tr("Google Business Profile") }}{% else %}{{ link|replace("https://www.", "")|replace("https://", "")|trim("/")|e }}{% endif %}</a></div>{% endfor %}
       </address>
     </div>
+    <p class="note foot-co">{{ tr("Reckon ERP is a product of {company}.")|replace("{company}", '<a href="' ~ company.url ~ '">' ~ company.name ~ '</a>') }}</p>
     <p class="note">{{ tr("&copy;") }} {{ year|e }} {{ publisher|e }}<span class="powered">{{ powered_by|e }}</span></p>
   </div>
 </footer>

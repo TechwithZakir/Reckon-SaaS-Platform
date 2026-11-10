@@ -104,3 +104,10 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .home-blog .grid{grid-template-columns:repeat(4,1fr)}
 @media(max-width:1000px){.home-blog .grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.home-blog .grid{grid-template-columns:1fr}}
+
+.cross{border:1px solid var(--line);background:var(--bg2);border-radius:14px;padding:16px 20px;margin:8px 0}
+.cross h2{font-size:1.15rem;margin:0 0 6px}.cross p{margin:0}.cross a{font-weight:700}
+.cross-line{margin:0;color:var(--mut)}.cross-line a{font-weight:700}
+.foot-svc{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 0;font-size:.9rem}
+.foot-svc strong{color:var(--ink)}.foot-svc a{color:var(--mut);text-decoration:none}.foot-svc a:hover{text-decoration:underline}
+.foot-co a{font-weight:700}

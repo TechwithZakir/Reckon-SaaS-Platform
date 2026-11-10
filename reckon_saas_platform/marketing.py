@@ -19,7 +19,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 import frappe
 
-from reckon_saas_platform import marketing_bn, module_assets, module_content
+from reckon_saas_platform import company_links, marketing_bn, module_assets, module_content
 
 SITE_NAME = "ReckonERP"
 BRAND_NAME = SITE_NAME
@@ -958,7 +958,7 @@ def get_plans() -> dict[str, list[dict]]:
         rows = frappe.get_all(
             "SaaS Plan",
             filters={"enabled": 1},
-            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "features"],
+            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "features", "modified"],
             order_by="price asc",
             ignore_permissions=True,
         )
@@ -984,6 +984,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "cycle": cycle,
                 "price_text": _price_text(price, symbol, cycle),
                 "trial_days": int(row.get("trial_days") or 0),
+                "modified": str(row.get("modified") or "")[:10],
                 "features": [feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()],
             }
         )
@@ -1112,6 +1113,7 @@ def organization_ld(base: str, same_as=None) -> dict:
         "@context": "https://schema.org",
         "@type": "Organization",
         "@id": f"{base}/#organization",
+        "parentOrganization": company_links.company_org(),
         "name": SITE_NAME,
         "legalName": PUBLISHER,
         "url": f"{base}/",
@@ -1188,7 +1190,8 @@ def software_ld(base: str, name: str, description: str, path: str, offers=None) 
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "inLanguage": ["en", "bn"],
-        "publisher": {"@type": "Organization", "name": SITE_NAME},
+        "publisher": company_links.company_org(),
+        "manufacturer": company_links.company_org(),
         "areaServed": ["Bangladesh", "Worldwide"],
     }
     if offers:
@@ -1477,14 +1480,42 @@ def pricing_page(base: str, modules: list[dict]) -> dict:
     )
 
 
+def _tokens(sentence: str) -> set[str]:
+    return set(re.findall(r"[^\s,.;:!?()/\-–—।]+", sentence.lower()))
+
+
+def join_description(*parts: str, limit: int = 158) -> str:
+    """Several short texts as one meta description, without saying the same thing twice.
+
+    A sentence that mostly repeats one already kept is dropped, or replaces it when it is longer
+    (so the more informative wording survives). The result is cut at a word boundary under ``limit``.
+    """
+    kept: list[str] = []
+    for part in parts:
+        for sentence in re.split(r"(?<=[.!?।])\s+", str(part or "").strip()):
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+            words = _tokens(sentence)
+            for index, earlier in enumerate(kept):
+                shared = words & _tokens(earlier)
+                if shared and len(shared) / max(1, min(len(words), len(_tokens(earlier)))) >= 0.6:
+                    if len(sentence) > len(earlier):
+                        kept[index] = sentence
+                    break
+            else:
+                kept.append(sentence)
+    text = " ".join(kept)
+    if len(text) > limit:
+        text = text[: limit - 3].rsplit(" ", 1)[0].rstrip(",;:।-–—") + "..."
+    return text
+
+
 def module_page(base: str, module: dict, modules: list[dict]) -> dict:
-    description = (module["tagline"] + " " + module["description"]).strip()
-    if len(description) > 158:
-        description = module["tagline"] if len(module["tagline"]) > 70 else description[:155].rstrip() + "..."
+    parts = (module["tagline"], module["description"])
     if current_lang() == "bn":
-        full = marketing_bn.translate(module["tagline"]) + " " + marketing_bn.translate(module["description"])
-        cut = full[:155].rsplit(" ", 1)[0].rstrip(",;:।") if len(full) > 158 else full
-        description = marketing_bn.translate(module["description"]) if len(cut) < 100 else cut + ("…" if len(full) > 158 else "")
+        parts = tuple(marketing_bn.translate(part) for part in parts)
+    description = join_description(*parts)
     return make_page(
         base,
         path=module["url"],
@@ -1499,6 +1530,7 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
         module_articles=[a for a in _articles_for(module["key"])][:3],
         modules=[m for m in modules if m["key"] != module["key"]],
         signup_url=signup_url(module["key"]),
+        help_box=company_links.module_help(module["key"]),
     )
 
 
@@ -1587,7 +1619,12 @@ def sitemap_xml(base: str, modules: list[dict]) -> str:
     modified = {m["url"]: m.get("modified") for m in modules}
     modified.update({a["url"]: a["modified"] for a in articles})
     if articles:
-        modified[blog.BLOG] = articles[0]["modified"]
+        modified[blog.BLOG] = max(a["modified"] for a in articles)
+    plan_days = [p.get("modified", "") for group in get_plans().values() for p in group]
+    modified[PRICING] = max([d for d in plan_days if d] or [""])
+    # The home page lists modules, plans and the latest posts, so it changes when any of them does.
+    # Pages written in code (features, industries, FAQ, integrations) have no date of their own, so none is claimed.
+    modified[HOME] = max([d for d in [*modified.values(), *plan_days] if re.fullmatch(r"\d{4}-\d{2}-\d{2}", d or "")] or [""])
     rows = []
     for path in public_paths(modules, articles):
         lastmod = modified.get(path)
@@ -1642,6 +1679,8 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
     lines += ["", "## More from Reckon (on request)", ""]
     for app in FAMILY_APPS:
         lines.append(f"- {app['name']}: {app['text']}")
+    lines += ["", "## Company", "", f"- [{company_links.COMPANY_NAME}]({company_links.COMPANY_URL}): Salesforce Partner in Bangladesh; consulting, ERPNext implementation, AI agent development, IT and custom software"]
+    lines += [f"- [{label}]({url})" for label, url in company_links.SERVICES]
     lines += ["", "## Languages", "", f"- English: {base}/", f"- Bangla (বাংলা): {base}{marketing_bn.PREFIX}", ""]
     lines += ["## Features", ""]
     for feature in FEATURE_LIST:
@@ -1714,6 +1753,8 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
     for item in INDUSTRIES:
         out += [f"### {item['title']}", f"URL: {base}{industry_url(item['slug'])}", "", item["intro"], ""]
         out += [f"- {point}" for point in item["standard"]] + [""]
+    out += ["## Company", "", f"ReckonERP is a product of {company_links.COMPANY_NAME} ({company_links.COMPANY_URL}), a Salesforce Partner in Bangladesh that also offers consulting, ERPNext implementation, AI agent development, IT and custom software.", ""]
+    out += [f"- [{label}]({url})" for label, url in company_links.SERVICES] + [""]
     out += ["## Languages", "", f"The whole public site is available in English ({base}/) and in Bangla ({base}{marketing_bn.PREFIX}).", ""]
     out += ["## Deployment options", ""]
     out += [f"- {item['title']}: {item['text']}" for item in DEPLOYMENTS] + ["", AI_NOTE, ""]
@@ -1868,6 +1909,13 @@ def apply_context(context, page: dict, modules: list[dict]) -> None:
         for name in ("services", "ai_points", "ai_note", "showcase", "deployments", "company_summary", "expertise",
                      "trademark_note", "nav_features", "nav_modules"):
             setattr(context, name, marketing_bn.deep(getattr(context, name)))
+    context.company = {
+        "name": company_links.COMPANY_NAME,
+        "url": company_links.COMPANY_URL,
+        "services": company_links.SERVICES,
+        "industries_url": company_links.INDUSTRIES_URL,
+        "contact_url": company_links.CONTACT_URL,
+    }
     context.title = page["title"]
     context.no_breadcrumbs = 1
     context.no_sidebar = 1

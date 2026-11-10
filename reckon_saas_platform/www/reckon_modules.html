@@ -88,6 +88,16 @@
   </div>
 </section>
 {% endif %}
+{% if page.help_box %}
+<section aria-labelledby="help-h">
+  <div class="wrap">
+    <aside class="cross">
+      <h2 id="help-h">{{ tr("Need help implementing it?") }}</h2>
+      <p>{{ tr(page.help_box.lead)|e }} <a href="{{ page.help_box.url|e }}">{{ tr(page.help_box.text)|e }}</a></p>
+    </aside>
+  </div>
+</section>
+{% endif %}
 {{ m.cta("Start with " ~ page.module.name, "Create your company workspace in minutes.", page.signup_url) }}
 {% else %}
 <section class="page-hero">

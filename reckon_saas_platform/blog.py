@@ -15,7 +15,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 import frappe
 
-from reckon_saas_platform import marketing
+from reckon_saas_platform import company_links, marketing
 from reckon_saas_platform.blog_html import is_html, plain_text, sanitize_html
 
 DOCTYPE = "SEO Article"
@@ -41,6 +41,14 @@ def _date(value) -> str:
     return text if re.fullmatch(r"\d{4}-\d{2}-\d{2}", text) else ""
 
 
+def _published_at(row) -> str:
+    """``YYYY-MM-DD HH:MM:SS``: the publish day, with the time of day the post was saved when that was the same day."""
+    day = _date(row.get("published_on")) or _date(row.get("modified"))
+    saved = str(row.get("modified") or "")
+    clock = saved[11:19] if _date(saved) == day and re.fullmatch(r"\d\d:\d\d:\d\d", saved[11:19]) else "00:00:00"
+    return f"{day} {clock}" if day else ""
+
+
 def _row(row) -> dict:
     return {
         "slug": row.get("name"),
@@ -48,6 +56,7 @@ def _row(row) -> dict:
         "summary": row.get("summary") or "",
         "category": row.get("category") or "Article",
         "published": _date(row.get("published_on")) or _date(row.get("modified")),
+        "published_at": _published_at(row),
         "modified": _date(row.get("modified")),
         "module": row.get("related_module") or "",
         "keywords": row.get("keywords") or "",
@@ -246,11 +255,7 @@ def article_ld(base: str, article: dict) -> dict:
         "inLanguage": "en",
         "image": f"{base}{article.get('image') or marketing.LOGO_SOCIAL}",
         "author": {"@type": "Organization", "name": marketing.SITE_NAME},
-        "publisher": {
-            "@type": "Organization",
-            "name": marketing.SITE_NAME,
-            "logo": {"@type": "ImageObject", "url": f"{base}{marketing.LOGO_SOCIAL}"},
-        },
+        "publisher": company_links.company_org(),
     }
     if article["keywords"]:
         data["keywords"] = article["keywords"]
@@ -296,6 +301,7 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
         extra_ld=[article_ld(base, article)],
         og_image=f"{base}{article['image']}" if article.get("image") else None,
         article=article,
+        consultant_view=company_links.blog_view(article["title"]),
         article_html=article_html,
         minutes=read_minutes(article.get("body", "")),
         related=same[:3],
@@ -303,12 +309,14 @@ def article_page(base: str, article: dict, articles: list[dict]) -> dict:
 
 
 def rss_xml(base: str, articles: list[dict]) -> str:
+    # Newest first, by the real publish moment. Links and guids are the post addresses and never change.
+    articles = sorted(articles, key=lambda a: (a.get("published_at") or a["published"] or ""), reverse=True)
     items = "".join(
         f"<item><title>{xml_escape(a['title'])}</title><link>{xml_escape(base + a['url'])}</link>"
         f"<guid isPermaLink=\"true\">{xml_escape(base + a['url'])}</guid>"
         f"<description>{xml_escape(a['summary'])}</description>"
         f"<category>{xml_escape(a['category'])}</category>"
-        + (f"<pubDate>{_rfc822(a['published'])}</pubDate>" if a["published"] else "")
+        + (f"<pubDate>{_rfc822(a.get('published_at') or a['published'])}</pubDate>" if a["published"] else "")
         + "</item>"
         for a in articles[:30]
     )
@@ -320,14 +328,30 @@ def rss_xml(base: str, articles: list[dict]) -> str:
     )
 
 
-def _rfc822(day: str) -> str:
-    from datetime import date
+def _site_timezone():
+    """The site's time zone, so a saved time of day keeps its real offset (UTC when it is unknown)."""
+    from datetime import timezone
 
     try:
-        year, month, dom = (int(part) for part in day.split("-"))
-        return date(year, month, dom).strftime("%a, %d %b %Y 00:00:00 +0000")
+        from zoneinfo import ZoneInfo
+
+        name = frappe.utils.get_system_timezone() if hasattr(frappe.utils, "get_system_timezone") else ""
+        return ZoneInfo(name) if isinstance(name, str) and name else timezone.utc
+    except Exception:
+        return timezone.utc
+
+
+def _rfc822(moment: str) -> str:
+    """``2026-11-09 17:45:34`` (or just a day) as an RFC 822 date for the feed."""
+    from datetime import datetime
+    from email.utils import format_datetime
+
+    text = str(moment or "").strip()
+    try:
+        parsed = datetime.strptime(text[:19], "%Y-%m-%d %H:%M:%S") if len(text) >= 19 else datetime.strptime(text[:10], "%Y-%m-%d")
     except ValueError:
         return ""
+    return format_datetime(parsed.replace(tzinfo=_site_timezone()))
 
 
 def dumps(data) -> str:
