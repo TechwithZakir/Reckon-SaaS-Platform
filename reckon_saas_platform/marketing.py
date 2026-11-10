@@ -957,6 +957,7 @@ def _plan_rows(plan_names: list[str]) -> dict[str, list[dict]]:
             "SaaS Plan Feature",
             filters={"parenttype": "SaaS Plan", "parent": ["in", plan_names]},
             fields=["parent", "feature", "included", "value"],
+            parent_doctype="SaaS Plan",  # a child table can only be queried with its parent named
             order_by="idx asc",
             ignore_permissions=True,
         )
