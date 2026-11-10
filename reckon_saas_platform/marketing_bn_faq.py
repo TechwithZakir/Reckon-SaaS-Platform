@@ -61,7 +61,7 @@ SITE = {
     "ERPNext implementation": "ERPNext Implementation",
     "AI agent development": "AI Agent ডেভেলপমেন্ট",
     "Offshore Salesforce development": "অফশোর Salesforce ডেভেলপমেন্ট",
-    "Reckon ERP is a product of {company}.": "Reckon ERP একটি {company}-এর প্রোডাক্ট।",
+    "Reckon ERP is a product of {company}": "Reckon ERP একটি {company}-এর প্রোডাক্ট।",
     "Reckon Technologies": "Reckon Technologies",
     "Need help implementing it?": "বাস্তবায়নে সাহায্য লাগবে?",
     "Reckon Technologies can set this up for your business.": "Reckon Technologies আপনার ব্যবসার জন্য এটি সাজিয়ে দিতে পারে।",

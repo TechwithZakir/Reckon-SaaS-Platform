@@ -84,10 +84,10 @@ class DataTests(unittest.TestCase):
         texts = [label for label, _u in self.links.SERVICES]
         for entry in [*self.links.MODULE_HELP.values(), self.links.DEFAULT_MODULE_HELP]:
             texts += [entry["lead"], entry["text"]]
-        texts += ["Services", "Need help implementing it?", "see all industries we serve", "Book a consultation", "Reckon ERP is a product of {company}.",
+        texts += ["Services", "Need help implementing it?", "see all industries we serve", "Book a consultation", "Reckon ERP is a product of {company}",
                   "Implementation for {name} companies by Reckon Technologies"]
         self.assertEqual([t for t in texts if bn.translate(t) == t and t not in bn.BN], [])
-        for text in ("Reckon ERP is a product of {company}.", "Implementation for {name} companies by Reckon Technologies"):
+        for text in ("Reckon ERP is a product of {company}", "Implementation for {name} companies by Reckon Technologies"):
             self.assertIn("{", bn.translate(text))  # the slot survives translation
 
 
@@ -132,7 +132,7 @@ class RenderTests(unittest.TestCase):
     def test_footer_on_every_page_names_the_company_and_lists_services(self):
         for page in (self.m.home_page(BASE, self.modules), self.m.pricing_page(BASE, self.modules)):
             html = render(self.env, "index" if page["path"] == "/" else "reckon_pricing", page, self.modules, self.m)
-            self.assertIn(f'Reckon ERP is a product of <a href="{COMPANY}">Reckon Technologies Ltd.</a>.', html)
+            self.assertIn(f'Reckon ERP is a product of <a href="{COMPANY}">Reckon Technologies Ltd.</a>', html)
             for label, url in (("Salesforce consulting", "salesforce-consulting-bangladesh/"), ("ERPNext implementation", "erpnext-implementation-bangladesh/"),
                                ("AI agent development", "ai-agent-development/"), ("Offshore Salesforce development", "offshore-salesforce-development/")):
                 self.assertIn(f'<a href="{COMPANY}{url}">{label}</a>', html)
