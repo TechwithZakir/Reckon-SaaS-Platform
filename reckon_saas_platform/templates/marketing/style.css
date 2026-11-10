@@ -111,3 +111,11 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .foot-svc{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 0;font-size:.9rem}
 .foot-svc strong{color:var(--ink)}.foot-svc a{color:var(--mut);text-decoration:none}.foot-svc a:hover{text-decoration:underline}
 .foot-co a{font-weight:700}
+
+.hero-def{margin:14px 0 0;max-width:60ch}
+.table-wrap{overflow-x:auto;margin:12px 0}
+.plans-table{width:100%;border-collapse:collapse;font-size:.95rem}
+.plans-table th,.plans-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.plans-table thead th{color:var(--mut);font-weight:700;border-bottom:2px solid var(--line)}
+.plans-table tbody th{font-weight:700}
+footer.foot ul a,.foot-seo a,.foot-svc a{display:inline-block;padding:3px 0}

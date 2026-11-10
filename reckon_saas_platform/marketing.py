@@ -1316,7 +1316,9 @@ def make_page(
         ld.append(local_business_ld(base, same_as))
         ld.append(website_ld(base))
     if software:
-        ld.append(software_ld(base, software[0], software[1], path, software[2] if len(software) > 2 else None))
+        entry = software_ld(base, software[0], software[1], path, software[2] if len(software) > 2 else None)
+        entry.update(software[3] if len(software) > 3 else {})  # dateModified, featureList
+        ld.append(entry)
     if faqs:
         ld.append(faq_ld(faqs, lang))
     ld += list(extra_ld or [])
@@ -1355,7 +1357,7 @@ def home_page(base: str, modules: list[dict], integrations=None, profiles=None, 
         description=description,
         h1="Your ERP, now with an AI that reads every ledger.",
         faqs=HOME_FAQS,
-        software=(SITE_NAME, description),
+        software=(SITE_NAME, description, [offer for module in modules for offer in plan_offers(base, module)]),
         same_as=profiles,
         latest_articles=latest,
         features=FEATURE_LIST,
@@ -1524,7 +1526,12 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
         h1=module["headline"] or module["name"],
         trail=[("Home", HOME), ("Modules", MODULES), (module["name"], module["url"])],
         faqs=module["faqs"],
-        software=(f"{SITE_NAME} {module['name']}", description, plan_offers(base, module)),
+        software=(
+            f"{SITE_NAME} {module['name']}",
+            description,
+            plan_offers(base, module),
+            {k: v for k, v in (("dateModified", module.get("modified") or None), ("featureList", module["features"][:12] or None)) if v},
+        ),
         og_image=f"{base}{module['banner']['og']}" if module["banner"]["og"] else None,
         module=module,
         module_articles=[a for a in _articles_for(module["key"])][:3],
@@ -1742,6 +1749,9 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
         if module["audience"]:
             out += [f"Built for: {module['audience']}", ""]
         out += [f"- {item}" for item in module["benefits"] + module["features"]] + [""]
+        for currency, plans in (module.get("plans_by_currency") or {}).items():
+            trial = max((p["trial_days"] for p in plans), default=0)
+            out += [f"Plans in {currency}: " + "; ".join(f"{p['name']} {p['price_text']}" for p in plans) + (f". Free trial up to {trial} days." if trial else "."), ""]
     out += ["## More from Reckon (on request)", ""]
     out += [f"- {app['name']}: {app['text']}" for app in FAMILY_APPS] + ["", FAMILY_NOTE, "", "## Features", ""]
     for feature in FEATURE_LIST:

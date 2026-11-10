@@ -1,0 +1,120 @@
+"""Fixes from the AI-agent and performance test pass: offers on the home page, prices for agents, a plan table, deferred tracking."""
+
+from __future__ import annotations
+
+import json
+import re
+import unittest
+from pathlib import Path
+from unittest.mock import Mock
+
+from frappe_stub import _Dict, platform_modules
+from test_marketing_site_unit import BASE, REPO_ROOT, _modules
+
+try:
+    import jinja2
+except ModuleNotFoundError:
+    jinja2 = None
+
+PKG = Path(__file__).resolve().parents[1] / "reckon_saas_platform"
+
+
+def plan(name, price, currency, trial=14):
+    symbol = {"BDT": "৳", "USD": "$"}[currency]
+    return {"name": name, "price": float(price), "currency": currency, "symbol": symbol, "cycle": "Monthly",
+            "price_text": f"{symbol}{price:,} per month", "trial_days": trial, "features": ["One"], "modified": "2026-11-05"}
+
+
+class AgentDataTests(unittest.TestCase):
+    def setUp(self):
+        ctx = platform_modules("marketing")
+        self.frappe, (self.m,) = ctx.__enter__()
+        self.addCleanup(ctx.__exit__, None, None, None)
+        self.frappe.utils.nowdate = Mock(return_value="2026-11-10")
+        self.m.get_plans = Mock(return_value={"distribution": [plan("Basic", 500, "BDT"), plan("Basic USD", 5, "USD")], "accounts": [plan("Std", 1000, "BDT")]})
+        self.modules = _modules(self.m, self.frappe)
+
+    def blocks(self, page):
+        return {json.loads(b)["@type"]: json.loads(b) for b in page["jsonld"]}
+
+    def test_home_page_software_data_lists_every_plan_in_every_currency(self):
+        offers = self.blocks(self.m.home_page(BASE, self.modules))["SoftwareApplication"]["offers"]
+        self.assertEqual(sorted((o["name"], o["priceCurrency"]) for o in offers), [("Basic", "BDT"), ("Basic USD", "USD"), ("Std", "BDT")])
+        for offer in offers:
+            self.assertTrue(all(k in offer for k in ("price", "priceCurrency", "availability", "url")))
+
+    def test_module_software_data_carries_its_real_update_date_and_feature_list(self):
+        record = {"name": "accounts", "module_name": "Accounts", "description": "d", "features": "", "modified": "2026-11-01 10:00:00"}
+        modules = _modules(self.m, self.frappe, records=[record])
+        module = next(x for x in modules if x["key"] == "accounts")
+        data = self.blocks(self.m.module_page(BASE, module, modules))["SoftwareApplication"]
+        self.assertEqual(data["dateModified"], "2026-11-01")
+        self.assertEqual(data["featureList"], module["features"][:12]) if module["features"] else self.assertNotIn("featureList", data)
+
+    def test_a_module_without_a_date_or_features_adds_neither_property(self):
+        module = {**next(x for x in self.modules if x["key"] == "distribution"), "modified": "", "features": []}
+        data = self.blocks(self.m.module_page(BASE, module, self.modules))["SoftwareApplication"]
+        self.assertNotIn("dateModified", data)
+        self.assertNotIn("featureList", data)
+
+    def test_llms_full_lists_plan_prices_in_both_currencies_with_the_trial(self):
+        text = self.m.llms_full_txt(BASE, self.modules)
+        self.assertIn("Plans in BDT: Basic ৳500 per month. Free trial up to 14 days.", text)
+        self.assertIn("Plans in USD: Basic USD $5 per month. Free trial up to 14 days.", text)
+
+
+@unittest.skipUnless(jinja2, "jinja2 is not installed")
+class PageTests(unittest.TestCase):
+    def render(self, template, build, path="/"):
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.utils.nowdate = Mock(return_value="2026-11-10")
+            marketing.get_plans = Mock(return_value={"distribution": [plan("Basic", 500, "BDT"), plan("Basic USD", 5, "USD")], "accounts": [plan("Std", 1000, "BDT", trial=0)]})
+            modules = _modules(marketing, frappe)
+            frappe.local.request = Mock(path=path)
+            context = _Dict()
+            marketing.apply_context(context, build(marketing, modules), modules)
+            env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(REPO_ROOT)))
+            return env.get_template(f"reckon_saas_platform/www/{template}.html").render(**context)
+
+    def test_pricing_page_has_a_real_table_of_every_plan(self):
+        html = self.render("reckon_pricing", lambda m, mods: m.pricing_page(BASE, mods), "/pricing")
+        table = re.search(r'<table class="plans-table".*?</table>', html, re.S).group(0)
+        self.assertIn('aria-labelledby="cmp-h"', table)
+        self.assertEqual(table.count('<th scope="col">'), 4)
+        rows = re.findall(r"<tr><th scope=\"row\">.*?</tr>", table, re.S)
+        self.assertEqual(len(rows), 3)  # one row per plan, every currency
+        text = re.sub(r"<[^>]+>", " ", table)
+        for needle in ("৳500 per month", "$5 per month", "৳1,000 per month", "14-day free trial"):
+            self.assertIn(needle, text)
+        self.assertIn("&ndash;", rows[-1] if "Std" in rows[-1] else table)  # a plan with no trial shows a dash
+
+    def test_bangla_pricing_table_is_translated(self):
+        html = self.render("reckon_pricing", lambda m, mods: m.pricing_page(BASE, mods), "/bn/pricing")
+        self.assertIn("সব Plan-এর তুলনা", html)
+        self.assertIn("প্রতি মাসে ৳500", re.search(r'<table class="plans-table".*?</table>', html, re.S).group(0))
+        self.assertIn("১৪" if False else "14 দিনের ফ্রি ট্রায়াল", html)
+
+    def test_home_page_says_in_plain_words_what_the_product_is(self):
+        html = self.render("index", lambda m, mods: m.home_page(BASE, mods))
+        main = re.search(r"<main.*?</main>", html, re.S).group(0)
+        first = " ".join(re.sub(r"<[^>]+>", " ", main).split()[:120])
+        self.assertIn("ReckonERP is a cloud ERP with built-in AI", first)  # near the top, where an agent looks first
+        self.assertIn('<link rel="alternate" type="text/plain" href="/llms.txt"', html)
+
+
+class SpeedTests(unittest.TestCase):
+    def test_tracking_scripts_wait_for_load_and_idle_but_the_banner_and_consent_clicks_do_not(self):
+        source = (PKG / "templates" / "marketing" / "tracking.html").read_text(encoding="utf-8")
+        self.assertIn("requestIdleCallback", source)
+        self.assertIn("window.addEventListener('load'", source)
+        self.assertIn("if(!T.consent||home||saved==='yes'){later(load);return}", source)
+        self.assertIn("store('yes');box.hidden=true;load()", source)  # an explicit Accept loads at once
+        self.assertEqual(source.count("later(load)"), 1)
+
+    def test_touch_targets_in_the_footer_are_padded(self):
+        css = (PKG / "templates" / "marketing" / "style.css").read_text(encoding="utf-8")
+        self.assertIn("footer.foot ul a,.foot-seo a,.foot-svc a{display:inline-block;padding:3px 0}", css)
+
+
+if __name__ == "__main__":
+    unittest.main()

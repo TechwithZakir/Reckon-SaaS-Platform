@@ -643,7 +643,7 @@ class MarketingRenderTests(unittest.TestCase):
         with platform_modules("marketing") as (frappe, (marketing,)):
             frappe.utils.nowdate = Mock(return_value="2026-11-05")
             modules = _modules(marketing, frappe)
-            known = set(marketing.public_paths(modules)) | {"/", "/login", marketing.SIGNUP, "/blog", "/blog/rss.xml"}
+            known = set(marketing.public_paths(modules)) | {"/", "/login", marketing.SIGNUP, "/blog", "/blog/rss.xml", "/llms.txt"}
             known |= {("/bn" if p == "/" else "/bn" + p) for p in list(known) if p == "/" or p.split("/")[1] in ("features", "modules", "industries", "pricing", "faq", "integrations")}
             rendered = []
             for page in all_pages(marketing, modules):

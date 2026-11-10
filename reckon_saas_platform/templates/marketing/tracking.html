@@ -8,6 +8,10 @@
   var T={{ tracking|tojson }},KEY='reckon_consent',loaded=false;
   function stored(){try{return localStorage.getItem(KEY)}catch(e){return null}}
   function store(v){try{localStorage.setItem(KEY,v)}catch(e){}}
+  // Analytics and ad scripts are heavy (the Meta Pixel alone is about 275 KB) and nothing on the page needs them,
+  // so they start after the page has loaded and the browser is idle instead of competing with the first render.
+  function idle(fn){if('requestIdleCallback' in window)requestIdleCallback(fn,{timeout:2500});else setTimeout(fn,1200)}
+  function later(fn){if(document.readyState==='complete')idle(fn);else window.addEventListener('load',function(){idle(fn)})}
   function load(){
     if(loaded)return;loaded=true;
     var w=window,d=document;
@@ -39,7 +43,7 @@
   var saved=stored();
   // Visitors in Bangladesh browse without the banner; everyone else, including the US, UK and EU, is asked first.
   var home=false;try{home=Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Dhaka'}catch(e){}
-  if(!T.consent||home||saved==='yes'){load();return}
+  if(!T.consent||home||saved==='yes'){later(load);return}
   if(saved==='no')return;
   box.hidden=false;
   box.querySelector('[data-consent-yes]').addEventListener('click',function(){store('yes');box.hidden=true;load()});
