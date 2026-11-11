@@ -9,7 +9,9 @@ authors = [{name = "Reckon Technologies Ltd."}]
 description = "Reusable SaaS tenant, subscription, payment, and provisioning platform for Frappe/ERPNext"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
-dependencies = []
+dependencies = [
+    "paddle-python-sdk>=1.18,<2",
+]
 
 [tool.bench.frappe-dependencies]
 frappe = ">=15.0.0,<17.0.0"

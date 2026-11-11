@@ -36,6 +36,10 @@ EXEMPT_METHODS = frozenset(
         "reckon_saas_platform.saas.get_subscription_summary",
         # A tenant with dues must still be able to report a payment.
         "reckon_saas_platform.saas.submit_payment_reference",
+        # ...or pay by card, and change or cancel that card subscription.
+        "reckon_saas_platform.paddle.create_checkout",
+        "reckon_saas_platform.paddle.get_portal_url",
+        "reckon_saas_platform.paddle.webhook",
         "reckon_saas_platform.saas.public_signup",
         "reckon_saas_platform.saas.verify_registration_email",
         "reckon_saas_platform.saas.verify_registration_phone",

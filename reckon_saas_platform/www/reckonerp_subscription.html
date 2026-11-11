@@ -40,7 +40,15 @@
           <div class="rs-portal__row"><span>Billing</span><strong>{{ sub.detail|e }}</strong></div>
           {% if sub.invoice %}<div class="rs-portal__row"><span>Invoice</span><strong><a href="{{ sub.invoice.url|e }}">{{ sub.invoice.name|e }}</a> &middot; {{ sub.invoice.status|e }} &middot; <a href="{{ sub.invoice.pdf_url|e }}">PDF</a></strong></div>{% endif %}
                     {% if sub.payment %}<div class="rs-portal__row"><span>Last payment</span><strong>{{ sub.payment.status|e }}{% if sub.payment.gateway_reference %} · {{ sub.payment.gateway_reference|e }}{% endif %}</strong></div>{% endif %}
+          {% if sub.paddle and sub.paddle.status_label %}<div class="rs-portal__row"><span>Card</span><strong>{{ sub.paddle.status_label|e }}{% if sub.paddle.scheduled_change %} · {{ sub.paddle.scheduled_change|e }}{% endif %}</strong></div>{% endif %}
         </div>
+        {% if sub.card_payment or (sub.paddle and sub.paddle.can_manage) %}
+        <div class="rs-portal__form" data-card-subscription="{{ sub.name|e }}">
+          {% if sub.card_payment %}<button class="rs-portal__button rs-portal__button--primary" type="button" data-card-action="checkout">Pay by card &middot; renews automatically</button>{% endif %}
+          {% if sub.paddle and sub.paddle.can_manage %}<button class="rs-portal__button" type="button" data-card-action="portal">Manage card or cancel</button>{% endif %}
+          <div class="rs-portal__message" role="status"></div>
+        </div>
+        {% endif %}
         {% if sub.access and summary.operational_access and sub.landing_route %}
         <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
         {% endif %}
@@ -67,6 +75,7 @@
         <p class="rs-portal__eyebrow">How to pay</p><h2>Payment</h2>
         <p>{{ payment_instructions|e }}</p>
         <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>
+        {% if paddle_environment %}<p>Plans priced in USD can also be paid by card. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>{% endif %}
       </article>
 
       {% if invoices %}
@@ -188,4 +197,87 @@
     });
   })();
 </script>
+{% if paddle_environment %}
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+  (function () {
+    const environment = {{ paddle_environment|tojson }};
+    let initializedToken = null;
+
+    function csrfToken() {
+      const token = (window.frappe && window.frappe.csrf_token) || "";
+      return token === "None" ? "" : token;
+    }
+
+    async function call(method, subscription) {
+      const body = new URLSearchParams();
+      body.append("subscription", subscription);
+      const response = await fetch("/api/method/reckon_saas_platform.paddle." + method, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" },
+        body: body,
+      });
+      const payload = await response.json().catch(function () { return {}; });
+      if (!response.ok || payload.exc_type) {
+        let text = "Something went wrong. Please try again.";
+        try {
+          text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" ");
+        } catch (error) { /* keep the default text */ }
+        throw new Error(text);
+      }
+      return payload.message || {};
+    }
+
+    function setupPaddle(token, message) {
+      if (initializedToken === token) return;
+      if (environment === "sandbox") window.Paddle.Environment.set("sandbox");
+      window.Paddle.Initialize({
+        token: token,
+        eventCallback: function (event) {
+          if (event && event.name === "checkout.completed") {
+            message.className = "rs-portal__message is-success";
+            message.textContent = "Payment received. Activating your module...";
+            // The webhook unlocks the module; give it a moment, then show the new state.
+            setTimeout(function () { window.location.reload(); }, 6000);
+          }
+        },
+      });
+      initializedToken = token;
+    }
+
+    document.querySelectorAll("[data-card-subscription]").forEach(function (box) {
+      const subscription = box.getAttribute("data-card-subscription");
+      const message = box.querySelector(".rs-portal__message");
+      box.querySelectorAll("[data-card-action]").forEach(function (button) {
+        button.addEventListener("click", async function () {
+          button.disabled = true;
+          message.className = "rs-portal__message";
+          message.textContent = "";
+          try {
+            if (button.getAttribute("data-card-action") === "portal") {
+              const urls = await call("get_portal_url", subscription);
+              window.location.href = urls.overview;
+              return;
+            }
+            if (!window.Paddle) throw new Error("Card checkout could not load. Check your connection and try again.");
+            const checkout = await call("create_checkout", subscription);
+            setupPaddle(checkout.client_token, message);
+            window.Paddle.Checkout.open({
+              items: [{ priceId: checkout.price_id, quantity: 1 }],
+              customer: checkout.customer_email ? { email: checkout.customer_email } : undefined,
+              customData: checkout.custom_data,
+            });
+          } catch (error) {
+            message.className = "rs-portal__message is-error";
+            message.textContent = error.message;
+          } finally {
+            button.disabled = false;
+          }
+        });
+      });
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}

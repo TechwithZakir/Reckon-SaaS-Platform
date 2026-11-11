@@ -182,7 +182,49 @@ Crunchbase, then add those links under **Official Profile Links**.
   off). Each step is sent once; after missed days only one reminder goes out; paid or cancelled invoices and
   invoices of cancelled, suspended or expired subscriptions are skipped.
 - **Paying:** the owner pays by bKash, Nagad, Rocket or bank transfer and reports the transaction reference on
-  `/reckonerp-subscription`; a vendor user verifies it, which unlocks the module.
+  `/reckonerp-subscription`; a vendor user verifies it, which unlocks the module. Plans priced in USD (or
+  another currency Paddle supports, never BDT) can also be paid by card through Paddle; see below.
+
+## Card payments through Paddle
+
+Card payment is an auto-renewing Paddle Billing subscription. Paddle charges the card each Monthly, Quarterly
+or Yearly cycle. Each paid transaction becomes a verified **SaaS Payment** (provider *Paddle*, reference
+`txn_...`), and the subscription's paid-until date moves to the end of the period Paddle billed. The invoice is
+settled and the receipt emailed exactly as for a manual payment. BDT plans keep the manual flow only.
+
+**Setup (Sandbox first):**
+
+1. `bench pip install -e apps/reckon_saas_platform` (installs `paddle-python-sdk`), then `bench migrate`.
+2. In the Paddle dashboard (sandbox-vendors.paddle.com for Sandbox):
+   - **Developer tools > Authentication:** create an API key with product, price, customer portal and
+     subscription permissions, and a client-side token.
+   - **Developer tools > Notifications:** add a destination for
+     `https://<your site>/api/method/reckon_saas_platform.paddle.webhook` with the `transaction.*` and
+     `subscription.*` events, and copy its secret key.
+   - **Checkout > Checkout settings:** set a default payment link (for example your site's
+     `/reckonerp-subscription`), and in Production approve your website domain.
+3. In **SaaS Platform Settings > Paddle Card Payments:** tick **Enable Paddle**, choose the environment, and
+   enter the API key, client-side token and webhook secret.
+4. Open each USD **SaaS Plan** and click **Sync to Paddle**. This creates one Paddle product per SaaS Module
+   (tax category *saas*) and a price from the plan's price, currency and cycle, with no Paddle trial
+   because the app runs its own trials. Changing the plan's price, currency or cycle and syncing again
+   archives the old Paddle price; card subscriptions already running keep it.
+
+**How it behaves:**
+
+- The company admin sees **Pay by card** on a USD subscription card. Checkout opens over the page (Paddle.js).
+  The webhook, not the browser, unlocks the module.
+- Every notification is checked against its `Paddle-Signature` (5-second replay window), stored once as a
+  **Paddle Webhook Event** (named by Paddle's event id, so redeliveries are ignored), and processed in the
+  background. A failed event keeps its error; fix the cause, then click **Process Again**.
+- The first payment of a checkout must be for a price of the subscription's own module, and the checkout data
+  must name a subscription of the same company. Anything else is kept as a failed event for review and refund.
+- A card payment on a Suspended or Cancelled subscription is recorded as *Pending Verification* and does not
+  reopen it; that stays the vendor's decision.
+- Cancelling or a failed card renewal never cuts access early: access follows the paid-until date and then the
+  plan's grace days, as for manual payments. **Manage card or cancel** opens Paddle's customer portal.
+- Sandbox and Production keep separate IDs: card payment is offered only when a plan's Paddle price belongs to
+  the environment set in the settings. Test with card `4242 4242 4242 4242`, any future date and any CVC.
 - **Adding a module later:** on the Subscription page the company admin sees **Add a module** with every
   module on sale that the company does not hold. Subscribing creates a separate subscription, payment and
   invoice, seeds the module's starting data and refreshes the team's roles; a verified payment refreshes

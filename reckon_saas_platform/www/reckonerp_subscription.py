@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import frappe
 
-from reckon_saas_platform import invoices
+from reckon_saas_platform import invoices, paddle
 from reckon_saas_platform.constants import VENDOR_COMPANY
 from reckon_saas_platform.saas import (
     PAYMENT_PROVIDERS,
@@ -46,6 +46,9 @@ def get_context(context):
         by_subscription.setdefault(invoice["subscription"], invoice)
     for card in context.subscriptions:
         card["invoice"] = by_subscription.get(card["name"])
+    context.paddle_environment = ""
+    if company and context.can_add_modules:
+        context.paddle_environment = _safely(lambda: _add_card_payment(context.subscriptions), "")
     context.payment_instructions = _safely(lambda: invoices._setting("invoice_payment_instructions"), "") or invoices.DEFAULT_INSTRUCTIONS
     context.product = " · ".join(card["module_name"] for card in context.subscriptions if card["module_name"])
     return context
@@ -58,6 +61,47 @@ def _safely(fn, default):
     except Exception:
         frappe.log_error(frappe.get_traceback(), "Subscription page section")
         return default
+
+
+PADDLE_STATUS_LABELS = {
+    "active": "Card payments on",
+    "trialing": "Card payments on",
+    "past_due": "Card payment failed; Paddle will retry",
+    "paused": "Card payments paused",
+    "canceled": "Card payments cancelled",
+}
+
+
+def _add_card_payment(cards: list[dict]) -> str:
+    """Mark the cards a company admin can pay by card through Paddle.
+
+    Returns the Paddle environment for Paddle.js, or "" when no card can be paid that way.
+    """
+    if not paddle.is_enabled():
+        return ""
+    offered = False
+    for card in cards:
+        details = frappe.db.get_value(
+            "SaaS Subscription",
+            card["name"],
+            ["paddle_subscription_id", "paddle_customer_id", "paddle_status", "paddle_scheduled_change"],
+            as_dict=True,
+        ) or {}
+        plan = frappe.db.get_value(
+            "SaaS Plan", card["plan"], ["currency", "paddle_price_id", "paddle_environment"], as_dict=True
+        ) if card.get("plan") else None
+        status = details.get("paddle_status") or ""
+        card_live = bool(details.get("paddle_subscription_id")) and status in paddle.LIVE_PADDLE_STATUSES
+        card["paddle"] = {
+            "status_label": PADDLE_STATUS_LABELS.get(status, status) if details.get("paddle_subscription_id") else "",
+            "scheduled_change": details.get("paddle_scheduled_change") or "",
+            "can_manage": bool(details.get("paddle_customer_id")),
+        }
+        card["card_payment"] = bool(
+            card.get("can_pay") and plan and not card_live and paddle.card_payment_available(plan)
+        )
+        offered = offered or card["card_payment"] or card["paddle"]["can_manage"]
+    return paddle.environment() if offered else ""
 
 
 def _is_company_admin(company: str) -> bool:
@@ -103,4 +147,7 @@ def subscription_card(row: dict) -> dict:
         "payment_pending": payment.get("status") == "Pending Verification",
         # Paying is open in a trial, with dues, or before the first payment.
         "can_pay": row.get("status") not in {"Suspended", "Cancelled"},
+        # Filled in by _add_card_payment for company admins when Paddle is set up.
+        "card_payment": False,
+        "paddle": {},
     }
