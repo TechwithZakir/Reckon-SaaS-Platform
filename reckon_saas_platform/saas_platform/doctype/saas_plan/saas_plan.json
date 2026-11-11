@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "document_type": "Document",
  "engine": "InnoDB",
- "field_order": ["plan_name", "plan_version", "saas_module", "enabled", "currency", "price", "billing_cycle", "trial_days", "grace_days", "max_users", "max_storage_mb", "features", "section_comparison", "comparison_features"],
+ "field_order": ["plan_name", "plan_version", "saas_module", "enabled", "currency", "price", "billing_cycle", "trial_days", "grace_days", "max_users", "max_storage_mb", "features", "section_comparison", "comparison_features", "section_paddle", "paddle_price_id", "paddle_environment", "paddle_price_signature"],
  "fields": [
   {"fieldname": "plan_name", "fieldtype": "Data", "label": "Plan Name", "reqd": 1, "unique": 1, "in_list_view": 1},
   {"fieldname": "plan_version", "fieldtype": "Data", "label": "Plan Version", "default": "1", "reqd": 1},
@@ -20,10 +20,14 @@
   {"fieldname": "max_storage_mb", "fieldtype": "Int", "label": "File Storage (MB)", "non_negative": 1, "description": "Total size of the files a company can upload on this plan, in MB (1024 MB is 1 GB). Leave blank or 0 for unlimited. When a company has several modules, the highest limit applies. Files already uploaded are never deleted; only new uploads are refused."},
   {"fieldname": "features", "fieldtype": "Small Text", "label": "Features"},
   {"fieldname": "section_comparison", "fieldtype": "Section Break", "label": "Pricing Page Comparison"},
-  {"fieldname": "comparison_features", "fieldtype": "Table", "label": "Comparison Features", "options": "SaaS Plan Feature", "description": "Rows of the side-by-side plan table on the pricing page. Use the same Feature wording on each plan of a module so the plans line up; a plan without a row shows a dash."}
+  {"fieldname": "comparison_features", "fieldtype": "Table", "label": "Comparison Features", "options": "SaaS Plan Feature", "description": "Rows of the side-by-side plan table on the pricing page. Use the same Feature wording on each plan of a module so the plans line up; a plan without a row shows a dash."},
+  {"fieldname": "section_paddle", "fieldtype": "Section Break", "label": "Paddle", "collapsible": 1},
+  {"fieldname": "paddle_price_id", "fieldtype": "Data", "label": "Paddle Price ID", "read_only": 1, "no_copy": 1, "description": "Set by Sync to Paddle. Card payment is offered only when this price belongs to the configured Paddle environment."},
+  {"fieldname": "paddle_environment", "fieldtype": "Data", "label": "Paddle Environment", "read_only": 1, "no_copy": 1},
+  {"fieldname": "paddle_price_signature", "fieldtype": "Data", "label": "Paddle Price Synced For", "read_only": 1, "no_copy": 1, "hidden": 1}
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-11-10 00:00:00.000000",
+ "modified": "2026-11-11 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Plan",
  "naming_rule": "By fieldname",

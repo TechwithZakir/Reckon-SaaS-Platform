@@ -1420,7 +1420,13 @@ def _company_module_keys(company: str) -> set[str] | None:
     return keys or None
 
 
-def verify_payment(payment: str, reference: str | None = None):
+def verify_payment(payment: str, reference: str | None = None, period_end=None):
+    """Mark a payment verified and give its subscription the period it pays for.
+
+    ``period_end`` comes from a payment gateway that runs its own billing schedule
+    (Paddle's billing period), so the app's dates match the gateway's renewals.
+    Without it the period is computed from the plan's billing cycle.
+    """
     payment_doc = frappe.get_doc("SaaS Payment", payment)
     if payment_doc.status == "Verified":
         # Verifying twice must not buy a second period.
@@ -1433,7 +1439,7 @@ def verify_payment(payment: str, reference: str | None = None):
 
     subscription = frappe.get_doc("SaaS Subscription", payment_doc.subscription)
     subscription.start_date = subscription.start_date or nowdate()
-    subscription.end_date = _next_period_end(subscription)
+    subscription.end_date = getdate(period_end) if period_end else _next_period_end(subscription)
     subscription.status = "Active"
     subscription.grace_until = None
     subscription.save(ignore_permissions=True)

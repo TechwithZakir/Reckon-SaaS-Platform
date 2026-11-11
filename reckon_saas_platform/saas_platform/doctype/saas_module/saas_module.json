@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
- "field_order": ["module_key", "module_name", "enabled", "column_break_main", "app_name", "landing_workspace", "seed_handler", "section_details", "description", "features"],
+ "field_order": ["module_key", "module_name", "enabled", "column_break_main", "app_name", "landing_workspace", "seed_handler", "section_details", "description", "features", "section_paddle", "paddle_product_id", "paddle_product_environment"],
  "fields": [
   {"fieldname": "module_key", "fieldtype": "Data", "label": "Module Key", "reqd": 1, "unique": 1, "in_list_view": 1, "description": "Stable key from the app's reckon_saas_modules hook, e.g. distribution."},
   {"fieldname": "module_name", "fieldtype": "Data", "label": "Module Name", "reqd": 1, "in_list_view": 1},
@@ -16,10 +16,13 @@
   {"fieldname": "seed_handler", "fieldtype": "Data", "label": "Seed Handler", "read_only": 1},
   {"fieldname": "section_details", "fieldtype": "Section Break", "label": "Details"},
   {"fieldname": "description", "fieldtype": "Small Text", "label": "Description"},
-  {"fieldname": "features", "fieldtype": "Small Text", "label": "Features", "read_only": 1}
+  {"fieldname": "features", "fieldtype": "Small Text", "label": "Features", "read_only": 1},
+  {"fieldname": "section_paddle", "fieldtype": "Section Break", "label": "Paddle", "collapsible": 1},
+  {"fieldname": "paddle_product_id", "fieldtype": "Data", "label": "Paddle Product ID", "read_only": 1, "no_copy": 1},
+  {"fieldname": "paddle_product_environment", "fieldtype": "Data", "label": "Paddle Environment", "read_only": 1, "no_copy": 1}
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-10-18 13:00:00.000000",
+ "modified": "2026-11-11 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Module",
  "naming_rule": "By fieldname",

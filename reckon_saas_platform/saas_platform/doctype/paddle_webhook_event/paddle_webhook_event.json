@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "autoname": "field:event_id",
+ "creation": "2026-11-11 12:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": ["event_id", "event_type", "occurred_at", "column_break_main", "status", "processed_on", "attempts", "section_payload", "error", "payload"],
+ "fields": [
+  {"fieldname": "event_id", "fieldtype": "Data", "label": "Event ID", "reqd": 1, "unique": 1, "read_only": 1, "in_list_view": 1},
+  {"fieldname": "event_type", "fieldtype": "Data", "label": "Event Type", "read_only": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "occurred_at", "fieldtype": "Datetime", "label": "Occurred At", "read_only": 1},
+  {"fieldname": "column_break_main", "fieldtype": "Column Break"},
+  {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Received\nProcessed\nIgnored\nFailed", "default": "Received", "read_only": 1, "in_list_view": 1, "in_standard_filter": 1},
+  {"fieldname": "processed_on", "fieldtype": "Datetime", "label": "Processed On", "read_only": 1},
+  {"fieldname": "attempts", "fieldtype": "Int", "label": "Attempts", "default": "0", "read_only": 1},
+  {"fieldname": "section_payload", "fieldtype": "Section Break", "label": "Details"},
+  {"fieldname": "error", "fieldtype": "Small Text", "label": "Error", "read_only": 1},
+  {"fieldname": "payload", "fieldtype": "Code", "label": "Payload", "options": "JSON", "read_only": 1, "description": "The notification body exactly as Paddle sent it, after its signature was verified."}
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "modified": "2026-11-11 12:00:00.000000",
+ "module": "SaaS Platform",
+ "name": "Paddle Webhook Event",
+ "naming_rule": "By fieldname",
+ "permissions": [{"role": "Reckon Vendor Superuser", "read": 1, "write": 1, "export": 1}, {"role": "System Manager", "read": 1, "write": 1, "delete": 1, "export": 1}],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

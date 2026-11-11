@@ -20,7 +20,14 @@
   "end_date",
   "grace_until",
   "trial_end_date",
-  "grace_days"
+  "grace_days",
+  "section_paddle",
+  "paddle_subscription_id",
+  "paddle_customer_id",
+  "column_break_paddle",
+  "paddle_status",
+  "paddle_scheduled_change",
+  "paddle_updated_at"
  ],
  "fields": [
   {
@@ -128,10 +135,58 @@
    "default": "0",
    "non_negative": 1,
    "description": "Days of access after the trial or paid period ends while a payment is due. Copied from the plan at signup."
+  },
+  {
+   "fieldname": "section_paddle",
+   "fieldtype": "Section Break",
+   "label": "Paddle",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "paddle_subscription_id",
+   "fieldtype": "Data",
+   "label": "Paddle Subscription ID",
+   "read_only": 1,
+   "no_copy": 1,
+   "unique": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "paddle_customer_id",
+   "fieldtype": "Data",
+   "label": "Paddle Customer ID",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break_paddle",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "paddle_status",
+   "fieldtype": "Data",
+   "label": "Paddle Status",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "paddle_scheduled_change",
+   "fieldtype": "Data",
+   "label": "Paddle Scheduled Change",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "paddle_updated_at",
+   "fieldtype": "Datetime",
+   "label": "Paddle Last Event At",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
   }
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-10-18 18:00:00.000000",
+ "modified": "2026-11-11 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Subscription",
  "naming_rule": "Set by controller",
