@@ -45,6 +45,34 @@ def after_migrate() -> None:
     refresh_site_seo()
     audit_tenant_roles()
     ensure_file_storage_tracking()
+    ensure_subscription_menu()
+
+
+SUBSCRIPTION_MENU_ROUTE = "/reckonerp-subscription"
+
+
+def ensure_subscription_menu() -> None:
+    """Put "Subscription" on the Desk menu, so a tenant can reach their plan, invoices and payment at any time.
+
+    It is a row of Navbar Settings, added once and left alone afterwards (rename or hide it there).
+    Vendor staff have no company subscription, so the row is hidden for them.
+    """
+    try:
+        if not frappe.db.exists("DocType", "Navbar Settings"):
+            return
+        settings = frappe.get_single("Navbar Settings")
+        if any((row.get("route") or "") == SUBSCRIPTION_MENU_ROUTE for row in settings.get("settings_dropdown") or []):
+            return
+        row = {"item_label": "Subscription", "item_type": "Route", "route": SUBSCRIPTION_MENU_ROUTE, "is_standard": 0, "hidden": 0}
+        meta = frappe.get_meta("Navbar Item")
+        if meta.has_field("condition"):
+            row["condition"] = '!frappe.user.has_role("Reckon Vendor Superuser") && frappe.session.user !== "Administrator"'
+        if meta.has_field("icon"):
+            row["icon"] = "credit-card"
+        settings.append("settings_dropdown", row)
+        settings.save(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(title="Subscription menu setup failed")
 
 
 def ensure_file_storage_tracking() -> None:

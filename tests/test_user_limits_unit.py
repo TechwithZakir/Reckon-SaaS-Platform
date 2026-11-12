@@ -162,5 +162,29 @@ class BillingCycleAndPaddlePriceTests(unittest.TestCase):
         self.assertIn('new URLSearchParams(window.location.search).get("plan")', signup)
 
 
+class SubscriptionMenuTests(unittest.TestCase):
+    def test_migrate_adds_the_subscription_menu_row_once(self):
+        from frappe_stub import _Dict
+
+        with platform_modules("install") as (frappe, (install,)):
+            settings = Mock()
+            settings.get = Mock(return_value=[])
+            frappe.db.exists = Mock(return_value=True)
+            frappe.get_single = Mock(return_value=settings)
+            frappe.get_meta = Mock(return_value=Mock(has_field=Mock(return_value=True)))
+            install.ensure_subscription_menu()
+            field, row = settings.append.call_args[0]
+            self.assertEqual((field, row["route"], row["item_type"], row["item_label"]), ("settings_dropdown", "/reckonerp-subscription", "Route", "Subscription"))
+            self.assertIn("Reckon Vendor Superuser", row["condition"])
+            settings.save.assert_called_once()
+            # already there: nothing is added again
+            again = Mock()
+            again.get = Mock(return_value=[_Dict(route="/reckonerp-subscription")])
+            frappe.get_single = Mock(return_value=again)
+            install.ensure_subscription_menu()
+            again.append.assert_not_called()
+        self.assertIn("ensure_subscription_menu()", (PKG / "install.py").read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()
