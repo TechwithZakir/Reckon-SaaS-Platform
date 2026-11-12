@@ -10,6 +10,8 @@
   .rs-portal__message { margin-top: 8px; font-size: 13px; }
   .rs-portal__message.is-error { color: #b42318; }
   .rs-portal__message.is-success { color: #067647; }
+  .rs-portal__other { margin-top: 14px; }
+  .rs-portal__other > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
 </style>
 <main class="rs-portal">
   <div class="rs-portal__inner">
@@ -21,7 +23,7 @@
       <div>
         <p class="rs-portal__eyebrow">Tenant account</p>
         <h1>Subscription &amp; activation</h1>
-        <p>{% if summary.has_dues %}A payment is due. Pay and add the transaction reference below; we unlock your workspace once it is verified.{% else %}Track your plan, payment verification and provisioning status in one place.{% endif %}</p>
+        <p>{% if summary.has_dues and paddle_environment %}A payment is due. Pay by card below and your workspace unlocks as soon as the payment goes through.{% elif summary.has_dues %}A payment is due. Pay and add the transaction reference below; we unlock your workspace once it is verified.{% else %}Track your plan, payment verification and provisioning status in one place.{% endif %}</p>
       </div>
     </section>
     <section class="rs-portal__grid">
@@ -44,7 +46,9 @@
         </div>
         {% if sub.card_payment or (sub.paddle and sub.paddle.can_manage) %}
         <div class="rs-portal__form" data-card-subscription="{{ sub.name|e }}">
-          {% if sub.card_payment %}<button class="rs-portal__button rs-portal__button--primary" type="button" data-card-action="checkout">Pay by card &middot; renews automatically</button>{% endif %}
+          {% if sub.card_payment %}<div class="rs-portal__label">Pay by card (recommended)</div>
+          <button class="rs-portal__button rs-portal__button--primary" type="button" data-card-action="checkout">Pay {{ sub.currency|e }} {{ sub.price }} by card &middot; renews automatically</button>
+          <p class="rs-portal__notice" style="margin:0">Your module unlocks as soon as the payment goes through. No reference to enter.</p>{% endif %}
           {% if sub.paddle and sub.paddle.can_manage %}<button class="rs-portal__button" type="button" data-card-action="portal">Manage card or cancel</button>{% endif %}
           <div class="rs-portal__message" role="status"></div>
         </div>
@@ -53,15 +57,18 @@
         <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
         {% endif %}
         {% if sub.can_pay %}
+        {# Card is the default for a plan that can take it; the manual report stays one click away. #}
+        {% if sub.card_payment %}<details class="rs-portal__other"><summary>Other ways to pay (bank transfer or mobile wallet)</summary>{% endif %}
         <form class="rs-portal__form" data-pay-subscription="{{ sub.name|e }}">
           <label class="rs-portal__label" for="provider-{{ loop.index }}">{% if sub.payment_pending %}Update payment reference{% else %}Report a payment{% endif %}</label>
           <select id="provider-{{ loop.index }}" name="provider">
             {% for provider in payment_providers %}<option value="{{ provider }}"{% if sub.payment.gateway_provider == provider %} selected{% endif %}>{{ provider }}</option>{% endfor %}
           </select>
           <input name="reference" maxlength="140" required placeholder="Transaction ID / reference" value="{{ (sub.payment.gateway_reference or '')|e if sub.payment_pending else '' }}">
-          <button class="rs-portal__button rs-portal__button--primary" type="submit">Submit for verification</button>
+          <button class="rs-portal__button{% if not sub.card_payment %} rs-portal__button--primary{% endif %}" type="submit">Submit for verification</button>
           <div class="rs-portal__message" role="status"></div>
         </form>
+        {% if sub.card_payment %}</details>{% endif %}
         {% endif %}
       </article>
       {% else %}
@@ -73,9 +80,10 @@
 
       <article class="rs-portal__card rs-portal__card--wide">
         <p class="rs-portal__eyebrow">How to pay</p><h2>Payment</h2>
-        <p>{{ payment_instructions|e }}</p>
-        <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>
-        {% if paddle_environment %}<p>Plans priced in USD can also be paid by card. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>{% endif %}
+        {% if paddle_environment %}<p><strong>By card (default for plans priced in USD):</strong> click Pay by card on the subscription card above. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>
+        <p><strong>Other ways:</strong> {{ payment_instructions|e }} Then open "Other ways to pay" on the subscription card, enter the transaction reference, and we unlock the module once the payment is verified.</p>
+        {% else %}<p>{{ payment_instructions|e }}</p>
+        <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>{% endif %}
       </article>
 
       {% if invoices %}
