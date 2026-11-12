@@ -10,6 +10,11 @@
   .rs-portal__message { margin-top: 8px; font-size: 13px; }
   .rs-portal__message.is-error { color: #b42318; }
   .rs-portal__message.is-success { color: #067647; }
+  /* Long values (a plan name, a transaction id) wrap inside the card instead of running past its edge. */
+  .rs-portal__card, .rs-portal__list { min-width: 0; }
+  .rs-portal__row > span:first-child { flex: 0 0 auto; }
+  .rs-portal__row strong { min-width: 0; overflow-wrap: anywhere; }
+  .rs-portal__form .rs-portal__button { width: 100%; }
   .rs-portal__other { margin-top: 14px; }
   .rs-portal__other > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
 </style>
@@ -56,7 +61,7 @@
         {% if sub.access and summary.operational_access and sub.landing_route %}
         <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
         {% endif %}
-        {% if sub.can_pay %}
+        {% if sub.can_pay and not (sub.paddle and sub.paddle.live) %}
         {# Card is the default for a plan that can take it; the manual report stays one click away. #}
         {% if sub.card_payment %}<details class="rs-portal__other"><summary>Other ways to pay (bank transfer or mobile wallet)</summary>{% endif %}
         <form class="rs-portal__form" data-pay-subscription="{{ sub.name|e }}">

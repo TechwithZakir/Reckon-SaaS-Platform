@@ -96,6 +96,8 @@ def _add_card_payment(cards: list[dict]) -> str:
             "status_label": PADDLE_STATUS_LABELS.get(status, status) if details.get("paddle_subscription_id") else "",
             "scheduled_change": details.get("paddle_scheduled_change") or "",
             "can_manage": bool(details.get("paddle_customer_id")),
+            # The card is being charged each cycle: there is nothing to report by hand.
+            "live": card_live,
         }
         card["card_payment"] = bool(
             card.get("can_pay") and plan and not card_live and paddle.card_payment_available(plan)
