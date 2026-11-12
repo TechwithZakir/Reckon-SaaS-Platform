@@ -611,6 +611,8 @@
         icon.textContent = "✓";
         title.textContent = T.ready_title;
         text.textContent = T.ready_text;
+        // After signing in, land on the Subscription page, where the invoice and Pay by card are.
+        action.setAttribute("href", "/login?redirect-to=/reckonerp-subscription");
       } else if (stage === "failed") {
         icon.classList.add("is-error");
         icon.textContent = "!";
