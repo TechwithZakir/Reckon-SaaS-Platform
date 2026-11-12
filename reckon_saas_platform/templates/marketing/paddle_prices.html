@@ -1,0 +1,32 @@
+{# Prices in the visitor's own currency, straight from Paddle. Loaded only when card payment is on and a
+   plan on the page has a Paddle price; it starts after the page has loaded and the browser is idle.
+   Only the amount Paddle returns is shown: no arithmetic and no re-formatting here. #}
+{% if paddle_public %}
+<script>
+(function(){
+  var cfg={{ paddle_public|tojson }};
+  function run(){
+    var els=[].slice.call(document.querySelectorAll('[data-paddle-price]'));
+    if(!els.length)return;
+    var ids=[];els.forEach(function(e){var id=e.getAttribute('data-paddle-price');if(ids.indexOf(id)<0)ids.push(id)});
+    var s=document.createElement('script');s.src='https://cdn.paddle.com/paddle/v2/paddle.js';s.async=true;
+    s.onload=function(){
+      if(!window.Paddle)return;
+      if(cfg.environment==='sandbox')window.Paddle.Environment.set('sandbox');
+      window.Paddle.Initialize({token:cfg.client_token});
+      // No country is passed: Paddle works out the visitor's location itself.
+      window.Paddle.PricePreview({items:ids.map(function(id){return {priceId:id,quantity:1}})}).then(function(r){
+        var by={};((r&&r.data&&r.data.details&&r.data.details.lineItems)||[]).forEach(function(l){by[l.price.id]=l.formattedTotals.total});
+        els.forEach(function(e){
+          var total=by[e.getAttribute('data-paddle-price')],amount=e.getAttribute('data-amount');
+          if(total&&amount&&e.textContent.indexOf(amount)>-1)e.textContent=e.textContent.replace(amount,total);
+        });
+      }).catch(function(){/* the page keeps its own prices */});
+    };
+    document.head.appendChild(s);
+  }
+  function idle(){if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2500});else setTimeout(run,1200)}
+  if(document.readyState==='complete')idle();else window.addEventListener('load',idle);
+})();
+</script>
+{% endif %}

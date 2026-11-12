@@ -10,7 +10,7 @@
       <h1>{{ page.h1|e }}</h1>
       <p class="lead">{{ tr("Each module is its own subscription with its own plan, so you pay only for what you use. Prices, billing periods and trial days are exactly what you will see at signup.") }}</p>
     </div>
-    {{ m.currency_switch(page.currencies) }}
+    {{ m.currency_switch(page.currencies) }}{{ m.cycle_switch(page.cycles) }}
     {% if page.priced %}
     {% for mod in page.priced %}
     <div class="price-mod">

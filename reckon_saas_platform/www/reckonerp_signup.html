@@ -553,6 +553,13 @@
       moduleSelect.addEventListener("change", filterPlans);
       filterPlans();
     }
+    // A plan chosen on the pricing page arrives selected.
+    const wantedPlan = new URLSearchParams(window.location.search).get("plan");
+    if (wantedPlan) {
+      document.querySelectorAll('input[name="plan"]').forEach(function (input) {
+        if (input.value === wantedPlan && !input.closest("[data-plan-module]").hidden) input.checked = true;
+      });
+    }
 
     function setStep(step) {
       const order = ["details", "verify", "done"];

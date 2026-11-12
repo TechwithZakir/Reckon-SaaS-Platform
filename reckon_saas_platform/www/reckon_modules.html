@@ -57,7 +57,7 @@
 <section class="alt" aria-labelledby="price-h">
   <div class="wrap">
     <div class="head"><h2 id="price-h">{{ tr("{name} plans and pricing")|replace("{name}", page.module.name|e) }}</h2><p>{{ tr("Subscribe online. Your invoice arrives by email with a PDF, and a link by SMS.") }}</p></div>
-    {% if page.module.plans %}{{ m.currency_switch(page.module.currencies) }}{{ m.plan_cards(page.module) }}{% else %}<p>{{ tr("Plans are shown at signup.") }} <a href="{{ u(page.signup_url)|e }}">{{ tr("Start here") }}</a>.</p>{% endif %}
+    {% if page.module.plans %}{{ m.currency_switch(page.module.currencies) }}{{ m.cycle_switch(page.module.cycles) }}{{ m.plan_cards(page.module) }}{% else %}<p>{{ tr("Plans are shown at signup.") }} <a href="{{ u(page.signup_url)|e }}">{{ tr("Start here") }}</a>.</p>{% endif %}
     <p class="note"><a href="{{ u("/pricing") }}">{{ tr("See all plans") }}</a>{{ tr(".") }} {{ tr("Implementation, training, customisation and on-site support are quoted separately.") }}</p>
   </div>
 </section>

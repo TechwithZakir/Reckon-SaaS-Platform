@@ -21,42 +21,52 @@
 {% endmacro %}
 
 {% macro plan_cards(mod) %}
-{% set sets = mod.plans_by_currency if mod.plans_by_currency else {"": mod.plans} %}
-{% for cur, plans in sets.items() %}
-<ul class="grid plans cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}">
+{% set sets = mod.plan_sets if mod.plan_sets else [{"cur": "", "cycle": "", "plans": mod.plans}] %}
+<div class="set-group">
+{% for set in sets %}{% set cur = set.cur %}{% set plans = set.plans %}
+<ul class="grid plans cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}" data-cycle="{{ set.cycle|e }}">
   {% for plan in plans %}
-  <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong>{{ plan.price_text|e }}</strong></p>
+  <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong{% if plan.paddle_price %} data-paddle-price="{{ plan.paddle_price|e }}" data-amount="{{ plan.amount_text|e }}"{% endif %}>{{ plan.price_text|e }}</strong></p>
     {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</p>{% endif %}
     {% if plan.features %}<ul class="tick">{% for f in plan.features[:6] %}<li>{{ f|e }}</li>{% endfor %}</ul>{% endif %}
-    <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
+    <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else "") ~ ("&plan=" ~ plan.id|urlencode if plan.id else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
   {% endfor %}
 </ul>
 {% endfor %}
+</div>
 {% endmacro %}
 
 {% macro plan_compare(mod) %}
-{% if mod.comparison_by_currency %}
-{% for cur, cmp in mod.comparison_by_currency.items() %}
-<div class="cur-set cmp-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}">
+{% if mod.comparison_sets %}
+<div class="set-group">
+{% for set in mod.comparison_sets %}{% set cur = set.cur %}{% set cmp = set.matrix %}
+<div class="cur-set cmp-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}" data-cycle="{{ set.cycle|e }}">
   <div class="table-wrap" tabindex="0" role="region" aria-label="{{ mod.name|e }}">
   <table class="cmp-table">
     <thead><tr><td class="cmp-corner"><span class="sr">{{ tr("Features") }}</span></td>
-      {% for plan in cmp.plans %}<th scope="col"><span class="cmp-plan">{{ plan.name|e }}</span><span class="cmp-price">{{ plan.price_text|e }}</span>{% if plan.trial_days %}<span class="cmp-trial">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</span>{% endif %}</th>{% endfor %}</tr></thead>
+      {% for plan in cmp.plans %}<th scope="col"><span class="cmp-plan">{{ plan.name|e }}</span><span class="cmp-price"{% if plan.paddle_price %} data-paddle-price="{{ plan.paddle_price|e }}" data-amount="{{ plan.amount_text|e }}"{% endif %}>{{ plan.price_text|e }}</span>{% if plan.trial_days %}<span class="cmp-trial">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</span>{% endif %}</th>{% endfor %}</tr></thead>
     <tbody>
       {% for row in cmp.rows %}<tr><th scope="row">{% if row.users %}{{ tr("Users") }}{% elif row.storage %}{{ tr("File storage") }}{% else %}{{ row.feature|e }}{% endif %}</th>
         {% for cell in row.cells %}<td>{% if row.users %}{% if cell.users %}{{ tr("Up to {n}")|replace("{n}", cell.users) }}{% else %}{{ tr("Unlimited") }}{% endif %}{% elif row.learning and not learning_ready %}<span class="cmp-no">{{ tr("Coming soon") }}</span>{% elif row.storage %}{% if cell.text %}{{ cell.text|e }}{% else %}{{ tr("Unlimited") }}{% endif %}{% elif cell.value %}{{ cell.value|e }}{% elif cell.included %}<span class="cmp-yes" role="img" aria-label="{{ tr("Included") }}"></span>{% else %}<span class="cmp-no" role="img" aria-label="{{ tr("Not included") }}">&ndash;</span>{% endif %}</td>{% endfor %}</tr>
       {% endfor %}
     </tbody>
-    <tfoot><tr><td></td>{% for plan in cmp.plans %}<td><a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></td>{% endfor %}</tr></tfoot>
+    <tfoot><tr><td></td>{% for plan in cmp.plans %}<td><a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else "") ~ ("&plan=" ~ plan.id|urlencode if plan.id else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></td>{% endfor %}</tr></tfoot>
   </table></div>
 </div>
 {% endfor %}
+</div>
 {% else %}{{ plan_cards(mod) }}{% endif %}
 {% endmacro %}
 
 {% macro currency_switch(currencies) %}
 {% if currencies and currencies|length > 1 %}
 <div class="rk-cur" role="group" aria-label="{{ tr("Currency") }}">{% for c in currencies %}<button type="button" data-cur-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>
+{% endif %}
+{% endmacro %}
+
+{% macro cycle_switch(cycles) %}
+{% if cycles and cycles|length > 1 %}
+<div class="rk-cur rk-cycle" role="group" aria-label="{{ tr("Billing period") }}">{% for c in cycles %}<button type="button" data-cycle-set="{{ c|e }}" aria-pressed="false">{{ tr(c) }}</button>{% endfor %}</div>
 {% endif %}
 {% endmacro %}
 

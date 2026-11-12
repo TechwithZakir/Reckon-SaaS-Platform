@@ -1012,21 +1012,57 @@ def comparison_matrix(plans: list[dict]) -> dict:
     return {"plans": plans, "rows": rows}
 
 
+CYCLE_ORDER = ("Monthly", "Quarterly", "Yearly")
+
+
+def paddle_public() -> dict | None:
+    """What a public page may know about Paddle: the environment and the client-side token.
+
+    ``None`` unless card payment is switched on with a client-side token and an explicit environment,
+    so a page never talks to the wrong Paddle account. The API key never leaves the server.
+    """
+    try:
+        settings = frappe.get_cached_doc("SaaS Platform Settings")
+    except Exception:
+        return None
+    token = str(settings.get("paddle_client_token") or "").strip()
+    environment = str(settings.get("paddle_environment") or "").strip().lower()
+    if not settings.get("paddle_enabled") or environment not in ("sandbox", "production"):
+        return None
+    if not re.fullmatch(r"(test|live)_[A-Za-z0-9]{20,60}", token) or token.startswith("test_") != (environment == "sandbox"):
+        return None
+    return {"environment": environment, "client_token": token}
+
+
+def plan_sets(plans: list[dict]) -> list[dict]:
+    """Plans grouped the way a visitor chooses them: by currency, then by billing cycle."""
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for plan in plans:
+        groups.setdefault((plan["currency"], plan.get("cycle") or "Monthly"), []).append(plan)
+
+    def order(key):
+        currency, cycle = key
+        return (currency != "BDT", currency, CYCLE_ORDER.index(cycle) if cycle in CYCLE_ORDER else len(CYCLE_ORDER))
+
+    return [{"cur": c, "cycle": cycle, "plans": groups[(c, cycle)]} for c, cycle in sorted(groups, key=order)]
+
+
 def get_plans() -> dict[str, list[dict]]:
     """Enabled SaaS Plans grouped by module key, cheapest first, as the site shows them."""
     plans: dict[str, list[dict]] = {}
     try:
         if not frappe.db.exists("DocType", "SaaS Plan"):
             return plans
-        rows = frappe.get_all(
-            "SaaS Plan",
-            filters={"enabled": 1},
-            fields=["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified"],
-            order_by="price asc",
-            ignore_permissions=True,
-        )
+        fields = ["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified"]
+        try:
+            rows = frappe.get_all(
+                "SaaS Plan", filters={"enabled": 1}, fields=[*fields, "paddle_price_id", "paddle_environment"], order_by="price asc", ignore_permissions=True
+            )
+        except Exception:  # a site not yet migrated to the Paddle fields
+            rows = frappe.get_all("SaaS Plan", filters={"enabled": 1}, fields=fields, order_by="price asc", ignore_permissions=True)
     except Exception:
         return plans
+    paddle = paddle_public()
     comparison = _plan_rows([r.get("name") for r in rows if r.get("name")])
     for row in rows:
         key = row.get("saas_module")
@@ -1042,6 +1078,12 @@ def get_plans() -> dict[str, list[dict]]:
         plans.setdefault(key, []).append(
             {
                 "name": row.get("plan_name") or row.get("name"),
+                "id": row.get("name") or row.get("plan_name"),
+                "amount_text": _price_text(price, symbol, cycle).split(" per ")[0],
+                # Paddle shows this price in the visitor's own currency; only for the configured environment
+                "paddle_price": (row.get("paddle_price_id") or "")
+                if paddle and row.get("paddle_price_id") and (row.get("paddle_environment") or "") == paddle["environment"]
+                else "",
                 "price": price,
                 "currency": currency,
                 "symbol": symbol,
@@ -1103,7 +1145,9 @@ def get_modules() -> list[dict]:
         for plan in all_plans.get(key, []):
             by_currency.setdefault(plan["currency"], []).append(plan)
         currencies = sorted(by_currency, key=lambda c: (c != "BDT", c))
-        plans = by_currency[currencies[0]] if currencies else []
+        sets = plan_sets(all_plans.get(key, []))
+        plans = by_currency[currencies[0]] if currencies else []  # every plan of the default currency, for the price answers
+        compare = any(p.get("comparison") for s in sets for p in s["plans"])
         own_faqs = list(details.get("faqs") or copy.get("faqs") or [])
         modules.append(
             {
@@ -1117,6 +1161,13 @@ def get_modules() -> list[dict]:
                 "exclusions": exclusions,
                 "plans": plans,
                 "plans_by_currency": {c: by_currency[c] for c in currencies},
+                "plan_sets": sets,
+                "cycles": sorted({s["cycle"] for s in sets}, key=lambda c: CYCLE_ORDER.index(c) if c in CYCLE_ORDER else 9),
+                "comparison_sets": [
+                    {"cur": s["cur"], "cycle": s["cycle"], "matrix": matrix}
+                    for s in sets
+                    if compare and (matrix := comparison_matrix(s["plans"]))["rows"]
+                ],
                 # the side-by-side table is used once the vendor has entered comparison lines for any plan of the module
                 "comparison_by_currency": {
                     c: matrix for c in currencies if (matrix := comparison_matrix(by_currency[c]))["rows"]
@@ -1554,6 +1605,7 @@ def pricing_page(base: str, modules: list[dict]) -> dict:
         modules=modules,
         priced=[m for m in modules if m["plans"]],
         currencies=sorted({c for m in modules for c in m.get("currencies", [])}, key=lambda c: (c != "BDT", c)),
+        cycles=[c for c in CYCLE_ORDER if any(c in m.get("cycles", []) for m in modules)],
     )
 
 
@@ -1956,6 +2008,7 @@ def shared_context(context, modules: list[dict], lang: str = "en") -> None:
     """Header, footer and chat data used by every public page, signup included."""
     context.tracking = get_tracking()
     context.learning_ready = learning_ready()
+    context.paddle_public = paddle_public()
     # Not called ``company``: the signup page already uses that name for the vendor's own details.
     context.company_links = {
         "name": company_links.COMPANY_NAME,

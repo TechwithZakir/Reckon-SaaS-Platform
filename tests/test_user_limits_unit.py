@@ -125,5 +125,42 @@ class FileStorageTests(unittest.TestCase):
         self.assertEqual([x["text"] for x in rows[1]["cells"]], ["500 MB", "2 GB", ""])
 
 
+class BillingCycleAndPaddlePriceTests(unittest.TestCase):
+    def test_plans_group_by_currency_then_cycle_with_bdt_and_monthly_first(self):
+        with platform_modules("marketing") as (_f, (marketing,)):
+            usd_y = {**plan("Pro Y", 100, "USD"), "cycle": "Yearly"}
+            sets = marketing.plan_sets([usd_y, plan("Pro", 10, "USD"), plan("Basic", 500, "BDT")])
+        self.assertEqual([(s["cur"], s["cycle"]) for s in sets], [("BDT", "Monthly"), ("USD", "Monthly"), ("USD", "Yearly")])
+
+    def paddle(self, **settings):
+        from frappe_stub import _Dict
+
+        with platform_modules("marketing") as (frappe, (marketing,)):
+            frappe.get_cached_doc = Mock(return_value=_Dict(settings))
+            return marketing.paddle_public()
+
+    def test_paddle_is_public_only_when_on_with_a_matching_token_and_environment(self):
+        token = "test_" + "a" * 27
+        self.assertEqual(self.paddle(paddle_enabled=1, paddle_environment="Sandbox", paddle_client_token=token), {"environment": "sandbox", "client_token": token})
+        self.assertIsNone(self.paddle(paddle_enabled=0, paddle_environment="Sandbox", paddle_client_token=token))
+        self.assertIsNone(self.paddle(paddle_enabled=1, paddle_environment="", paddle_client_token=token))  # never guess the environment
+        self.assertIsNone(self.paddle(paddle_enabled=1, paddle_environment="Production", paddle_client_token=token))  # sandbox token on live
+        self.assertIsNone(self.paddle(paddle_enabled=1, paddle_environment="Sandbox", paddle_client_token="<script>"))
+
+    def test_templates_carry_the_cycle_the_paddle_price_and_the_chosen_plan(self):
+        macros = (PKG / "templates" / "marketing" / "macros.html").read_text(encoding="utf-8")
+        self.assertEqual(macros.count('data-cycle="{{ set.cycle|e }}"'), 2)
+        self.assertEqual(macros.count('data-paddle-price="{{ plan.paddle_price|e }}"'), 2)
+        self.assertEqual(macros.count('"&plan=" ~ plan.id|urlencode'), 2)
+        script = (PKG / "templates" / "marketing" / "paddle_prices.html").read_text(encoding="utf-8")
+        self.assertIn("{% if paddle_public %}", script)
+        self.assertIn("formattedTotals.total", script)
+        self.assertNotIn("Intl.NumberFormat", script)  # Paddle's own formatted totals are shown as they come
+        self.assertNotIn("customerIpAddress", script)
+        self.assertNotIn("api_key", script)
+        signup = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        self.assertIn('new URLSearchParams(window.location.search).get("plan")', signup)
+
+
 if __name__ == "__main__":
     unittest.main()
