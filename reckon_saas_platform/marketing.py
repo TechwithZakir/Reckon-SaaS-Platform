@@ -124,6 +124,7 @@ PRIVATE_PATHS = (
     "/update-password",
     "/reckon-saas-admin",
     "/reckonerp-subscription",
+    "/reckonerp-team",
 )
 
 # --- Icons -------------------------------------------------------------------

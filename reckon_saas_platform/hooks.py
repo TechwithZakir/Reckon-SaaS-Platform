@@ -39,6 +39,10 @@ after_request = [
     "reckon_saas_platform.marketing.redirect_signed_in_home",
 ]
 
+# A tenant's Apps menu lists the apps of the modules it subscribes to, not every installed app.
+extend_bootinfo = "reckon_saas_platform.desk_apps.filter_bootinfo"
+override_whitelisted_methods = {"frappe.apps.get_apps": "reckon_saas_platform.desk_apps.get_apps"}
+
 # Signed-in users go to their module, not the marketing home page; /login carries
 # the same name, logo and "powered by" as the landing page.
 get_website_user_home_page = "reckon_saas_platform.marketing.website_user_home_page"
@@ -125,6 +129,7 @@ website_route_rules = [
     {"from_route": "/reckonerp-signup", "to_route": "reckonerp_signup"},
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
     {"from_route": "/reckonerp-subscription", "to_route": "reckonerp_subscription"},
+    {"from_route": "/reckonerp-team", "to_route": "reckonerp_team"},
 ]
 
 permission_query_conditions = {

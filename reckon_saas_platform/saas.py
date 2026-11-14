@@ -574,8 +574,18 @@ def get_addable_modules(company: str) -> list[dict]:
     from reckon_saas_platform import marketing
 
     held = _open_module_keys(company)
+    # Offer plans in the currency the company already pays in, where the module has them.
+    currency = frappe.db.get_value(
+        "SaaS Subscription", {"company": company, "status": ["not in", list(CLOSED_SUBSCRIPTION_STATUSES)]}, "currency"
+    )
     return [
-        {"key": m["key"], "name": m["name"], "tagline": m["tagline"], "plans": m["plans"], "url": m["url"]}
+        {
+            "key": m["key"],
+            "name": m["name"],
+            "tagline": m["tagline"],
+            "plans": (m.get("plans_by_currency") or {}).get(currency) or m["plans"],
+            "url": m["url"],
+        }
         for m in marketing.get_modules()
         if m["key"] not in held and m["plans"]
     ]

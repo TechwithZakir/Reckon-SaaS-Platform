@@ -563,8 +563,28 @@ def _apply_transaction(data: dict) -> bool:
     from reckon_saas_platform.saas import invalidate_operational_access_cache, verify_payment
 
     verify_payment(payment_name, reference=transaction_id, period_end=period_end)
+    _close_placeholder_payments(row.name, payment_name, transaction_id)
     invalidate_operational_access_cache(row.company)
     return True
+
+
+def _close_placeholder_payments(subscription: str, paid_by: str, transaction_id: str) -> None:
+    """Close the unpaid payment the signup opened, once the card has paid for the same period.
+
+    Only a payment nobody reported is closed: one with a transaction reference is a real manual
+    payment waiting for the vendor, and stays in the queue.
+    """
+    for name in frappe.get_all(
+        "SaaS Payment",
+        filters={"subscription": subscription, "status": "Pending Verification", "name": ["!=", paid_by]},
+        or_filters=[["gateway_reference", "is", "not set"], ["gateway_reference", "=", ""]],
+        pluck="name",
+        ignore_permissions=True,
+    ):
+        frappe.db.set_value(
+            "SaaS Payment", name,
+            {"status": "Rejected", "notes": f"Not needed: paid by card through Paddle ({transaction_id}, {paid_by})."},
+        )
 
 
 def _apply_subscription(data: dict, occurred_at) -> bool:

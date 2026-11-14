@@ -1,0 +1,135 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Team{% endblock %}
+
+{% block page_content %}
+<link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
+<style>
+  .rs-portal__form { display: grid; gap: 8px; margin-top: 12px; }
+  .rs-portal__form select, .rs-portal__form input { width: 100%; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 8px; font: inherit; }
+  .rs-portal__message { margin-top: 8px; font-size: 13px; }
+  .rs-portal__message.is-error { color: #b42318; }
+  .rs-portal__message.is-success { color: #067647; }
+  .rs-portal__card, .rs-portal__list { min-width: 0; }
+  .rs-portal__row strong { min-width: 0; overflow-wrap: anywhere; }
+  .rs-team__remove { border: 0; background: none; color: #b42318; font: inherit; font-weight: 600; cursor: pointer; padding: 0 0 0 10px; }
+  .rs-team__nav { display: flex; gap: 8px; }
+</style>
+<main class="rs-portal">
+  <div class="rs-portal__inner">
+    <header class="rs-portal__topbar">
+      <div class="rs-portal__brand"><span class="rs-portal__mark" aria-hidden="true"></span><span>ReckonERP</span></div>
+      <div class="rs-team__nav"><a class="rs-portal__button" href="/reckonerp-subscription">Subscription</a><a class="rs-portal__button" href="/desk">Back to app</a></div>
+    </header>
+    <section class="rs-portal__hero">
+      <div>
+        <p class="rs-portal__eyebrow">Tenant account</p>
+        <h1>Team</h1>
+        <p>Give your colleagues access to your company's workspace, change it, or take it away.</p>
+      </div>
+    </section>
+    {% if error %}
+    <section class="rs-portal__grid"><article class="rs-portal__card rs-portal__card--wide"><p class="rs-portal__notice">{{ error|e }}</p></article></section>
+    {% else %}
+    <section class="rs-portal__grid">
+      <article class="rs-portal__card rs-portal__card--wide">
+        <div class="rs-portal__label">{{ overview.company|e }}</div>
+        <div class="rs-portal__value">{{ overview.used }}{% if overview.limit %} of {{ overview.limit }}{% endif %} user{{ "" if overview.used == 1 and not overview.limit else "s" }}{% if not overview.limit %} &middot; no limit on your plan{% endif %}</div>
+        <div class="rs-portal__list">
+          {% for row in overview.members %}
+          <div class="rs-portal__row"><span>{{ row.full_name|e }}<br><small>{{ row.user|e }}</small></span><strong>{{ row.role_profile|e }}{% if row.module_role %} &middot; {{ row.module_role|e }}{% endif %}{% if row.user != me %}<button class="rs-team__remove" type="button" data-remove="{{ row.user|e }}">Remove</button>{% else %} &middot; you{% endif %}</strong></div>
+          {% endfor %}
+        </div>
+        <div class="rs-portal__message" role="status" data-list-message></div>
+      </article>
+
+      <article class="rs-portal__card">
+        <div class="rs-portal__label">Add a person</div>
+        {% if overview.limit and overview.used >= overview.limit %}
+        <p class="rs-portal__notice">Your plan allows {{ overview.limit }} users and all of them are in use. Remove a user, or <a href="/reckonerp-subscription">move to a larger plan</a>, to add more.</p>
+        {% else %}
+        <form class="rs-portal__form" data-add-member>
+          <input name="email" type="email" required maxlength="140" placeholder="Email address" autocomplete="off">
+          <input name="full_name" maxlength="140" placeholder="Full name">
+          <select name="role_profile" aria-label="Access level">
+            {% for profile in overview.profiles %}<option value="{{ profile|e }}">{{ profile|e }}</option>{% endfor %}
+          </select>
+          {% if overview.module_roles %}
+          <select name="module_role" aria-label="Module role">
+            <option value="">Default module role</option>
+            {% for role in overview.module_roles %}<option value="{{ role|e }}">{{ role|e }}</option>{% endfor %}
+          </select>
+          {% endif %}
+          <button class="rs-portal__button rs-portal__button--primary" type="submit">Add to team</button>
+          <div class="rs-portal__message" role="status"></div>
+        </form>
+        <p class="rs-portal__notice" style="margin-top:12px">A new person gets an email with a link to set their password. Company Admin can manage the team and the subscription; Company Manager works in the modules.</p>
+        {% endif %}
+      </article>
+    </section>
+    {% endif %}
+  </div>
+</main>
+<script>
+  (function () {
+    function csrfToken() {
+      return (window.frappe && window.frappe.csrf_token) || window.csrf_token || "";
+    }
+    async function call(method, data) {
+      const body = new FormData();
+      Object.keys(data).forEach(function (key) { if (data[key]) body.append(key, data[key]); });
+      const response = await fetch("/api/method/reckon_saas_platform.team." + method, {
+        method: "POST", credentials: "same-origin",
+        headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" }, body: body,
+      });
+      const payload = await response.json().catch(function () { return {}; });
+      if (!response.ok || payload.exc_type) {
+        let text = "That did not work. Please try again.";
+        try {
+          text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" ");
+        } catch (error) { /* keep the default text */ }
+        throw new Error(text.replace(/<[^>]+>/g, ""));
+      }
+      return payload.message;
+    }
+    const form = document.querySelector("[data-add-member]");
+    if (form) {
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const message = form.querySelector(".rs-portal__message");
+        const button = form.querySelector("button[type=submit]");
+        button.disabled = true;
+        message.className = "rs-portal__message";
+        message.textContent = "Adding...";
+        try {
+          await call("add_team_member", Object.fromEntries(new FormData(form).entries()));
+          message.classList.add("is-success");
+          message.textContent = "Added.";
+          setTimeout(function () { window.location.reload(); }, 900);
+        } catch (error) {
+          message.classList.add("is-error");
+          message.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+    }
+    document.querySelectorAll("[data-remove]").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const email = button.getAttribute("data-remove");
+        const message = document.querySelector("[data-list-message]");
+        if (!window.confirm("Remove " + email + " from your team? They will lose access to your workspace.")) return;
+        button.disabled = true;
+        message.className = "rs-portal__message";
+        try {
+          await call("remove_team_member", { email: email });
+          window.location.reload();
+        } catch (error) {
+          message.classList.add("is-error");
+          message.textContent = error.message;
+          button.disabled = false;
+        }
+      });
+    });
+  })();
+</script>
+{% endblock %}

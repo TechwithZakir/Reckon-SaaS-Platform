@@ -53,7 +53,7 @@
         <div class="rs-portal__form" data-card-subscription="{{ sub.name|e }}">
           {% if sub.card_payment %}<div class="rs-portal__label">Pay by card (recommended)</div>
           <button class="rs-portal__button rs-portal__button--primary" type="button" data-card-action="checkout">Pay {{ sub.currency|e }} {{ sub.price }} by card &middot; renews automatically</button>
-          <p class="rs-portal__notice" style="margin:0">Your module unlocks as soon as the payment goes through. No reference to enter.</p>{% endif %}
+          <p class="rs-portal__notice" style="margin:0">Your module unlocks as soon as the payment goes through. No reference to enter. If your card is declined, try another card or use "Other ways to pay" below.</p>{% endif %}
           {% if sub.paddle and sub.paddle.can_manage %}<button class="rs-portal__button" type="button" data-card-action="portal">Manage card or cancel</button>{% endif %}
           <div class="rs-portal__message" role="status"></div>
         </div>

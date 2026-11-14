@@ -162,6 +162,15 @@ def sync_tenant_user_access(doc, method=None) -> None:
         reconcile_user(doc.user)
 
 
+def _welcome_email_flag() -> int:
+    try:
+        from reckon_saas_platform.saas import is_outgoing_email_configured
+
+        return int(bool(is_outgoing_email_configured()))
+    except Exception:
+        return 0
+
+
 def _admin_company(user: str) -> str:
     if user in {"Guest", "Administrator"}:
         frappe.throw(_("Sign in as a company admin."), frappe.PermissionError)
@@ -182,6 +191,31 @@ def list_team_members() -> list[dict]:
         "Tenant User Assignment", filters={"company": company, "active": 1},
         fields=["user", "role_profile"], order_by="creation asc",
     )
+
+
+def team_overview(company: str) -> dict:
+    """What the Team page shows: who has access, how many seats the plan allows, and the roles on offer."""
+    from reckon_saas_platform.saas import _open_module_keys
+    from reckon_saas_platform.tenant_security import company_user_limit
+
+    members = frappe.get_all(
+        "Tenant User Assignment", filters={"company": company, "active": 1},
+        fields=["user", "role_profile", "module_role"], order_by="creation asc",
+    )
+    for row in members:
+        row["full_name"] = frappe.db.get_value("User", row["user"], "full_name") or row["user"]
+    held = _open_module_keys(company)
+    module_roles = sorted(
+        {key for module in tenant_modules() if module.get("key") in held for key in (module.get("tenant_role_map") or {})}
+    )
+    return {
+        "company": company,
+        "members": members,
+        "used": len({row["user"] for row in members}),
+        "limit": company_user_limit(company),
+        "profiles": list(ALLOWED_PROFILES),
+        "module_roles": module_roles,
+    }
 
 
 @frappe.whitelist(methods=["POST"])
@@ -218,7 +252,8 @@ def add_team_member(
         try:
             frappe.get_doc({
                 "doctype": "User", "email": email, "first_name": full_name or email,
-                "enabled": 1, "send_welcome_email": 0,
+                # The welcome email carries the link to set a password; sent only where email is set up.
+                "enabled": 1, "send_welcome_email": _welcome_email_flag(),
             }).insert(ignore_permissions=True)
         finally:
             frappe.set_user(caller)

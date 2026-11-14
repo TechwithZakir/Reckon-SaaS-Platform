@@ -49,30 +49,43 @@ def after_migrate() -> None:
 
 
 SUBSCRIPTION_MENU_ROUTE = "/reckonerp-subscription"
+TEAM_MENU_ROUTE = "/reckonerp-team"
+NOT_VENDOR = '!frappe.user.has_role("Reckon Vendor Superuser") && frappe.session.user !== "Administrator"'
+# label, route, icon, who sees it (a client-side expression)
+TENANT_MENU = (
+    ("Subscription", SUBSCRIPTION_MENU_ROUTE, "credit-card", NOT_VENDOR),
+    ("Team", TEAM_MENU_ROUTE, "users", "frappe.boot.reckon_company_admin && " + NOT_VENDOR),
+)
 
 
 def ensure_subscription_menu() -> None:
-    """Put "Subscription" on the Desk menu, so a tenant can reach their plan, invoices and payment at any time.
+    """Put "Subscription" and "Team" on the Desk menu, so a tenant can reach them at any time.
 
-    It is a row of Navbar Settings, added once and left alone afterwards (rename or hide it there).
-    Vendor staff have no company subscription, so the row is hidden for them.
+    They are rows of Navbar Settings, added once and left alone afterwards (rename or hide them
+    there). Vendor staff have no company subscription, so the rows are hidden for them; Team is
+    for the company admin only.
     """
     try:
         if not frappe.db.exists("DocType", "Navbar Settings"):
             return
         settings = frappe.get_single("Navbar Settings")
-        if any((row.get("route") or "") == SUBSCRIPTION_MENU_ROUTE for row in settings.get("settings_dropdown") or []):
-            return
-        row = {"item_label": "Subscription", "item_type": "Route", "route": SUBSCRIPTION_MENU_ROUTE, "is_standard": 0, "hidden": 0}
+        present = {(row.get("route") or "") for row in settings.get("settings_dropdown") or []}
         meta = frappe.get_meta("Navbar Item")
-        if meta.has_field("condition"):
-            row["condition"] = '!frappe.user.has_role("Reckon Vendor Superuser") && frappe.session.user !== "Administrator"'
-        if meta.has_field("icon"):
-            row["icon"] = "credit-card"
-        settings.append("settings_dropdown", row)
-        settings.save(ignore_permissions=True)
+        added = False
+        for label, route, icon, condition in TENANT_MENU:
+            if route in present:
+                continue
+            row = {"item_label": label, "item_type": "Route", "route": route, "is_standard": 0, "hidden": 0}
+            if meta.has_field("condition"):
+                row["condition"] = condition
+            if meta.has_field("icon"):
+                row["icon"] = icon
+            settings.append("settings_dropdown", row)
+            added = True
+        if added:
+            settings.save(ignore_permissions=True)
     except Exception:
-        frappe.log_error(title="Subscription menu setup failed")
+        frappe.log_error(title="Tenant menu setup failed")
 
 
 def ensure_file_storage_tracking() -> None:
