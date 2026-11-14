@@ -310,6 +310,48 @@ class EventTests(unittest.TestCase):
         )
         frappe.db.set_value.assert_not_called()
 
+    def _upgrade_event(self, price="pri_std"):
+        return {
+            "event_type": "subscription.updated",
+            "occurred_at": "2026-11-20T10:00:00Z",
+            "data": {"id": "sub_1", "status": "active", "items": [{"price": {"id": price}}], "scheduled_change": None},
+        }
+
+    def _apply_with_plan(self, event, plan):
+        with platform_modules("paddle", "saas") as (frappe, (paddle, saas)):
+            row = _Dict(name="SUB-1", company="Acme", plan="SA USD", saas_module="sales_agent", status="Active",
+                        paddle_subscription_id="sub_1", paddle_updated_at=None)
+
+            def get_value(doctype, name, *args, **kwargs):
+                if doctype == "SaaS Subscription":
+                    return row
+                if doctype == "SaaS Plan" and isinstance(name, dict):
+                    self.plan_filter = name
+                    return plan
+                return None
+
+            frappe.db.get_value.side_effect = get_value
+            frappe.get_all.return_value = ["pri_1", "pri_std"]
+            with patch.object(saas, "invalidate_operational_access_cache") as invalidate:
+                paddle.apply_event(event)
+            return frappe.db.set_value.call_args.args[2], invalidate
+
+    def test_an_upgrade_in_paddle_switches_the_plan_of_the_same_module(self):
+        plan = _Dict(name="SA Standard USD", price=40.0, currency="USD", billing_cycle="Monthly", plan_version="2")
+        values, invalidate = self._apply_with_plan(self._upgrade_event(), plan)
+        self.assertEqual((values["plan"], values["price"], values["currency"], values["billing_cycle"], values["plan_version"]),
+                         ("SA Standard USD", 40.0, "USD", "Monthly", "2"))
+        self.assertEqual((self.plan_filter["paddle_price_id"], self.plan_filter["saas_module"]), ("pri_std", "sales_agent"))
+        self.assertIn("paddle_environment", self.plan_filter)  # never a plan priced in the other environment
+        invalidate.assert_called_once_with("Acme")
+
+    def test_no_switch_for_the_same_plan_or_a_price_that_is_no_plans(self):
+        same, invalidate = self._apply_with_plan(self._upgrade_event("pri_1"), _Dict(name="SA USD", price=15.0, currency="USD"))
+        self.assertNotIn("plan", same)
+        invalidate.assert_not_called()
+        unknown, _ = self._apply_with_plan(self._upgrade_event("pri_old"), None)
+        self.assertNotIn("plan", unknown)
+
     def test_unknown_events_are_ignored(self):
         handled, _frappe, _verify = self._apply({"event_type": "customer.updated", "data": {}})
         self.assertFalse(handled)

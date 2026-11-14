@@ -591,10 +591,53 @@ def _apply_subscription(data: dict, occurred_at) -> bool:
     }
     if data.get("customer_id"):
         values["paddle_customer_id"] = data["customer_id"]
+    switched = _plan_for_items(row, data.get("items"))
+    if switched:
+        # An upgrade or downgrade made in Paddle: the plan, and with it the user and storage limits, follows.
+        values.update(
+            {
+                "plan": switched.name,
+                "price": switched.price,
+                "currency": switched.currency,
+                "billing_cycle": switched.billing_cycle or "Monthly",
+                "plan_version": switched.plan_version or "1",
+            }
+        )
     frappe.db.set_value("SaaS Subscription", row.name, values)
+    if switched:
+        from reckon_saas_platform.saas import invalidate_operational_access_cache
+
+        invalidate_operational_access_cache(row.company)
+        try:
+            frappe.get_doc("SaaS Subscription", row.name).add_comment(
+                "Info", f"Plan changed from {row.plan} to {switched.name} by Paddle subscription {paddle_subscription_id}."
+            )
+        except Exception:
+            pass  # the note is a courtesy; the change itself is saved
     # Access follows the paid dates (subscription_billing_state): a canceled or past-due
     # card subscription keeps access to the end of what was paid, then the grace days.
     return True
+
+
+def _plan_for_items(row, items):
+    """The SaaS Plan a Paddle subscription now bills, when it is a different plan of the same module.
+
+    ``None`` when nothing should change: the same plan, more than one item, or a price that is no
+    plan's current price in this environment (a renewal on a price the plan has since replaced).
+    """
+    price_ids = {((item.get("price") or {}).get("id")) for item in items or []}
+    price_ids.discard(None)
+    if len(price_ids) != 1 or not row.get("saas_module"):
+        return None
+    plan = frappe.db.get_value(
+        "SaaS Plan",
+        {"paddle_price_id": price_ids.pop(), "saas_module": row.saas_module, "paddle_environment": environment()},
+        ["name", "price", "currency", "billing_cycle", "plan_version"],
+        as_dict=True,
+    )
+    if not plan or plan.name == row.get("plan"):
+        return None
+    return plan
 
 
 def _check_first_link(row, paddle_subscription_id: str, items) -> None:
