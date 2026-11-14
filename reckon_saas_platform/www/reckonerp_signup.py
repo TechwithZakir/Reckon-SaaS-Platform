@@ -116,6 +116,7 @@ def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
         "name": plan.get("name"),
         "plan_name": plan.get("plan_name") or plan.get("name"),
         "module": plan.get("saas_module") or "",
+        "trial_days": cint(plan.get("trial_days")),
         "module_name": (module_names or {}).get(plan.get("saas_module") or "") or "",
         "trial": t["trial_days"].format(days=cint(plan.get("trial_days")))
         if cint(plan.get("trial_days")) > 0

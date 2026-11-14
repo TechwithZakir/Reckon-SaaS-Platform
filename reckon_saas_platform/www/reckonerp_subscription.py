@@ -26,6 +26,8 @@ def get_context(context):
 
     context.no_cache = 1
     context.title = "Subscription and Payment"
+    context.account_tab = "subscription"
+    _account_context(context)
     context.company_info = VENDOR_COMPANY
     context.payment_providers = PAYMENT_PROVIDERS
     try:
@@ -153,3 +155,17 @@ def subscription_card(row: dict) -> dict:
         "card_payment": False,
         "paddle": {},
     }
+
+
+def _account_context(context) -> None:
+    """What the shared account header needs: whether to show Team, and where Open app goes."""
+    from reckon_saas_platform.desk_apps import is_company_admin
+    context.is_company_admin = _safely(is_company_admin, False)
+    context.app_home = _safely(_app_home, "/desk")
+
+
+def _app_home() -> str:
+    from reckon_saas_platform.marketing import landing_for_user
+
+    route = landing_for_user(frappe.session.user) or ""
+    return route if route.startswith("/") else "/" + route if route else "/desk"

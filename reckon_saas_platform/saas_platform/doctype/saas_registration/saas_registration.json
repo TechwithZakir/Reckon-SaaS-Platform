@@ -15,6 +15,7 @@
   {"fieldname": "plan", "fieldtype": "Link", "label": "Plan", "options": "SaaS Plan", "reqd": 1},
   {"fieldname": "saas_module", "fieldtype": "Link", "label": "Module", "options": "SaaS Module", "in_list_view": 1, "in_standard_filter": 1, "read_only": 1},
   {"fieldname": "billing_cycle", "fieldtype": "Select", "label": "Billing Cycle", "options": "Monthly\nQuarterly\nYearly", "default": "Monthly"},
+  {"fieldname": "start_mode", "fieldtype": "Select", "label": "How They Start", "options": "Free Trial\nPay Now", "default": "Free Trial", "description": "Free Trial opens the workspace at once for the plan's trial days. Pay Now has no trial: the workspace opens when the first payment goes through."},
   {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "Pending Verification\nProvisioning\nPending Payment\nActive\nFailed\nRejected\nCancelled", "default": "Pending Verification", "in_list_view": 1},
   {"fieldname": "company", "fieldtype": "Link", "label": "Company", "options": "Company", "read_only": 1},
   {"fieldname": "company_admin", "fieldtype": "Link", "label": "Company Admin", "options": "User", "read_only": 1},

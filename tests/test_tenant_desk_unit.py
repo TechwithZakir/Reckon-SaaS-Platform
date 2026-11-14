@@ -96,6 +96,49 @@ class DeskGuardTests(unittest.TestCase):
         self.assertIsNone(self.guarded(set()))
 
 
+class SignupStartModeTests(unittest.TestCase):
+    def subscription(self, start_mode, trial_days=15):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.get_doc = Mock(side_effect=lambda values: Mock(insert=Mock(return_value=values)))
+            frappe.utils.nowdate = Mock(return_value="2026-11-15")
+            saas.nowdate = Mock(return_value="2026-11-15")
+            doc = _Dict(name="REG-1", billing_cycle="Monthly", start_mode=start_mode, saas_module="crm")
+            plan = _Dict(name="CRM Basic (USD)", saas_module="crm", plan_version="1", price=5, currency="USD", trial_days=trial_days, grace_days=5)
+            plan.get = lambda key, default=None: plan[key] if key in plan else default
+            return saas._create_registration_subscription(doc, plan, "Acme", "a@x.test")
+
+    def test_free_trial_opens_a_trial_and_pay_now_has_none(self):
+        trial = self.subscription("Free Trial")
+        self.assertEqual((trial["status"], trial["trial_end_date"] is not None), ("Trial", True))
+        paying = self.subscription("Pay Now")
+        self.assertEqual((paying["status"], paying["trial_end_date"]), ("Pending", None))
+
+    def test_the_form_offers_the_choice_only_for_a_plan_with_a_trial_and_the_backend_reads_it(self):
+        html = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        for needle in ('name="start_mode" value="trial"', 'name="start_mode" value="pay"', "data-trial-days=", 'data-label-pay="{{ t.submit_pay|e }}"'):
+            self.assertIn(needle, html)
+        saas = (PKG / "saas.py").read_text(encoding="utf-8")
+        self.assertIn('"start_mode": "Pay Now" if', saas)
+        self.assertIn("(plan_row.billing_cycle or billing_cycle)", saas)  # a Yearly plan bills yearly
+        import json
+
+        data = json.loads((PKG / "saas_platform" / "doctype" / "saas_registration" / "saas_registration.json").read_text(encoding="utf-8"))
+        self.assertEqual(next(f for f in data["fields"] if f["fieldname"] == "start_mode")["options"].split(chr(10)), ["Free Trial", "Pay Now"])
+
+
+class AccountAreaTests(unittest.TestCase):
+    def test_subscription_and_team_share_one_header_with_tabs(self):
+        header = (PKG / "templates" / "account" / "header.html").read_text(encoding="utf-8")
+        for needle in ("/reckonerp-subscription", "/reckonerp-team", "aria-current", "/logout"):
+            self.assertIn(needle, header)
+        for page in ("reckonerp_subscription", "reckonerp_team"):
+            html = (PKG / "www" / f"{page}.html").read_text(encoding="utf-8")
+            self.assertIn("templates/account/header.html", html)
+            self.assertNotIn("<style>", html)  # one stylesheet, the same look as the website
+        css = (PKG / "public" / "css" / "saas_portal.css").read_text(encoding="utf-8")
+        self.assertIn('data-theme="dark"', css)
+
+
 class TenantMenuTests(unittest.TestCase):
     def test_migrate_adds_subscription_and_team_once(self):
         with platform_modules("install") as (frappe, (install,)):

@@ -195,6 +195,7 @@ def public_signup(
     module: str | None = None,
     owner_password: str | None = None,
     owner_password_confirm: str | None = None,
+    start_mode: str | None = None,
 ):
     verify_signup_captcha(captcha_token)
     registration = create_registration(
@@ -208,6 +209,7 @@ def public_signup(
         owner_password=owner_password,
         # The form always posts the confirm field; a missing one must not match.
         owner_password_confirm=owner_password_confirm or "",
+        start_mode=start_mode,
     )
     send_registration_verification(registration)
     # With both checks switched off there is nothing to wait for.
@@ -947,6 +949,7 @@ def create_registration(
     saas_module: str | None = None,
     owner_password: str | None = None,
     owner_password_confirm: str | None = None,
+    start_mode: str | None = None,
 ):
     """Record a signup request without touching Company or User.
 
@@ -976,7 +979,7 @@ def create_registration(
 
     if billing_cycle not in BILLING_CYCLES:
         frappe.throw(_("Please select a valid billing cycle."), SignupValidationError)
-    plan_row = frappe.db.get_value("SaaS Plan", plan, ["enabled", "saas_module"], as_dict=True) if plan else None
+    plan_row = frappe.db.get_value("SaaS Plan", plan, ["enabled", "saas_module", "billing_cycle"], as_dict=True) if plan else None
     if not plan_row or not plan_row.enabled:
         frappe.throw(_("Please select a valid SaaS plan."), SignupValidationError)
     if plan_row.saas_module and not frappe.db.get_value("SaaS Module", plan_row.saas_module, "enabled"):
@@ -1003,7 +1006,9 @@ def create_registration(
         "owner_phone": phone,
         "plan": plan,
         "saas_module": plan_row.saas_module,
-        "billing_cycle": billing_cycle,
+        # A plan bills in its own cycle (a Yearly plan is not a Monthly one), whatever the form posted.
+        "billing_cycle": (plan_row.billing_cycle or billing_cycle) if plan_row else billing_cycle,
+        "start_mode": "Pay Now" if str(start_mode or "").strip().lower() in ("pay", "pay now", "pay_now") else "Free Trial",
         "status": "Pending Verification",
         "email_verification_required": 1 if email_required else 0,
         "email_verified": 0 if email_required else 1,
@@ -1314,6 +1319,8 @@ def _forget_registration_password(doc) -> None:
 def _create_registration_subscription(doc, plan_doc, company: str, admin_user: str):
     start = nowdate()
     trial_days = max(cint(plan_doc.get("trial_days")), 0)
+    if doc.get("start_mode") == "Pay Now":
+        trial_days = 0  # they chose to pay now: no trial, the workspace opens with the first payment
     return frappe.get_doc(
         {
             "doctype": "SaaS Subscription",

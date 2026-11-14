@@ -159,6 +159,11 @@
   .rk-plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; color: var(--rk-muted); }
   .rk-plan li::before { content: "• "; color: var(--rk-green-dark); }
   .rk-plan-module { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--rk-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rk-start { display: grid; gap: 8px; }
+  .rk-start-opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #cfe0ee; border-radius: 10px; cursor: pointer; }
+  .rk-start-opt:has(input:checked) { border-color: var(--rk-green); box-shadow: 0 0 0 3px rgba(60, 212, 0, 0.16); }
+  .rk-start-opt input { margin-top: 4px; }
+  .rk-start-opt small { display: block; color: var(--rk-muted); font-size: 13px; }
   .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
 
   .rk-btn {
@@ -337,7 +342,7 @@
               <p class="rk-muted-note" data-plan-note="empty" hidden>{{ t.no_plans_for_module }}</p>
               <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
                 {% for plan in plan_cards %}
-                <label class="rk-plan" data-plan-module="{{ plan.module }}"{% if show_module_picker and modules|length > 1 %} hidden{% endif %}>
+                <label class="rk-plan" data-plan-module="{{ plan.module }}" data-trial-days="{{ plan.trial_days }}"{% if show_module_picker and modules|length > 1 %} hidden{% endif %}>
                   <input type="radio" name="plan" value="{{ plan.name|e }}"{% if plan_cards|length == 1 %} checked{% endif %}>
                   <span class="rk-plan-body">
                     <span class="rk-plan-name">{{ plan.plan_name|e }}</span>
@@ -348,6 +353,16 @@
                   </span>
                 </label>
                 {% endfor %}
+              </div>
+            </div>
+
+            <div class="rk-field" data-start-group hidden>
+              <span class="rk-label" id="rk-start-label">{{ t.start_label }}</span>
+              <div class="rk-start" role="radiogroup" aria-labelledby="rk-start-label">
+                <label class="rk-start-opt"><input type="radio" name="start_mode" value="trial" checked>
+                  <span><strong>{{ t.start_trial }}</strong><small data-start-trial-hint data-template="{{ t.start_trial_hint|e }}"></small></span></label>
+                <label class="rk-start-opt"><input type="radio" name="start_mode" value="pay">
+                  <span><strong>{{ t.start_pay }}</strong><small>{{ t.start_pay_hint }}</small></span></label>
               </div>
             </div>
 
@@ -389,7 +404,7 @@
             {# Sites with another captcha verifier hook render their widget here and fill #captcha_token. #}
             {% block signup_captcha %}{% endblock %}
 
-            <button class="rk-btn is-block" type="submit" id="rk-submit">{{ t.submit }} →</button>
+            <button class="rk-btn is-block" type="submit" id="rk-submit" data-label-trial="{{ t.submit|e }}" data-label-pay="{{ t.submit_pay|e }}">{{ t.submit }} →</button>
             <p class="rk-terms">{{ t.terms.format(company=(company.name|e)) }}</p>
           </form>
           {% else %}
@@ -553,6 +568,23 @@
       moduleSelect.addEventListener("change", filterPlans);
       filterPlans();
     }
+    // Free trial or pay now: offered only for a plan that has a trial.
+    const startGroup = document.querySelector("[data-start-group]");
+    const submitButton = document.getElementById("rk-submit");
+    function syncStart() {
+      const chosen = document.querySelector('input[name="plan"]:checked');
+      const days = chosen ? parseInt(chosen.closest("[data-trial-days]").getAttribute("data-trial-days"), 10) || 0 : 0;
+      if (!startGroup) return;
+      startGroup.hidden = days <= 0;
+      const hint = startGroup.querySelector("[data-start-trial-hint]");
+      hint.textContent = hint.getAttribute("data-template").replace("{days}", String(days));
+      if (days <= 0) startGroup.querySelector('input[value="pay"]').checked = true;
+      else if (!startGroup.dataset.touched) startGroup.querySelector('input[value="trial"]').checked = true;
+      const pay = startGroup.querySelector('input[value="pay"]').checked;
+      submitButton.textContent = submitButton.getAttribute(pay ? "data-label-pay" : "data-label-trial") + " \u2192";
+    }
+    document.querySelectorAll('input[name="plan"]').forEach(function (input) { input.addEventListener("change", syncStart); });
+    if (startGroup) startGroup.addEventListener("change", function () { startGroup.dataset.touched = "1"; syncStart(); });
     // A plan chosen on the pricing page arrives selected.
     const wantedPlan = new URLSearchParams(window.location.search).get("plan");
     if (wantedPlan) {
@@ -560,6 +592,8 @@
         if (input.value === wantedPlan && !input.closest("[data-plan-module]").hidden) input.checked = true;
       });
     }
+    if (moduleSelect) moduleSelect.addEventListener("change", syncStart);
+    syncStart();
 
     function setStep(step) {
       const order = ["details", "verify", "done"];

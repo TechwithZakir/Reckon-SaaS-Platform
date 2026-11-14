@@ -4,30 +4,14 @@
 
 {% block page_content %}
 <link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
-<style>
-  .rs-portal__form { display: grid; gap: 8px; margin-top: 12px; }
-  .rs-portal__form select, .rs-portal__form input { width: 100%; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 8px; font: inherit; }
-  .rs-portal__message { margin-top: 8px; font-size: 13px; }
-  .rs-portal__message.is-error { color: #b42318; }
-  .rs-portal__message.is-success { color: #067647; }
-  /* Long values (a plan name, a transaction id) wrap inside the card instead of running past its edge. */
-  .rs-portal__card, .rs-portal__list { min-width: 0; }
-  .rs-portal__row > span:first-child { flex: 0 0 auto; }
-  .rs-portal__row strong { min-width: 0; overflow-wrap: anywhere; }
-  .rs-portal__form .rs-portal__button { width: 100%; }
-  .rs-portal__other { margin-top: 14px; }
-  .rs-portal__other > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
-</style>
+
 <main class="rs-portal">
   <div class="rs-portal__inner">
-    <header class="rs-portal__topbar">
-      <div class="rs-portal__brand"><span class="rs-portal__mark" aria-hidden="true"></span><span>ReckonERP</span>{% if product %}<span class="rs-portal__product">{{ product|e }}</span>{% endif %}</div>
-      <a class="rs-portal__button" href="/logout">Log out</a>
-    </header>
+    {% include "reckon_saas_platform/templates/account/header.html" %}
     <section class="rs-portal__hero">
       <div>
-        <p class="rs-portal__eyebrow">Tenant account</p>
-        <h1>Subscription &amp; activation</h1>
+        <p class="rs-portal__eyebrow">Your account</p>
+        <h1>Subscription</h1>
         <p>{% if summary.has_dues and paddle_environment %}A payment is due. Pay by card below and your workspace unlocks as soon as the payment goes through.{% elif summary.has_dues %}A payment is due. Pay and add the transaction reference below; we unlock your workspace once it is verified.{% else %}Track your plan, payment verification and provisioning status in one place.{% endif %}</p>
       </div>
     </section>

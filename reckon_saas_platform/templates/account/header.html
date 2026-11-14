@@ -1,0 +1,13 @@
+{# The shared top of the tenant account area: one place for Subscription and Team. #}
+<script>try{var t=localStorage.getItem('reckon_theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<header class="rs-portal__topbar">
+  <a class="rs-portal__brand" href="/reckonerp-subscription"><img src="/assets/reckon_saas_platform/images/reckonerp-logo-192.webp" alt="" width="34" height="34"><span>ReckonERP</span>{% if product %}<span class="rs-portal__product">{{ product|e }}</span>{% endif %}</a>
+  <nav class="rs-portal__tabs" aria-label="Account">
+    <a href="/reckonerp-subscription"{% if account_tab == "subscription" %} aria-current="page"{% endif %}>Subscription</a>
+    {% if is_company_admin %}<a href="/reckonerp-team"{% if account_tab == "team" %} aria-current="page"{% endif %}>Team</a>{% endif %}
+  </nav>
+  <div class="rs-portal__actions">
+    <a class="rs-portal__button rs-portal__button--primary" href="{{ app_home or '/desk' }}">Open app</a>
+    <a class="rs-portal__button" href="/logout">Log out</a>
+  </div>
+</header>

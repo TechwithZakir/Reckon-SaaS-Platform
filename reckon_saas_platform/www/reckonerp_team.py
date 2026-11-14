@@ -12,6 +12,9 @@ def get_context(context):
 
     context.no_cache = 1
     context.title = "Team"
+    context.account_tab = "team"
+    context.is_company_admin = True
+    context.app_home = "/desk"
     context.me = frappe.session.user
     context.error = ""
     context.overview = None
