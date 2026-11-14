@@ -1,4 +1,4 @@
-"""Desk guard for tenants who subscribe to exactly one guarded module.
+"""Desk guard for tenants whose only module is a guarded one.
 
 A module opts in with ``desk_guard: True`` in its ``reckon_saas_modules`` definition,
 and lists ``desk_doctypes`` and ``desk_workspaces``. A tenant user whose companies
@@ -24,13 +24,16 @@ def guarded_module_for_user(user: str | None) -> dict | None:
         return None
     from reckon_saas_platform.saas import is_subscription_active
 
+    # Every module the user's companies subscribe to counts, guarded or not: a company with
+    # Accounts and HRMS has two modules, and must not be shut inside HRMS because only HRMS is guarded.
     subscribed = [
         module
         for module in get_saas_modules()
-        if module.get("desk_guard")
-        and any(is_subscription_active(company, module.get("key")) for company in companies)
+        if any(is_subscription_active(company, module.get("key")) for company in companies)
     ]
-    return subscribed[0] if len(subscribed) == 1 else None
+    if len(subscribed) != 1 or not subscribed[0].get("desk_guard"):
+        return None
+    return subscribed[0]
 
 
 def enforce_module_desk_access() -> None:

@@ -68,6 +68,34 @@ class TenantAppsTests(unittest.TestCase):
         self.assertIn('{"from_route": "/reckonerp-team", "to_route": "reckonerp_team"}', hooks)
 
 
+class DeskGuardTests(unittest.TestCase):
+    def guarded(self, active_keys):
+        modules = [
+            _Dict(key="accounts", label="Accounts"),
+            _Dict(key="hrms", label="Reckon HRMS", desk_guard=True),
+            _Dict(key="crm", label="Reckon CRM", desk_guard=True),
+        ]
+        with platform_modules("desk_module_guard", "saas") as (_frappe, (guard, saas)):
+            with patch.object(guard, "get_saas_modules", return_value=modules), \
+                    patch.object(guard, "get_user_companies", return_value=["Acme"]), \
+                    patch.object(guard, "user_can_bypass_tenant", return_value=False), \
+                    patch.object(saas, "is_subscription_active", side_effect=lambda company, key: key in active_keys):
+                module = guard.guarded_module_for_user("u@x.test")
+        return module.get("key") if module else None
+
+    def test_a_company_with_only_a_guarded_module_is_kept_inside_it(self):
+        self.assertEqual(self.guarded({"hrms"}), "hrms")
+
+    def test_a_second_module_lifts_the_guard_even_when_it_is_not_a_guarded_one(self):
+        # Accounts plus HRMS used to be shut inside HRMS: "Your subscription covers Reckon HRMS only."
+        self.assertIsNone(self.guarded({"accounts", "hrms"}))
+        self.assertIsNone(self.guarded({"hrms", "crm"}))
+
+    def test_an_unguarded_module_alone_is_not_restricted_here(self):
+        self.assertIsNone(self.guarded({"accounts"}))
+        self.assertIsNone(self.guarded(set()))
+
+
 class TenantMenuTests(unittest.TestCase):
     def test_migrate_adds_subscription_and_team_once(self):
         with platform_modules("install") as (frappe, (install,)):
