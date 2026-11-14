@@ -4,7 +4,6 @@
 
 {% block page_content %}
 <link rel="stylesheet" href="/assets/reckon_saas_platform/css/saas_portal.css">
-
 <main class="rs-portal">
   <div class="rs-portal__inner">
     {% include "reckon_saas_platform/templates/account/header.html" %}
@@ -12,7 +11,7 @@
       <div>
         <p class="rs-portal__eyebrow">Your account</p>
         <h1>Team</h1>
-        <p>Give your colleagues access to your company's workspace, change it, or take it away.</p>
+        <p>Choose who can use which of your modules, and what they can do in each. One person can have several modules and a different role in each.</p>
       </div>
     </section>
     {% if error %}
@@ -22,9 +21,35 @@
       <article class="rs-portal__card rs-portal__card--wide">
         <div class="rs-portal__label">{{ overview.company|e }}</div>
         <div class="rs-portal__value">{{ overview.used }}{% if overview.limit %} of {{ overview.limit }}{% endif %} user{{ "" if overview.used == 1 and not overview.limit else "s" }}{% if not overview.limit %} &middot; no limit on your plan{% endif %}</div>
-        <div class="rs-portal__list">
+        <div class="rs-team__people">
           {% for row in overview.members %}
-          <div class="rs-portal__row"><span>{{ row.full_name|e }}<br><small>{{ row.user|e }}</small></span><strong>{{ row.role_profile|e }}{% if row.module_role %} &middot; {{ row.module_role|e }}{% endif %}{% if row.user != me %}<button class="rs-portal__link rs-portal__link--danger" type="button" data-remove="{{ row.user|e }}">Remove</button>{% else %} &middot; you{% endif %}</strong></div>
+          <div class="rs-team__person" data-person="{{ row.user|e }}">
+            <div class="rs-team__who">
+              <div><strong>{{ row.full_name|e }}</strong><br><small>{{ row.user|e }}</small></div>
+              <div class="rs-team__level">{% if row.role_profile == "Company Admin" %}Company admin{% else %}Team member{% endif %}{% if row.user == me %} &middot; you{% endif %}</div>
+            </div>
+            {% if row.role_profile == "Company Admin" %}
+            <p class="rs-team__note">Admin in every module: {% for m in overview.modules %}{{ m.name|e }}{{ ", " if not loop.last }}{% endfor %}.</p>
+            {% else %}
+            <div class="rs-team__matrix" data-matrix>
+              {% for m in overview.modules %}
+              <label class="rs-team__cell">
+                <input type="checkbox" data-module="{{ m.key|e }}"{% if m.key in row.access %} checked{% endif %}>
+                <span class="rs-team__mod">{{ m.name|e }}</span>
+                <select data-choice aria-label="{{ m.name|e }} role"{% if m.choices|length < 2 %} hidden{% endif %}>
+                  {% for c in m.choices %}<option value="{{ c|e }}"{% if row.access.get(m.key) == c %} selected{% endif %}>{{ c|e }}</option>{% endfor %}
+                </select>
+                {% if m.choices|length < 2 %}<span class="rs-team__only">{{ m.choices[0]|e }}</span>{% endif %}
+              </label>
+              {% endfor %}
+            </div>
+            <div class="rs-team__actions">
+              <button class="rs-portal__button rs-portal__button--primary" type="button" data-save="{{ row.user|e }}">Save access</button>
+              {% if row.user != me %}<button class="rs-portal__link rs-portal__link--danger" type="button" data-remove="{{ row.user|e }}">Remove from team</button>{% endif %}
+              <span class="rs-portal__message" role="status"></span>
+            </div>
+            {% endif %}
+          </div>
           {% endfor %}
         </div>
         <div class="rs-portal__message" role="status" data-list-message></div>
@@ -38,19 +63,26 @@
         <form class="rs-portal__form" data-add-member>
           <input name="email" type="email" required maxlength="140" placeholder="Email address" autocomplete="off">
           <input name="full_name" maxlength="140" placeholder="Full name">
-          <select name="role_profile" aria-label="Access level">
-            {% for profile in overview.profiles %}<option value="{{ profile|e }}">{{ profile|e }}</option>{% endfor %}
+          <select name="role_profile" aria-label="Access level" data-level>
+            <option value="Company Manager">Team member (choose modules)</option>
+            <option value="Company Admin">Company admin (every module and the team)</option>
           </select>
-          {% if overview.module_roles %}
-          <select name="module_role" aria-label="Module role">
-            <option value="">Default module role</option>
-            {% for role in overview.module_roles %}<option value="{{ role|e }}">{{ role|e }}</option>{% endfor %}
-          </select>
-          {% endif %}
+          <div class="rs-team__matrix" data-matrix>
+            {% for m in overview.modules %}
+            <label class="rs-team__cell">
+              <input type="checkbox" data-module="{{ m.key|e }}">
+              <span class="rs-team__mod">{{ m.name|e }}</span>
+              <select data-choice aria-label="{{ m.name|e }} role"{% if m.choices|length < 2 %} hidden{% endif %}>
+                {% for c in m.choices %}<option value="{{ c|e }}">{{ c|e }}</option>{% endfor %}
+              </select>
+              {% if m.choices|length < 2 %}<span class="rs-team__only">{{ m.choices[0]|e }}</span>{% endif %}
+            </label>
+            {% endfor %}
+          </div>
           <button class="rs-portal__button rs-portal__button--primary" type="submit">Add to team</button>
           <div class="rs-portal__message" role="status"></div>
         </form>
-        <p class="rs-portal__notice" style="margin-top:12px">A new person gets an email with a link to set their password. Company Admin can manage the team and the subscription; Company Manager works in the modules.</p>
+        <p class="rs-portal__notice" style="margin-top:12px">A new person gets an email with a link to set their password. A company admin can also manage the team and the subscription.</p>
         {% endif %}
       </article>
     </section>
@@ -59,9 +91,7 @@
 </main>
 <script>
   (function () {
-    function csrfToken() {
-      return (window.frappe && window.frappe.csrf_token) || window.csrf_token || "";
-    }
+    function csrfToken() { return (window.frappe && window.frappe.csrf_token) || window.csrf_token || ""; }
     async function call(method, data) {
       const body = new FormData();
       Object.keys(data).forEach(function (key) { if (data[key]) body.append(key, data[key]); });
@@ -72,49 +102,70 @@
       const payload = await response.json().catch(function () { return {}; });
       if (!response.ok || payload.exc_type) {
         let text = "That did not work. Please try again.";
-        try {
-          text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" ");
-        } catch (error) { /* keep the default text */ }
+        try { text = JSON.parse(payload._server_messages).map(function (m) { return JSON.parse(m).message; }).join(" "); } catch (error) { /* keep the default text */ }
         throw new Error(text.replace(/<[^>]+>/g, ""));
       }
       return payload.message;
     }
+    // [{"module", "choice"}] from a matrix: the ticked modules and the role chosen in each.
+    function readAccess(matrix) {
+      return Array.from(matrix.querySelectorAll("[data-module]")).filter(function (box) { return box.checked; }).map(function (box) {
+        const cell = box.closest(".rs-team__cell");
+        const select = cell.querySelector("[data-choice]");
+        const only = cell.querySelector(".rs-team__only");
+        return { module: box.getAttribute("data-module"), choice: select && !select.hidden ? select.value : (only ? only.textContent.trim() : select.value) };
+      });
+    }
+    function say(el, text, kind) { el.className = "rs-portal__message" + (kind ? " is-" + kind : ""); el.textContent = text; }
+
+    document.querySelectorAll("[data-save]").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const person = button.closest("[data-person]");
+        const message = person.querySelector(".rs-team__actions .rs-portal__message");
+        const access = readAccess(person.querySelector("[data-matrix]"));
+        if (!access.length) { say(message, "Choose at least one module, or remove the person from the team.", "error"); return; }
+        button.disabled = true; say(message, "Saving...");
+        try {
+          await call("set_member_access", { email: button.getAttribute("data-save"), access: JSON.stringify(access) });
+          say(message, "Saved.", "success");
+        } catch (error) { say(message, error.message, "error"); }
+        button.disabled = false;
+      });
+    });
+
     const form = document.querySelector("[data-add-member]");
     if (form) {
+      const level = form.querySelector("[data-level]");
+      const matrix = form.querySelector("[data-matrix]");
+      function sync() { matrix.hidden = level.value === "Company Admin"; }
+      level.addEventListener("change", sync); sync();
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
         const message = form.querySelector(".rs-portal__message");
         const button = form.querySelector("button[type=submit]");
-        button.disabled = true;
-        message.className = "rs-portal__message";
-        message.textContent = "Adding...";
-        try {
-          await call("add_team_member", Object.fromEntries(new FormData(form).entries()));
-          message.classList.add("is-success");
-          message.textContent = "Added.";
-          setTimeout(function () { window.location.reload(); }, 900);
-        } catch (error) {
-          message.classList.add("is-error");
-          message.textContent = error.message;
-          button.disabled = false;
+        const data = { email: form.email.value, full_name: form.full_name.value, role_profile: level.value };
+        if (level.value !== "Company Admin") {
+          const access = readAccess(matrix);
+          if (!access.length) { say(message, "Choose at least one module for this person.", "error"); return; }
+          data.access = JSON.stringify(access);
         }
+        button.disabled = true; say(message, "Adding...");
+        try {
+          await call("add_team_member", data);
+          say(message, "Added.", "success");
+          setTimeout(function () { window.location.reload(); }, 900);
+        } catch (error) { say(message, error.message, "error"); button.disabled = false; }
       });
     }
+
     document.querySelectorAll("[data-remove]").forEach(function (button) {
       button.addEventListener("click", async function () {
         const email = button.getAttribute("data-remove");
         const message = document.querySelector("[data-list-message]");
         if (!window.confirm("Remove " + email + " from your team? They will lose access to your workspace.")) return;
-        button.disabled = true;
-        message.className = "rs-portal__message";
-        try {
-          await call("remove_team_member", { email: email });
-          window.location.reload();
-        } catch (error) {
-          message.classList.add("is-error");
-          message.textContent = error.message;
-          button.disabled = false;
-        }
+        button.disabled = true; say(message, "");
+        try { await call("remove_team_member", { email: email }); window.location.reload(); }
+        catch (error) { say(message, error.message, "error"); button.disabled = false; }
       });
     });
   })();

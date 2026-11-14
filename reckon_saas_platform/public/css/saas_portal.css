@@ -85,6 +85,53 @@ body:has(.rs-portal) .page_content, body:has(.rs-portal) .page-content-wrapper, 
 .rs-portal__link--danger { color: var(--rs-danger); }
 .rs-portal__footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--rs-line); text-align: center; color: var(--rs-muted); font-size: 14px; }
 
+.rs-portal__card--full { grid-column: 1 / -1; }
+.rs-portal [hidden] { display: none !important; }
+
+.rs-subtabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 20px; border-bottom: 1px solid var(--rs-line); }
+.rs-subtabs button { border: 0; background: none; font: inherit; font-weight: 600; font-size: 15px; color: var(--rs-muted); padding: 10px 16px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.rs-subtabs button:hover { color: var(--rs-ink); }
+.rs-subtabs button[aria-selected="true"] { color: var(--rs-brand); border-bottom-color: var(--rs-brand); }
+.rs-subtabs__n { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 99px; background: var(--rs-bg2); color: var(--rs-muted); font-size: 12px; text-align: center; }
+
+.rs-mods { display: grid; gap: 18px; margin-top: 16px; }
+.rs-mod { border: 1px solid var(--rs-line); border-radius: 14px; padding: 18px; }
+.rs-mod__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.rs-mod__head h3 { margin: 0; font-size: 19px; font-weight: 800; }
+.rs-mod__head h3 a { color: var(--rs-ink); text-decoration: none; }
+.rs-mod__head p { margin: 4px 0 0; font-size: 14px; max-width: 60ch; }
+.rs-mod__cycle { display: inline-flex; border: 1px solid var(--rs-line); border-radius: 999px; padding: 3px; }
+.rs-mod__cycle button { border: 0; background: none; font: inherit; font-weight: 700; font-size: 14px; padding: 6px 16px; border-radius: 999px; color: var(--rs-muted); cursor: pointer; }
+.rs-mod__cycle button[aria-pressed="true"] { background: var(--rs-brand); color: var(--rs-on); }
+.rs-mod__plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 16px; }
+.rs-plan { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--rs-line); border-radius: 12px; padding: 16px; background: var(--rs-bg); }
+.rs-plan__tier { font-weight: 800; font-size: 16px; }
+.rs-plan__price { font-size: 26px; font-weight: 800; }
+.rs-plan__price small { font-size: 14px; font-weight: 600; color: var(--rs-muted); }
+.rs-plan__trial { color: var(--rs-success); font-size: 13px; font-weight: 700; }
+.rs-plan__facts { list-style: none; margin: 6px 0 10px; padding: 0; display: grid; gap: 4px; color: var(--rs-muted); font-size: 14px; flex: 1; }
+.rs-plan .rs-portal__button { width: 100%; }
+
+/* Team page */
+  .rs-team__people { display: grid; gap: 14px; margin-top: 16px; }
+  .rs-team__person { border: 1px solid var(--rs-line); border-radius: 12px; padding: 14px 16px; }
+  .rs-team__who { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .rs-team__who small { color: var(--rs-muted); }
+  .rs-team__level { font-size: 13px; font-weight: 700; color: var(--rs-muted); text-align: right; }
+  .rs-team__note { margin: 10px 0 0; font-size: 14px; }
+  .rs-team__matrix { display: grid; gap: 8px; margin-top: 12px; }
+  .rs-team__cell { display: grid; grid-template-columns: auto 1fr minmax(120px, 190px); gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--rs-line); border-radius: 10px; cursor: pointer; }
+  .rs-team__cell:has(input:checked) { border-color: var(--rs-brand); }
+  .rs-team__cell select { padding: 6px 8px; }
+  .rs-team__cell input[type=checkbox] { width: 18px; height: 18px; }
+  .rs-team__mod { font-weight: 600; }
+  .rs-team__only { font-size: 13px; color: var(--rs-muted); text-align: right; }
+  .rs-team__actions { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 12px; }
+  .rs-team__actions .rs-portal__button { width: auto; }
+  .rs-portal__form .rs-team__cell { grid-template-columns: auto 1fr; }
+  .rs-portal__form .rs-team__cell select, .rs-portal__form .rs-team__only { grid-column: 2; text-align: left; }
+  .rs-portal__form .rs-team__cell input[type=checkbox] { width: 18px; padding: 0; }
+
 @media (max-width: 860px) {
   .rs-portal__grid { grid-template-columns: 1fr; }
   .rs-portal__card--wide { grid-column: auto; }

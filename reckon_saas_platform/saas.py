@@ -586,10 +586,32 @@ def get_addable_modules(company: str) -> list[dict]:
             "name": m["name"],
             "tagline": m["tagline"],
             "plans": (m.get("plans_by_currency") or {}).get(currency) or m["plans"],
+            "cycles": plan_cycles((m.get("plans_by_currency") or {}).get(currency) or m["plans"]),
             "url": m["url"],
         }
         for m in marketing.get_modules()
         if m["key"] not in held and m["plans"]
+    ]
+
+
+CYCLE_ORDER = ("Monthly", "Quarterly", "Yearly")
+_TIER_WORDS = re.compile(r"\b(Basic|Starter|Standard|Pro|Professional|Advanced|Enterprise)\b", re.I)
+
+
+def plan_tier(plan_name: str) -> str:
+    """The short tier label of a plan: "Standard - Accounts (USD, Yearly)" is "Standard"."""
+    match = _TIER_WORDS.search(plan_name or "")
+    return match.group(1).title() if match else re.sub(r"\s*\([^)]*\)\s*$", "", plan_name or "").strip()
+
+
+def plan_cycles(plans: list[dict]) -> list[dict]:
+    """A module's plans as ``[{"cycle": "Monthly", "plans": [...]}, {"cycle": "Yearly", ...}]``, one card per tier."""
+    groups: dict[str, list[dict]] = {}
+    for plan in plans:
+        groups.setdefault(plan.get("cycle") or "Monthly", []).append({**plan, "tier": plan_tier(plan.get("name"))})
+    return [
+        {"cycle": cycle, "plans": groups[cycle]}
+        for cycle in sorted(groups, key=lambda c: CYCLE_ORDER.index(c) if c in CYCLE_ORDER else len(CYCLE_ORDER))
     ]
 
 

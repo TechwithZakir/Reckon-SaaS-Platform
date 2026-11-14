@@ -139,6 +139,26 @@ class AccountAreaTests(unittest.TestCase):
         self.assertIn('data-theme="dark"', css)
 
 
+class AddModulePlansTests(unittest.TestCase):
+    def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
+        with platform_modules("saas") as (_frappe, (saas,)):
+            plans = [
+                {"name": "Standard - Accounts (USD, Yearly)", "cycle": "Yearly"},
+                {"name": "Basic - Accounts (USD)", "cycle": "Monthly"},
+                {"name": "Enterprise (USD)", "cycle": "Monthly"},
+                {"name": "Sales Agent Standard (USD)", "cycle": "Monthly"},
+            ]
+            groups = saas.plan_cycles(plans)
+        self.assertEqual([g["cycle"] for g in groups], ["Monthly", "Yearly"])  # monthly first
+        self.assertEqual([p["tier"] for p in groups[0]["plans"]], ["Basic", "Enterprise", "Standard"])
+        self.assertEqual(groups[1]["plans"][0]["tier"], "Standard")
+
+    def test_the_subscription_page_has_tabs_and_a_monthly_yearly_choice_per_module(self):
+        html = (PKG / "www" / "reckonerp_subscription.html").read_text(encoding="utf-8")
+        for needle in ('data-tab="plans"', 'data-tab="modules"', 'data-panel="setup"', "data-cycle-set=", "data-add-module=", "mod.cycles"):
+            self.assertIn(needle, html)
+
+
 class TenantMenuTests(unittest.TestCase):
     def test_migrate_adds_subscription_and_team_once(self):
         with platform_modules("install") as (frappe, (install,)):
@@ -169,23 +189,57 @@ class TenantMenuTests(unittest.TestCase):
 
 
 class TeamPageTests(unittest.TestCase):
-    def test_overview_counts_people_and_reports_the_plan_limit(self):
+    def overview(self, assignments, access_rows):
         with platform_modules("team", "saas", "tenant_security") as (frappe, (team, saas, security)):
-            frappe.get_all = Mock(return_value=[
-                _Dict(user="a@x.test", role_profile="Company Admin", module_role=""),
-                _Dict(user="b@x.test", role_profile="Company Manager", module_role="HR User"),
-            ])
+            def get_all(doctype, **kw):
+                if doctype == "Tenant Module Access":
+                    return [_Dict(r) for r in access_rows.get(kw["filters"]["parent"], [])]
+                return [_Dict(a) for a in assignments]
+
+            frappe.get_all = Mock(side_effect=get_all)
             frappe.db.get_value = Mock(return_value="Person")
-            with patch.object(saas, "_open_module_keys", return_value={"hrms"}), \
-                    patch.object(security, "company_user_limit", return_value=5), \
-                    patch.object(team, "tenant_modules", return_value=[
-                        {"key": "hrms", "tenant_role_map": {"HR User": "x", "HR Manager": "y"}},
-                        {"key": "crm", "tenant_role_map": {"Sales User": "z"}},
-                    ]):
-                overview = team.team_overview("Acme")
-        self.assertEqual((overview["used"], overview["limit"]), (2, 5))
-        self.assertEqual(overview["module_roles"], ["HR Manager", "HR User"])  # only roles of modules the company holds
-        self.assertEqual(overview["profiles"], ["Company Manager", "Company Admin"])
+            modules = [{"key": "accounts", "name": "Accounts", "choices": ["Manager", "Accountant"]}, {"key": "hrms", "name": "HRMS", "choices": ["HR Manager"]}]
+            with patch.object(security, "company_user_limit", return_value=5), patch.object(team, "company_modules", return_value=modules):
+                return team.team_overview("Acme")
+
+    def test_overview_lists_each_persons_modules_and_roles_and_the_plan_limit(self):
+        overview = self.overview(
+            [
+                dict(name="TUA-1", user="a@x.test", role_profile="Company Admin", module_role=""),
+                dict(name="TUA-2", user="b@x.test", role_profile="Company Manager", module_role=""),
+                dict(name="TUA-3", user="c@x.test", role_profile="Company Manager", module_role=""),
+            ],
+            {"TUA-3": [dict(module="accounts", role_profile="Accountant", module_role="")]},
+        )
+        self.assertEqual((overview["used"], overview["limit"]), (3, 5))
+        by_user = {m["user"]: m["access"] for m in overview["members"]}
+        self.assertEqual(by_user["a@x.test"], {"accounts": "Admin", "hrms": "Admin"})
+        self.assertEqual(by_user["b@x.test"], {"accounts": "All access", "hrms": "All access"})  # no module list: as before
+        self.assertEqual(by_user["c@x.test"], {"accounts": "Accountant"})  # only the module they were given
+
+    def test_a_persons_module_and_role_resolve_from_the_catalog_not_from_the_browser(self):
+        modules = [_Dict(key="accounts"), _Dict(key="hrms")]
+        with platform_modules("team") as (frappe, (team,)):
+            frappe.throw = Mock(side_effect=ValueError("refused"))
+            with patch.object(team, "get_saas_modules", return_value=modules),                     patch.object(team, "company_modules", return_value=[{"key": "accounts"}, {"key": "hrms"}]):
+                rows = team.resolve_access("Acme", [{"module": "accounts", "choice": "Accountant"}, {"module": "hrms", "choice": "HR Manager"}, {"module": "accounts", "choice": "Manager"}])
+                self.assertEqual(rows, [
+                    {"module": "accounts", "role_profile": "Accountant", "module_role": ""},
+                    {"module": "hrms", "role_profile": "Company Manager", "module_role": "HR Manager"},
+                ])  # a repeated module counts once
+                for bad in ([{"module": "crm", "choice": "Manager"}], [{"module": "accounts", "choice": "Owner"}], []):
+                    with self.assertRaisesRegex(ValueError, "refused"):
+                        team.resolve_access("Acme", bad)
+
+    def test_module_profile_gives_each_app_the_persons_role_in_its_module(self):
+        with platform_modules("team") as (frappe, (team,)):
+            frappe.db.get_value = Mock(return_value="TUA-1")
+            frappe.get_all = Mock(return_value=[_Dict(module="accounts", role_profile="Accountant", module_role="")])
+            self.assertEqual(team.module_profile("u@x.test", "Acme", "accounts", "Company Manager"), {"role_profile": "Accountant", "module_role": ""})
+            self.assertIsNone(team.module_profile("u@x.test", "Acme", "crm", "Company Manager"))  # not given crm
+            self.assertEqual(team.module_profile("u@x.test", "Acme", "crm", "Company Admin")["role_profile"], "Company Admin")  # admin: everything
+            frappe.get_all = Mock(return_value=[])
+            self.assertEqual(team.module_profile("u@x.test", "Acme", "crm", "Company Manager")["role_profile"], "Company Manager")  # no list: as before
 
     def test_page_is_for_the_company_admin_and_never_trusts_the_browser_for_the_company(self):
         code = (PKG / "www" / "reckonerp_team.py").read_text(encoding="utf-8")

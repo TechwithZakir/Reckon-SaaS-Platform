@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "creation": "2026-11-15 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "role_profile",
+  "module_role"
+ ],
+ "fields": [
+  {
+   "fieldname": "module",
+   "fieldtype": "Data",
+   "label": "Module",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "A module key of the company's subscriptions, e.g. accounts."
+  },
+  {
+   "fieldname": "role_profile",
+   "fieldtype": "Data",
+   "label": "Role",
+   "in_list_view": 1,
+   "description": "The role profile that applies to this person in this module."
+  },
+  {
+   "fieldname": "module_role",
+   "fieldtype": "Data",
+   "label": "Module Role",
+   "description": "A module-specific role, for example an HR role."
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "modified": "2026-11-15 00:00:00.000000",
+ "module": "SaaS Platform",
+ "name": "Tenant Module Access",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

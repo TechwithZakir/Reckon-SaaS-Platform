@@ -15,7 +15,13 @@
         <p>{% if summary.has_dues and paddle_environment %}A payment is due. Pay by card below and your workspace unlocks as soon as the payment goes through.{% elif summary.has_dues %}A payment is due. Pay and add the transaction reference below; we unlock your workspace once it is verified.{% else %}Track your plan, payment verification and provisioning status in one place.{% endif %}</p>
       </div>
     </section>
-    <section class="rs-portal__grid">
+    <div class="rs-subtabs" role="tablist" aria-label="Subscription sections" data-tabs>
+      <button type="button" role="tab" data-tab="plans" aria-selected="true">Plans &amp; billing</button>
+      {% if invoices %}<button type="button" role="tab" data-tab="invoices" aria-selected="false">Invoices <span class="rs-subtabs__n">{{ invoices|length }}</span></button>{% endif %}
+      {% if addable %}<button type="button" role="tab" data-tab="modules" aria-selected="false">Add a module <span class="rs-subtabs__n">{{ addable|length }}</span></button>{% endif %}
+      <button type="button" role="tab" data-tab="setup" aria-selected="false">Setup</button>
+    </div>
+    <section class="rs-portal__grid" data-panel="plans">
       <article class="rs-portal__card">
         <div class="rs-portal__label">Company</div><div class="rs-portal__value">{{ (summary.company or "Not assigned")|e }}</div>
         <div class="rs-portal__list"><div class="rs-portal__row"><span>Operational access</span><strong>{{ "Enabled" if summary.operational_access else "Locked" }}</strong></div></div>
@@ -75,39 +81,56 @@
         <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>{% endif %}
       </article>
 
-      {% if invoices %}
-      <article class="rs-portal__card rs-portal__card--wide">
+    </section>
+    {% if invoices %}<section class="rs-portal__grid" data-panel="invoices" hidden>
+      <article class="rs-portal__card rs-portal__card--full">
         <p class="rs-portal__eyebrow">Billing</p><h2>Invoices</h2>
         <div class="rs-portal__list">
           {% for inv in invoices %}<div class="rs-portal__row"><span><a href="{{ inv.url|e }}">{{ inv.name|e }}</a> &middot; {{ inv.module_name|e }} &middot; due {{ inv.due_date|e }}</span><strong>{{ inv.amount_text|e }} &middot; {{ inv.status|e }} &middot; <a href="{{ inv.pdf_url|e }}">PDF</a></strong></div>{% endfor %}
         </div>
       </article>
-      {% endif %}
+    </section>{% endif %}
 
-      {% if addable %}
-      <article class="rs-portal__card rs-portal__card--wide" id="add-module">
+    {% if addable %}<section class="rs-portal__grid" data-panel="modules" hidden id="add-module">
+      <article class="rs-portal__card rs-portal__card--full">
         <p class="rs-portal__eyebrow">More modules</p><h2>Add a module</h2>
         {% if can_add_modules %}
         <p>Each module has its own plan and invoice. A module with a free trial opens at once; otherwise it opens when its payment is verified.</p>
-        {% for mod in addable %}
-        <div class="rs-portal__list" style="margin-top:12px">
-          <div class="rs-portal__row"><strong><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></strong><span>{{ mod.tagline|e }}</span></div>
-          {% for p in mod.plans %}
-          <form class="rs-portal__form" data-add-module="{{ p.name|e }}" style="grid-template-columns:1fr auto;align-items:center">
-            <span>{{ p.name|e }} &middot; <strong>{{ p.price_text|e }}</strong>{% if p.trial_days %} &middot; {{ p.trial_days }}-day free trial{% endif %}</span>
-            <button class="rs-portal__button rs-portal__button--primary" type="submit">Subscribe</button>
-            <div class="rs-portal__message" role="status" style="grid-column:1 / -1"></div>
-          </form>
+        <div class="rs-mods">
+          {% for mod in addable %}
+          <section class="rs-mod" data-mod>
+            <header class="rs-mod__head">
+              <div><h3><a href="{{ mod.url|e }}">{{ mod.name|e }}</a></h3><p>{{ mod.tagline|e }}</p></div>
+              {% if mod.cycles|length > 1 %}<div class="rs-mod__cycle" role="group" aria-label="Billing period">{% for c in mod.cycles %}<button type="button" data-cycle="{{ c.cycle|e }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ c.cycle|e }}</button>{% endfor %}</div>{% endif %}
+            </header>
+            {% for c in mod.cycles %}
+            <div class="rs-mod__plans" data-cycle-set="{{ c.cycle|e }}"{% if not loop.first %} hidden{% endif %}>
+              {% for p in c.plans %}
+              <form class="rs-plan" data-add-module="{{ (p.id or p.name)|e }}">
+                <div class="rs-plan__tier">{{ p.tier|e }}</div>
+                <div class="rs-plan__price">{{ p.amount_text|e }}<small> / {{ "year" if c.cycle == "Yearly" else ("quarter" if c.cycle == "Quarterly" else "month") }}</small></div>
+                {% if p.trial_days %}<div class="rs-plan__trial">{{ p.trial_days }}-day free trial</div>{% endif %}
+                <ul class="rs-plan__facts">
+                  <li>{% if p.max_users %}Up to {{ p.max_users }} users{% else %}Unlimited users{% endif %}</li>
+                  <li>{% if p.max_storage_mb %}{{ (p.max_storage_mb / 1024)|round(1)|string|replace(".0", "") ~ " GB" if p.max_storage_mb >= 1024 else p.max_storage_mb ~ " MB" }} file storage{% else %}Unlimited file storage{% endif %}</li>
+                </ul>
+                <button class="rs-portal__button rs-portal__button--primary" type="submit">Subscribe</button>
+                <div class="rs-portal__message" role="status"></div>
+              </form>
+              {% endfor %}
+            </div>
+            {% endfor %}
+          </section>
           {% endfor %}
         </div>
-        {% endfor %}
         {% else %}
         <p>Only your company admin can add modules. Ask them to open this page.</p>
         {% endif %}
       </article>
-      {% endif %}
+    </section>{% endif %}
 
-      <article class="rs-portal__card rs-portal__card--wide">
+    <section class="rs-portal__grid" data-panel="setup" hidden>
+      <article class="rs-portal__card rs-portal__card--full">
         <p class="rs-portal__eyebrow">Provisioning</p><h2>Company setup progress</h2>
         {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status|e }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ (summary.provisioning.current_step or "Queued")|e }}</strong></div></div>{% else %}<p>Provisioning starts after verification.</p>{% endif %}
       </article>
@@ -117,6 +140,26 @@
 </main>
 <script>
   (function () {
+    // Tabs: Plans & billing, Invoices, Add a module, Setup. The address keeps the tab (#modules) so a link can open it.
+    const tabs = Array.from(document.querySelectorAll("[data-tab]"));
+    const panels = Array.from(document.querySelectorAll("[data-panel]"));
+    function openTab(name) {
+      if (!tabs.some(function (t) { return t.getAttribute("data-tab") === name; })) name = "plans";
+      tabs.forEach(function (t) { t.setAttribute("aria-selected", String(t.getAttribute("data-tab") === name)); });
+      panels.forEach(function (p) { p.hidden = p.getAttribute("data-panel") !== name; });
+    }
+    tabs.forEach(function (t) { t.addEventListener("click", function () { openTab(t.getAttribute("data-tab")); history.replaceState(null, "", "#" + t.getAttribute("data-tab")); }); });
+    openTab((location.hash || "").replace("#", "") === "add-module" ? "modules" : (location.hash || "").replace("#", ""));
+    // Monthly / Yearly choice inside each module of the Add a module tab.
+    document.querySelectorAll("[data-mod]").forEach(function (mod) {
+      mod.querySelectorAll("[data-cycle]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          const cycle = button.getAttribute("data-cycle");
+          mod.querySelectorAll("[data-cycle]").forEach(function (b) { b.setAttribute("aria-pressed", String(b === button)); });
+          mod.querySelectorAll("[data-cycle-set]").forEach(function (set) { set.hidden = set.getAttribute("data-cycle-set") !== cycle; });
+        });
+      });
+    });
     function csrfToken() {
       const token = (window.frappe && window.frappe.csrf_token) || "";
       return token === "None" ? "" : token;

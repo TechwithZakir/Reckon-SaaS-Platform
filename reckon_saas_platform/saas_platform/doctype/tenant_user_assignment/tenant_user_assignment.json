@@ -11,6 +11,7 @@
   "company",
   "column_break_1",
   "role_profile",
+  "module_access",
   "active",
   "is_default",
   "section_validity",
@@ -55,6 +56,13 @@
    "label": "Module Role",
    "options": "\nHR Manager\nPayroll Manager\nTalent Admin\nEmployee Self Service",
    "description": "Role in the company's modules (Company Admin always gets the admin role)."
+  },
+  {
+   "fieldname": "module_access",
+   "fieldtype": "Table",
+   "label": "Module Access",
+   "options": "Tenant Module Access",
+   "description": "The modules this person may use and their role in each. Leave empty for access to every module of the company, with the role above."
   },
   {
    "default": "1",
