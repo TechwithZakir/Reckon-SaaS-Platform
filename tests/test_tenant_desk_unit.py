@@ -429,3 +429,15 @@ class BootDefaultCompanyTests(unittest.TestCase):
             with patch.object(security, "tenant_company_or_none", return_value=None):
                 apps._default_company_to_tenant(boot)
             self.assertEqual(boot["sysdefaults"]["company"], "Vendor Ltd.")
+
+
+class DefaultPreferencesTests(unittest.TestCase):
+    def test_every_list_form_and_report_toggle_is_switched_on(self):
+        with platform_modules("team") as (frappe, (team,)):
+            frappe.db.has_column.return_value = True
+            frappe.db.exists.return_value = True
+            team.apply_default_preferences("a@b.test")
+            args = frappe.db.set_value.call_args[0]
+            self.assertEqual(args[:2], ("User", "a@b.test"))
+            self.assertEqual(set(args[2]), set(team.DEFAULT_PREFERENCES))
+            self.assertTrue(all(v == 1 for v in args[2].values()))

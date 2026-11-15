@@ -16,6 +16,13 @@ class TenantUserAssignment(Document):
         self._validate_user_has_no_platform_roles()
         self._validate_plan_user_limit()
 
+    def after_insert(self) -> None:
+        # A person's first assignment is when they become a tenant user: give them the standard preferences.
+        if self.user and frappe.db.count(self.doctype, {"user": self.user}) == 1:
+            from reckon_saas_platform.team import apply_default_preferences
+
+            apply_default_preferences(self.user)
+
     def _set_defaults(self) -> None:
         if not self.active:
             self.active = 0

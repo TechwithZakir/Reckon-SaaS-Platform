@@ -98,6 +98,21 @@ def module_profile(user: str, company: str, module_key: str, fallback_profile: s
     return {"role_profile": mine.role_profile or fallback_profile, "module_role": mine.module_role or ""} if mine else None
 
 
+# The Settings > Lists, Forms and Reports toggles of a user, all switched on for a tenant's people.
+DEFAULT_PREFERENCES = (
+    "list_sidebar", "bulk_actions", "view_switcher", "form_sidebar", "timeline", "dashboard",
+    "show_absolute_datetime_in_timeline", "form_navigation_buttons", "report_split_view",
+)
+
+
+def apply_default_preferences(user: str) -> None:
+    """Switch every list, form and report preference on for a new tenant user."""
+    values = {field: 1 for field in DEFAULT_PREFERENCES if frappe.db.has_column("User", field)}
+    if values and frappe.db.exists("User", user):
+        frappe.db.set_value("User", user, values, update_modified=False)
+        frappe.clear_cache(user=user)
+
+
 def sync_company_permission(user: str, companies: list[str]) -> None:
     """One standard, default Company User Permission per company the user is actively assigned to.
 
