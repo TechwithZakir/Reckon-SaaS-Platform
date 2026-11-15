@@ -48,7 +48,7 @@ def enforce_module_desk_access() -> None:
         from werkzeug.routing import RequestRedirect
 
         raise RequestRedirect(module.get("home_route") or "/")
-    if is_allowed(kind, value, module.get("desk_doctypes"), module.get("desk_workspaces")):
+    if is_allowed(kind, value, module.get("desk_doctypes"), module.get("desk_workspaces"), module.get("desk_pages")):
         return
     # An HTTPException is returned as a real 403 response (a PermissionError from
     # before_request is rendered as a normal page with status 200).

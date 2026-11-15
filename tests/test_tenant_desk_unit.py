@@ -228,6 +228,16 @@ class AddModulePlansTests(unittest.TestCase):
             self.assertIn(needle, html)
 
 
+class DeskPagesTests(unittest.TestCase):
+    def test_a_module_page_is_reachable_by_direct_address_when_the_module_lists_it(self):
+        from reckon_saas_platform.desk_paths import classify, is_allowed
+
+        kind, value = classify("/desk/reckon-hrms-setup")
+        self.assertFalse(is_allowed(kind, value, ["Employee"], ["Reckon HRMS"]))  # the old behaviour: refused
+        self.assertTrue(is_allowed(kind, value, ["Employee"], ["Reckon HRMS"], ["reckon-hrms-setup"]))
+        self.assertFalse(is_allowed(kind, "some-other-page", ["Employee"], ["Reckon HRMS"], ["reckon-hrms-setup"]))
+
+
 class TenantMenuTests(unittest.TestCase):
     def test_migrate_adds_subscription_and_team_once(self):
         with platform_modules("install") as (frappe, (install,)):

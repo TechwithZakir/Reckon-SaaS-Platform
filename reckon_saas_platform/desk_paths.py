@@ -32,7 +32,7 @@ def classify(path: str) -> tuple[str, str | None]:
     return "other", None
 
 
-def is_allowed(kind: str, value: str | None, allowed_doctypes, allowed_workspaces) -> bool:
+def is_allowed(kind: str, value: str | None, allowed_doctypes, allowed_workspaces, allowed_pages=None) -> bool:
     if kind == "other":
         return True
     doctypes = set(allowed_doctypes or [])
@@ -40,7 +40,7 @@ def is_allowed(kind: str, value: str | None, allowed_doctypes, allowed_workspace
         return value is None or value in doctypes
     if value in ALWAYS_ALLOWED_DESK:
         return True
-    routes = {slugify(d) for d in doctypes} | {slugify(w) for w in (allowed_workspaces or [])}
+    routes = {slugify(d) for d in doctypes} | {slugify(w) for w in (allowed_workspaces or [])} | {slugify(p) for p in (allowed_pages or [])}
     return value in routes
 
 
