@@ -52,6 +52,7 @@
           </div>
           {% endfor %}
         </div>
+        {% if overview.other_modules %}<p class="rs-team__note">{{ overview.other_modules|join(", ")|e }}: access follows each person's role. Choose it when you add them, or ask us to change it.</p>{% endif %}
         <div class="rs-portal__message" role="status" data-list-message></div>
       </article>
 

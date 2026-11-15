@@ -19,7 +19,7 @@ from frappe import _
 from frappe.utils import validate_email_address
 
 from reckon_saas_platform.module_registry import get_saas_modules
-from reckon_saas_platform.team_catalog import choices_for
+from reckon_saas_platform.team_catalog import MODULE_ACCESS_AWARE, choices_for
 from reckon_saas_platform.tenant_roles import role_kind_for_profile, tenant_role_name
 
 ALLOWED_PROFILES = ("Company Manager", "Company Admin")
@@ -233,7 +233,19 @@ def company_modules(company: str) -> list[dict]:
     return [
         {"key": m["key"], "name": module_label(m["key"]) or m.get("label") or m["key"], "choices": [c["label"] for c in choices_for(m)]}
         for m in get_saas_modules()
-        if m.get("key") in held
+        if m.get("key") in held and m.get("key") in MODULE_ACCESS_AWARE
+    ]
+
+
+def other_modules(company: str) -> list[str]:
+    """Modules the company holds whose access follows each person's one role rather than this page's choices."""
+    from reckon_saas_platform.saas import _open_module_keys, module_label
+
+    held = _open_module_keys(company)
+    return [
+        module_label(m["key"]) or m.get("label") or m["key"]
+        for m in get_saas_modules()
+        if m.get("key") in held and m.get("key") not in MODULE_ACCESS_AWARE
     ]
 
 
@@ -265,6 +277,7 @@ def team_overview(company: str) -> dict:
         "used": len({row["user"] for row in members}),
         "limit": company_user_limit(company),
         "modules": modules,
+        "other_modules": other_modules(company),
         "profiles": list(ALLOWED_PROFILES),
     }
 
@@ -281,7 +294,7 @@ def resolve_access(company: str, access) -> list[dict]:
     """
     if isinstance(access, str):
         access = json.loads(access or "[]")
-    held = {m["key"]: m for m in get_saas_modules() if m.get("key") in {x["key"] for x in company_modules(company)}}
+    held = {m["key"]: m for m in get_saas_modules() if m.get("key") in {x["key"] for x in company_modules(company)}}  # only modules whose app honours this page
     rows, seen = [], set()
     for item in access or []:
         key, label = (item or {}).get("module"), (item or {}).get("choice")

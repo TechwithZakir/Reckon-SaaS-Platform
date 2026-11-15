@@ -139,6 +139,19 @@ class AccountAreaTests(unittest.TestCase):
         self.assertIn('data-theme="dark"', css)
 
 
+class ModuleChoiceScopeTests(unittest.TestCase):
+    def test_only_modules_whose_app_honours_the_page_are_offered_as_choices(self):
+        with platform_modules("team_catalog") as (_f, (catalog,)):
+            self.assertEqual(set(catalog.MODULE_ACCESS_AWARE), {"accounts", "crm", "hrms"})  # add sales_agent once its app is updated
+
+    def test_company_modules_leave_out_the_others(self):
+        with platform_modules("team", "saas") as (frappe, (team, saas)):
+            mods = [_Dict(key="accounts", label="Accounts"), _Dict(key="sales_agent", label="Sales Agent")]
+            with patch.object(team, "get_saas_modules", return_value=mods), patch.object(saas, "_open_module_keys", return_value={"accounts", "sales_agent"}),                     patch.object(saas, "module_label", side_effect=lambda k, *a: k):
+                self.assertEqual([m["key"] for m in team.company_modules("Acme")], ["accounts"])
+                self.assertEqual(team.other_modules("Acme"), ["sales_agent"])
+
+
 class AddModulePlansTests(unittest.TestCase):
     def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
         with platform_modules("saas") as (_frappe, (saas,)):
@@ -199,7 +212,7 @@ class TeamPageTests(unittest.TestCase):
             frappe.get_all = Mock(side_effect=get_all)
             frappe.db.get_value = Mock(return_value="Person")
             modules = [{"key": "accounts", "name": "Accounts", "choices": ["Manager", "Accountant"]}, {"key": "hrms", "name": "HRMS", "choices": ["HR Manager"]}]
-            with patch.object(security, "company_user_limit", return_value=5), patch.object(team, "company_modules", return_value=modules):
+            with patch.object(security, "company_user_limit", return_value=5), patch.object(team, "company_modules", return_value=modules),                     patch.object(team, "other_modules", return_value=["Sales AI Agent"]):
                 return team.team_overview("Acme")
 
     def test_overview_lists_each_persons_modules_and_roles_and_the_plan_limit(self):
@@ -212,6 +225,7 @@ class TeamPageTests(unittest.TestCase):
             {"TUA-3": [dict(module="accounts", role_profile="Accountant", module_role="")]},
         )
         self.assertEqual((overview["used"], overview["limit"]), (3, 5))
+        self.assertEqual(overview["other_modules"], ["Sales AI Agent"])  # listed, not offered as a choice
         by_user = {m["user"]: m["access"] for m in overview["members"]}
         self.assertEqual(by_user["a@x.test"], {"accounts": "Admin", "hrms": "Admin"})
         self.assertEqual(by_user["b@x.test"], {"accounts": "All access", "hrms": "All access"})  # no module list: as before

@@ -30,6 +30,10 @@ DEFAULT_TEAM_ROLES = {
 }
 FALLBACK_CHOICES = [_choice("Manager")]
 
+# Modules whose app reads the person's module access, so the Team page can really give or withhold them.
+# Others keep their own role rules (the person's one role in the company) and are listed as such.
+MODULE_ACCESS_AWARE = frozenset({"accounts", "crm", "hrms"})
+
 
 def choices_for(module: dict) -> list[dict]:
     """The role choices of a module: its own definition first, then the built-in list, then one generic choice."""
