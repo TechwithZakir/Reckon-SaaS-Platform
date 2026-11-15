@@ -232,7 +232,8 @@ def get_tenant_owned_query(user: str | None = None, doctype: str | None = None) 
     return f"`tab{doctype}`.`company` = {frappe.db.escape(tenant.company)}"
 
 
-def has_tenant_owned_permission(doc, user: str | None = None, permission_type: str | None = None) -> bool:
+def has_tenant_owned_permission(doc, user: str | None = None, permission_type: str | None = None, ptype=None, **_ignored) -> bool:
+    permission_type = permission_type or ptype  # Frappe passes the right as ptype
     user = user or frappe.session.user
     if user_can_bypass_tenant(user):
         return True
@@ -265,7 +266,8 @@ def get_tenant_shared_query(user: str | None = None, doctype: str | None = None)
     return f"({table}.`company` = {frappe.db.escape(tenant.company)} or ifnull({table}.`company`, '') = '')"
 
 
-def has_tenant_shared_permission(doc, user: str | None = None, permission_type: str | None = None) -> bool:
+def has_tenant_shared_permission(doc, user: str | None = None, permission_type: str | None = None, ptype=None, **_ignored) -> bool:
+    permission_type = permission_type or ptype  # Frappe passes the right as ptype
     """Read: own rows and shared catalog rows. Change: own company's rows only; the catalog is read-only."""
     user = user or frappe.session.user
     if user_can_bypass_tenant(user):
@@ -338,7 +340,8 @@ def get_tenant_user_assignment_query(user: str | None = None) -> str:
     return f"`tabTenant User Assignment`.`user` = {escaped_user}"
 
 
-def has_tenant_user_assignment_permission(doc, user: str | None = None, permission_type: str | None = None) -> bool:
+def has_tenant_user_assignment_permission(doc, user: str | None = None, permission_type: str | None = None, ptype=None, **_ignored) -> bool:
+    permission_type = permission_type or ptype  # Frappe passes the right as ptype
     user = user or frappe.session.user
     if user_can_bypass_tenant(user):
         return True

@@ -391,6 +391,13 @@ class SharedCatalogAndReportTests(unittest.TestCase):
                 self.assertFalse(security.has_tenant_shared_permission(other, "u", "read"))
                 self.assertFalse(security.has_tenant_shared_permission(other, "u", "write"))
 
+    def test_the_right_arrives_as_ptype_the_way_frappe_calls_hooks(self):
+        with platform_modules("tenant_security") as (_frappe, (security,)):
+            with patch.object(security, "user_can_bypass_tenant", return_value=False), \
+                    patch.object(security, "get_user_companies", return_value=["Acme"]):
+                self.assertFalse(security.has_tenant_shared_permission(_Dict(company=""), user="u", ptype="write", debug=False))
+                self.assertTrue(security.has_tenant_shared_permission(_Dict(company="Acme"), user="u", ptype="write"))
+
     def test_a_tenants_report_runs_for_its_own_company_whatever_the_browser_says(self):
         import json
 
