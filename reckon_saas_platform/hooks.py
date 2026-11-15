@@ -41,6 +41,7 @@ after_request = [
 ]
 
 # A tenant's Apps menu lists the apps of the modules it subscribes to, not every installed app.
+app_include_js = ["/assets/reckon_saas_platform/js/tenant_company_default.js"]
 extend_bootinfo = "reckon_saas_platform.desk_apps.filter_bootinfo"
 override_whitelisted_methods = {"frappe.apps.get_apps": "reckon_saas_platform.desk_apps.get_apps"}
 
