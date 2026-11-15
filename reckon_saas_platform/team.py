@@ -99,20 +99,34 @@ def module_profile(user: str, company: str, module_key: str, fallback_profile: s
 
 
 def sync_company_permission(user: str, companies: list[str]) -> None:
-    """One standard Company User Permission per company the user is actively assigned to."""
+    """One standard, default Company User Permission per company the user is actively assigned to.
+
+    The permission applies to all doctypes and is the user's default, and the user's default Company is set
+    to the tenant company, so forms and reports open on it from the first login.
+    """
     existing = frappe.get_all(
-        "User Permission", filters={"user": user, "allow": "Company"}, fields=["name", "for_value"]
+        "User Permission", filters={"user": user, "allow": "Company"},
+        fields=["name", "for_value", "apply_to_all_doctypes", "is_default"],
     )
     for row in existing:
         if row.for_value not in companies:
             frappe.delete_doc("User Permission", row.name, ignore_permissions=True, force=True)
-    have = {row.for_value for row in existing if row.for_value in companies}
+    have = {}
+    for row in existing:
+        if row.for_value in companies:
+            have[row.for_value] = row
     for company in companies:
-        if company not in have:
+        row = have.get(company)
+        if row is None:
             frappe.get_doc({
                 "doctype": "User Permission", "user": user, "allow": "Company", "for_value": company,
                 "apply_to_all_doctypes": 1, "is_default": 1,
             }).insert(ignore_permissions=True)
+        elif not (row.apply_to_all_doctypes and row.is_default):
+            frappe.db.set_value("User Permission", row.name, {"apply_to_all_doctypes": 1, "is_default": 1})
+    if len(companies) == 1:
+        frappe.defaults.set_user_default("company", companies[0], user=user)
+        frappe.clear_cache(user=user)
 
 
 def reconcile_user(user: str) -> None:
