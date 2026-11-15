@@ -88,6 +88,18 @@ def normalize_international_mobile(value) -> str | None:
     return digits if 8 <= len(digits) <= 15 else None
 
 
+def whatsapp_number(value) -> str:
+    """Digits to put in a ``wa.me`` link for a customer's number: Bangladesh numbers in any local or
+    international form, and any other country's number written with its code. Empty when it is neither."""
+    bd = normalize_bd_mobile(value)
+    if bd:
+        return bd
+    text = re.sub(r"[\s\-().]", "", value.strip()) if isinstance(value, str) else ""
+    if text.lstrip("+").isdigit():
+        return normalize_international_mobile(text if text.startswith(("+", "00")) else "+" + text) or ""
+    return ""
+
+
 def get_bulksmsbd_credentials() -> tuple[str, str] | None:
     settings = frappe.get_cached_doc("SaaS Platform Settings")
     api_key = settings.get_password("bulksmsbd_api_key", raise_exception=False)

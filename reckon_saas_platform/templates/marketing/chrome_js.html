@@ -3,6 +3,16 @@
   var d=document;
   d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});
   d.addEventListener('keydown',function(e){if(e.key==='Escape')d.querySelectorAll('nav.main details[open]').forEach(function(x){x.open=false})});
+  // The menu button (narrow screens): opens and closes the collapsed menu, closes on a link, Escape or a tap outside.
+  var top=d.querySelector('header.top'),toggle=d.querySelector('.nav-toggle');
+  function menu(open){if(!top||!toggle)return;top.classList.toggle('menu-open',open);toggle.setAttribute('aria-expanded',String(open))}
+  if(toggle){
+    toggle.addEventListener('click',function(){menu(!top.classList.contains('menu-open'))});
+    d.addEventListener('keydown',function(e){if(e.key==='Escape')menu(false)});
+    d.addEventListener('click',function(e){if(top.classList.contains('menu-open')&&!top.contains(e.target))menu(false)});
+    top.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&top.classList.contains('menu-open'))menu(false)});
+    window.addEventListener('resize',function(){if(window.innerWidth>900)menu(false)});
+  }
   var root=d.documentElement;
   function dark(){var a=root.getAttribute('data-theme');if(a)return a==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)}
   function paintTheme(){

@@ -139,9 +139,9 @@ def whatsapp_share_url(invoice) -> str:
 
 def whatsapp_to_customer_url(invoice) -> str:
     """For a vendor user: opens WhatsApp to the customer with the invoice link ready to send."""
-    from reckon_saas_platform.sms import normalize_bd_mobile
+    from reckon_saas_platform.sms import whatsapp_number
 
-    digits = normalize_bd_mobile(invoice.get("customer_phone") or "") or ""  # 8801XXXXXXXXX
+    digits = whatsapp_number(invoice.get("customer_phone") or "")  # 8801XXXXXXXXX, 15551234567, ...
     return f"https://wa.me/{digits}?text=" + quote(share_text(invoice))
 
 

@@ -57,6 +57,7 @@ SITE = {
     "Branches that share a central store and kitchen: requisition, stock movement, production, delivery and branch-wise sales.": "যেসব ব্রাঞ্চ একটি সেন্ট্রাল স্টোর ও কিচেন ভাগ করে নেয়: রিকুইজিশন, স্টক স্থানান্তর, প্রোডাকশন, ডেলিভারি ও ব্রাঞ্চ অনুযায়ী বিক্রি।",
     "Google Business Profile": "Google Business Profile",
     "Services": "সেবা",
+    "Menu": "মেনু",
     "Billing period": "বিলিং পিরিয়ড",
     "Monthly": "মাসিক",
     "Quarterly": "ত্রৈমাসিক",

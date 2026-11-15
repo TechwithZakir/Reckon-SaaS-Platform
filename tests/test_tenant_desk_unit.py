@@ -174,6 +174,40 @@ class SignupMobileTests(unittest.TestCase):
         self.assertNotIn("optional", html[html.index('<label for="owner_phone">'):][:120])
 
 
+class WhatsAppNumberTests(unittest.TestCase):
+    def test_whatsapp_links_work_for_bangladesh_and_international_numbers(self):
+        with platform_modules("sms") as (_f, (sms,)):
+            wa = sms.whatsapp_number
+            self.assertEqual(wa("01712345678"), "8801712345678")  # older signups, local form
+            self.assertEqual(wa("8801712345678"), "8801712345678")
+            self.assertEqual(wa("15551234567"), "15551234567")  # stored as digits with the country code
+            self.assertEqual(wa("+44 7911 123456"), "447911123456")
+            for bad in ("", None, "phone", "123", "+0123456789"):
+                self.assertEqual(wa(bad), "", bad)
+
+    def test_the_vendors_whatsapp_link_uses_it(self):
+        source = (PKG / "invoices.py").read_text(encoding="utf-8")
+        self.assertIn("whatsapp_number(invoice.get(\"customer_phone\")", source)
+        self.assertIn("normalize_bd_mobile(invoice.get(\"customer_phone\")", source)  # the SMS stays Bangladesh-only
+
+
+class MobileMenuTests(unittest.TestCase):
+    def test_the_header_collapses_behind_a_menu_button_on_narrow_screens(self):
+        base = PKG / "templates" / "marketing"
+        header = (base / "header.html").read_text(encoding="utf-8")
+        self.assertIn('class="nav-toggle"', header)
+        self.assertIn('aria-controls="site-menu"', header)
+        self.assertIn('class="bar-menu" id="site-menu"', header)
+        self.assertEqual(header.count("<nav"), 2)  # main navigation and language, both inside the collapsible block
+        self.assertLess(header.index('id="site-menu"'), header.index('<nav class="main"'))
+        css = (base / "chrome.css").read_text(encoding="utf-8")
+        self.assertIn("header.top.menu-open .bar-menu{display:flex}", css)
+        self.assertIn(".bar-menu{display:contents}", css)  # desktop layout is untouched
+        js = (base / "chrome_js.html").read_text(encoding="utf-8")
+        for needle in ("aria-expanded", "menu-open", "Escape"):
+            self.assertIn(needle, js)
+
+
 class AddModulePlansTests(unittest.TestCase):
     def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
         with platform_modules("saas") as (_frappe, (saas,)):

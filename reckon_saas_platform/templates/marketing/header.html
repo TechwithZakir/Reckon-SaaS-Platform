@@ -5,6 +5,8 @@
       <img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="{{ tr("ReckonERP logo") }}" decoding="async" fetchpriority="high">
       <span>{{ tr("ReckonERP") }}</span>
     </a>
+    <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="site-menu" aria-label="{{ tr("Menu") }}"><span></span><span></span><span></span></button>
+    <div class="bar-menu" id="site-menu">
     <nav class="main" aria-label="{{ tr("Main") }}">
       <a href="{{ u("/") }}">{{ tr("Home") }}</a>
       <details class="dd"><summary>{{ tr("Features") }}</summary>
@@ -29,6 +31,7 @@
     <div class="actions">
       <a class="btn" href="{{ u("/login") }}">{{ tr("Log in") }}</a>
       <a class="btn solid" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a>
+    </div>
     </div>
   </div>
 </header>
