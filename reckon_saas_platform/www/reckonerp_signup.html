@@ -159,11 +159,8 @@
   .rk-plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; color: var(--rk-muted); }
   .rk-plan li::before { content: "• "; color: var(--rk-green-dark); }
   .rk-plan-module { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--rk-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  .rk-start { display: grid; gap: 8px; }
-  .rk-start-opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid #cfe0ee; border-radius: 10px; cursor: pointer; }
-  .rk-start-opt:has(input:checked) { border-color: var(--rk-green); box-shadow: 0 0 0 3px rgba(60, 212, 0, 0.16); }
-  .rk-start-opt input { margin-top: 4px; }
-  .rk-start-opt small { display: block; color: var(--rk-muted); font-size: 13px; }
+  .rk-start { display: grid; gap: 12px; }
+  .rk-start-hint { display: block; margin-top: 6px; color: var(--rk-muted); font-size: 13px; line-height: 1.4; }
   .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
 
   .rk-btn {
@@ -359,10 +356,10 @@
             <div class="rk-field" data-start-group hidden>
               <span class="rk-label" id="rk-start-label">{{ t.start_label }}</span>
               <div class="rk-start" role="radiogroup" aria-labelledby="rk-start-label">
-                <label class="rk-start-opt"><input type="radio" name="start_mode" value="trial" checked>
-                  <span><strong>{{ t.start_trial }}</strong><small data-start-trial-hint data-template="{{ t.start_trial_hint|e }}"></small></span></label>
-                <label class="rk-start-opt"><input type="radio" name="start_mode" value="pay">
-                  <span><strong>{{ t.start_pay }}</strong><small>{{ t.start_pay_hint }}</small></span></label>
+                <label class="rk-plan"><input type="radio" name="start_mode" value="trial" checked>
+                  <span class="rk-plan-body"><span class="rk-plan-name">{{ t.start_trial }}</span><small class="rk-start-hint" data-start-trial-hint data-template="{{ t.start_trial_hint|e }}"></small></span></label>
+                <label class="rk-plan"><input type="radio" name="start_mode" value="pay">
+                  <span class="rk-plan-body"><span class="rk-plan-name">{{ t.start_pay }}</span><small class="rk-start-hint">{{ t.start_pay_hint }}</small></span></label>
               </div>
             </div>
 
