@@ -48,6 +48,8 @@ def _default_company_to_tenant(bootinfo) -> None:
     company = tenant_company_or_none(frappe.session.user)
     if company and isinstance(bootinfo.get("sysdefaults"), dict):
         bootinfo["sysdefaults"]["company"] = company
+    if company and isinstance(bootinfo.get("user_defaults"), dict):
+        bootinfo["user_defaults"]["Company"] = company
 
 
 def filter_bootinfo(bootinfo) -> None:
