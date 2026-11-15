@@ -15,3 +15,23 @@
 		});
 	});
 })();
+
+// A tenant reads its own Company; the server refuses to create or change it, so the form says so instead of offering Save.
+$(document).on("startup", () => {
+	if (!(frappe.boot && frappe.boot.reckon_tenant_company)) return;
+	frappe.ui.form.on("Company", {
+		refresh(frm) {
+			if (frm.is_new()) {
+				frappe.show_alert({ message: __("Your company is set up for you."), indicator: "blue" });
+				frappe.set_route("List", "Company");
+				return;
+			}
+			frm.disable_save();
+			frm.set_read_only();
+			frm.dashboard && frm.dashboard.set_headline(__("Your company details are managed by Reckon. Contact support to change them."));
+		},
+	});
+	frappe.listview_settings["Company"] = Object.assign(frappe.listview_settings["Company"] || {}, {
+		onload(listview) { listview.page.clear_primary_action && listview.page.clear_primary_action(); },
+	});
+});
