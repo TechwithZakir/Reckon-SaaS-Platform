@@ -264,11 +264,10 @@ class SignupPlanGroupingTests(unittest.TestCase):
             plans, _groups = page.get_signup_plans("distribution")
             self.assertEqual([p.name for p in plans], ["Basic", "Pro", "Basic USD", "Pro USD"])
             self._mixed(frappe)
-            # The currency no longer drops other currencies: the page groups them and opens on the requested one.
             plans, _groups = page.get_signup_plans("distribution", "USD")
-            self.assertEqual(sorted(p.name for p in plans), ["Basic", "Basic USD", "Pro", "Pro USD"])
+            self.assertEqual([p.name for p in plans], ["Basic USD", "Pro USD"])
             self._mixed(frappe)
-            plans, _groups = page.get_signup_plans("distribution", "EUR")
+            plans, _groups = page.get_signup_plans("distribution", "EUR")  # no plans in that currency: show them all
             self.assertEqual(len(plans), 4)
 
     def test_requested_currency_must_look_like_a_currency_code(self):

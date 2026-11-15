@@ -45,10 +45,6 @@ def get_context(context):
     context.plans, context.plan_groups = get_signup_plans(context.selected_module, _requested_currency())
     module_names = {group["module"]: group["module_name"] for group in context.plan_groups}
     context.plan_cards = [_plan_card(plan, context.t, module_names) for plan in context.plans]
-    context.requested_currency = _requested_currency()
-    context.plan_currencies = sorted({c["cur"] for c in context.plan_cards if c["cur"]}, key=lambda c: (c != (context.requested_currency or "BDT"), c != "BDT", c))
-    context.plan_cycles = [c for c in ("Monthly", "Quarterly", "Yearly") if any(card["cycle"] == c for card in context.plan_cards)]
-    context.plan_sets = _group_plan_sets(context.plan_cards, context.plan_currencies) if context.module else []
     # Without ?module=, the form shows a module selector and filters the plan
     # cards by the chosen module.
     context.show_module_picker = not context.module and bool(context.modules)
@@ -86,22 +82,6 @@ def _request_language() -> str:
     )
 
 
-def _group_plan_sets(cards: list[dict], currency_order: list[str]) -> list[dict]:
-    """Plan cards grouped by currency and billing period, in the page's currency and cycle order."""
-    groups: dict[tuple[str, str], list[dict]] = {}
-    for card in cards:
-        groups.setdefault((card["cur"], card["cycle"]), []).append(card)
-    cycle_order = ("Monthly", "Quarterly", "Yearly")
-    cur_rank = {c: i for i, c in enumerate(currency_order)}
-    return [
-        {"cur": cur, "cycle": cycle, "cards": items}
-        for (cur, cycle), items in sorted(
-            groups.items(),
-            key=lambda kv: (cur_rank.get(kv[0][0], 9), cycle_order.index(kv[0][1]) if kv[0][1] in cycle_order else 9),
-        )
-    ]
-
-
 def _requested_currency() -> str:
     value = str(frappe.form_dict.get("currency") or "").upper()
     return value if re.fullmatch(r"[A-Z]{3}", value) else ""
@@ -129,18 +109,12 @@ def _whatsapp_url(t: dict, module: dict | None) -> str:
 
 
 def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
-    from reckon_saas_platform.saas import plan_tier
-
     currency = plan.get("currency") or ""
     price = flt(plan.get("price"))
     amount = f"{price:,.0f}" if price == int(price) else f"{price:,.2f}"
     return {
         "name": plan.get("name"),
         "plan_name": plan.get("plan_name") or plan.get("name"),
-        "tier": plan_tier(plan.get("plan_name") or plan.get("name") or ""),
-        "cur": currency,
-        "cycle": plan.get("billing_cycle") or "Monthly",
-        "comparison": plan.get("comparison") or [],
         "module": plan.get("saas_module") or "",
         "trial_days": cint(plan.get("trial_days")),
         "module_name": (module_names or {}).get(plan.get("saas_module") or "") or "",
@@ -152,30 +126,6 @@ def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
         "period": t.get(plan.get("billing_cycle") or "Monthly", ""),
         "features": [line.strip() for line in (plan.get("features") or "").splitlines() if line.strip()],
     }
-
-
-def _comparison_rows(plan_names: list[str]) -> dict[str, list[dict]]:
-    """Each plan's comparison-table rows (feature, included, value), the same ones ``/pricing`` shows."""
-    if not plan_names:
-        return {}
-    rows: dict[str, list[dict]] = {}
-    try:
-        found = frappe.get_all(
-            "SaaS Plan Feature",
-            filters={"parenttype": "SaaS Plan", "parent": ["in", plan_names]},
-            fields=["parent", "feature", "included", "value"],
-            parent_doctype="SaaS Plan",
-            order_by="idx asc",
-            ignore_permissions=True,
-        )
-    except Exception:
-        return rows
-    for row in found:
-        if row.get("parent") and str(row.get("feature") or "").strip():
-            rows.setdefault(row["parent"], []).append(
-                {"feature": row["feature"], "included": bool(row.get("included", 1)), "value": str(row.get("value") or "").strip()}
-            )
-    return rows
 
 
 def get_signup_modules() -> list[dict]:
@@ -218,11 +168,9 @@ def _feature_label(key: str) -> str:
 def get_signup_plans(module_key: str | None = None, currency: str | None = None) -> tuple[list[dict], list[dict]]:
     """Enabled plans of modules that are on sale, grouped by module.
 
-    ``?module=<key>`` on the signup URL limits the list to one module, so each product can link to its
-    own signup page. ``currency`` only marks which currency the toggle opens on (set from ``?currency=``
-    or a company's own); it was once used to drop every other currency's plans, which also hid a
-    module's other billing periods bundled in with them. Every plan the module sells is returned, in
-    every currency and billing period, grouped on the page instead.
+    ``?module=<key>`` on the signup URL limits the list to one module, so each
+    product can link to its own signup page. ``?currency=USD`` keeps only the plans in that currency when
+    there are any; otherwise every plan is listed, BDT first.
     """
     modules = {
         row.name: row.module_name
@@ -258,10 +206,9 @@ def get_signup_plans(module_key: str | None = None, currency: str | None = None)
         )
         if not plan.saas_module or plan.saas_module in modules
     ]
-    comparison = _comparison_rows([p.name for p in plans])
-    for plan in plans:
-        plan["comparison"] = comparison.get(plan.name, [])
-    plans.sort(key=lambda plan: (plan.currency != "BDT", (plan.billing_cycle or "Monthly") != "Monthly", flt(plan.price)))
+    if currency and any(plan.currency == currency for plan in plans):
+        plans = [plan for plan in plans if plan.currency == currency]
+    plans.sort(key=lambda plan: (plan.currency != "BDT", flt(plan.price)))
     groups: dict[str, dict] = {}
     for plan in plans:
         key = plan.saas_module or ""
