@@ -247,6 +247,48 @@ def has_tenant_owned_permission(doc, user: str | None = None, permission_type: s
     return True
 
 
+def get_tenant_shared_query(user: str | None = None, doctype: str | None = None) -> str:
+    """Own company's rows, plus the vendor's shared catalog rows (no Company) for reading.
+
+    For reference masters such as Leave Type: the vendor seeds a common set every tenant may use, and a
+    tenant's own additions belong to its company alone.
+    """
+    user = user or frappe.session.user
+    if user_can_bypass_tenant(user):
+        return ""
+    doctype = doctype or "Tenant Security Test Record"
+    try:
+        tenant = require_tenant(user=user)
+    except TenantResolutionError:
+        return "1=0"
+    table = f"`tab{doctype}`"
+    return f"({table}.`company` = {frappe.db.escape(tenant.company)} or ifnull({table}.`company`, '') = '')"
+
+
+def has_tenant_shared_permission(doc, user: str | None = None, permission_type: str | None = None) -> bool:
+    """Read: own rows and shared catalog rows. Change: own company's rows only; the catalog is read-only."""
+    user = user or frappe.session.user
+    if user_can_bypass_tenant(user):
+        return True
+    company = getattr(doc, "company", None)
+    if permission_type == "create" and not company:
+        return True  # a new row is stamped with the tenant's company before it is saved
+    if permission_type in {"create", "write", "delete", "submit", "cancel", "amend"}:
+        return bool(company) and company in get_user_companies(user)
+    if not company:
+        return True
+    return has_tenant_owned_permission(doc, user=user, permission_type=permission_type)
+
+
+def tenant_company_or_none(user: str | None = None) -> str | None:
+    """The session user's Company, or ``None`` for vendor staff and users without exactly one."""
+    user = user or frappe.session.user
+    if user in {"Guest", "Administrator"} or user_can_bypass_tenant(user):
+        return None
+    companies = get_user_companies(user)
+    return companies[0] if len(companies) == 1 else None
+
+
 def get_tenant_doc(doctype: str, name: str, user: str | None = None):
     doc = frappe.get_doc(doctype, name)
     if not has_tenant_owned_permission(doc, user=user, permission_type="read"):

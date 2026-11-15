@@ -33,6 +33,7 @@ after_app_install = "reckon_saas_platform.install.after_app_install"
 before_request = [
     "reckon_saas_platform.saas_gate.enforce_operational_access",
     "reckon_saas_platform.desk_module_guard.enforce_module_desk_access",
+    "reckon_saas_platform.desk_module_guard.pin_report_company",
 ]
 after_request = [
     "reckon_saas_platform.saas_gate.redirect_blocked_response",

@@ -9,6 +9,8 @@ Resource API DocTypes. Users with several modules, or none, are not restricted h
 
 from __future__ import annotations
 
+import json
+
 import frappe
 
 from reckon_saas_platform.desk_paths import classify, is_allowed, is_desk_home
@@ -55,3 +57,38 @@ def enforce_module_desk_access() -> None:
     from werkzeug.exceptions import Forbidden
 
     raise Forbidden(f"Your subscription covers {module.get('label') or module.get('key')} only.")
+
+
+PINNED_REPORT_METHODS = frozenset({"frappe.desk.query_report.run", "frappe.desk.query_report.export_query"})
+
+
+def pin_report_company() -> None:
+    """before_request hook: a tenant's report always runs for its own Company.
+
+    Standard reports run raw queries filtered by whatever Company the browser names, so the filter is
+    forced to the tenant's, whatever the page or an edited request says. Vendor staff are not touched.
+    """
+    from reckon_saas_platform.tenant_security import tenant_company_or_none
+
+    company = tenant_company_or_none()
+    if not company:
+        return
+    request = getattr(frappe.local, "request", None)
+    path = (request.path or "") if request else ""
+    form = frappe.local.form_dict
+    method = path.rsplit("/", 1)[-1] if path.startswith(("/api/method/", "/api/v1/method/")) else (form.get("cmd") or "")
+    if method not in PINNED_REPORT_METHODS:
+        return
+    raw = form.get("filters")
+    if isinstance(raw, str):
+        try:
+            filters = json.loads(raw) if raw.strip() else {}
+        except ValueError:
+            frappe.throw("Report filters are not valid.", frappe.ValidationError)
+    else:
+        filters = raw or {}
+    if not isinstance(filters, dict):
+        frappe.throw("Report filters are not valid.", frappe.ValidationError)
+    filters = dict(filters)
+    filters["company"] = company
+    form["filters"] = json.dumps(filters) if isinstance(raw, str) or raw is None else filters

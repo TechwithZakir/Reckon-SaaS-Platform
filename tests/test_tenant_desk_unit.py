@@ -366,3 +366,47 @@ class AddModuleCurrencyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SharedCatalogAndReportTests(unittest.TestCase):
+    def test_shared_query_shows_own_rows_and_the_vendor_catalog_and_nothing_else(self):
+        with platform_modules("tenant_security") as (frappe, (security,)):
+            frappe.db.escape = lambda v: "'" + v + "'"
+            with patch.object(security, "user_can_bypass_tenant", return_value=False), \
+                    patch.object(security, "require_tenant", return_value=security.TenantContext(user="u", company="Acme")):
+                sql = security.get_tenant_shared_query("u", "Leave Type")
+            self.assertIn("`tabLeave Type`.`company` = 'Acme'", sql)
+            self.assertIn("ifnull(`tabLeave Type`.`company`, '') = ''", sql)
+
+    def test_the_catalog_is_read_only_for_tenants(self):
+        with platform_modules("tenant_security") as (_frappe, (security,)):
+            catalog, own, other = _Dict(company=""), _Dict(company="Acme"), _Dict(company="Other")
+            with patch.object(security, "user_can_bypass_tenant", return_value=False), \
+                    patch.object(security, "get_user_companies", return_value=["Acme"]), \
+                    patch.object(security, "has_tenant_owned_permission", side_effect=lambda d, user=None, permission_type=None: d.company == "Acme"):
+                self.assertTrue(security.has_tenant_shared_permission(catalog, "u", "read"))
+                self.assertFalse(security.has_tenant_shared_permission(catalog, "u", "write"))
+                self.assertTrue(security.has_tenant_shared_permission(catalog, "u", "create"))  # stamped before saving
+                self.assertTrue(security.has_tenant_shared_permission(own, "u", "write"))
+                self.assertFalse(security.has_tenant_shared_permission(other, "u", "read"))
+                self.assertFalse(security.has_tenant_shared_permission(other, "u", "write"))
+
+    def test_a_tenants_report_runs_for_its_own_company_whatever_the_browser_says(self):
+        import json
+
+        with platform_modules("desk_module_guard", "tenant_security") as (frappe, (guard, security)):
+            frappe.local.request = Mock(path="/api/method/frappe.desk.query_report.run")
+            frappe.local.form_dict = _Dict(filters=json.dumps({"company": "Other", "from_date": "2026-01-01"}))
+            with patch.object(security, "tenant_company_or_none", return_value="Acme"):
+                guard.pin_report_company()
+            self.assertEqual(json.loads(frappe.local.form_dict["filters"]), {"company": "Acme", "from_date": "2026-01-01"})
+            frappe.local.request = Mock(path="/api/method/frappe.client.get_list")
+            frappe.local.form_dict = _Dict(filters=json.dumps({"company": "Other"}))
+            with patch.object(security, "tenant_company_or_none", return_value="Acme"):
+                guard.pin_report_company()
+            self.assertEqual(json.loads(frappe.local.form_dict["filters"])["company"], "Other")  # other calls are not this hook's job
+            frappe.local.request = Mock(path="/api/method/frappe.desk.query_report.run")
+            frappe.local.form_dict = _Dict(filters=json.dumps({"company": "Other"}))
+            with patch.object(security, "tenant_company_or_none", return_value=None):
+                guard.pin_report_company()  # vendor staff: untouched
+            self.assertEqual(json.loads(frappe.local.form_dict["filters"])["company"], "Other")
