@@ -162,6 +162,18 @@
   .rk-start { display: grid; gap: 12px; }
   .rk-start-hint { display: block; margin-top: 6px; color: var(--rk-muted); font-size: 13px; line-height: 1.4; }
   .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
+  .rk-plan-detail { margin-top: 10px; padding: 18px 20px; border: 1.5px solid var(--rk-line); border-radius: 14px; background: var(--rk-card); }
+  .rk-plan-detail h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--rk-muted); margin: 0 0 10px; }
+  .rk-plan-detail .rk-pd-name { font-size: 20px; font-weight: 800; color: var(--rk-ink); }
+  .rk-plan-detail .rk-pd-price { font-size: 15px; color: var(--rk-muted); margin: 2px 0 2px; }
+  .rk-plan-detail .rk-pd-trial { font-size: 13px; font-weight: 700; color: var(--rk-green-dark); }
+  .rk-pd-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 9px; font-size: 14px; }
+  .rk-pd-list li { display: flex; gap: 10px; align-items: flex-start; }
+  .rk-pd-list li::before { content: ""; flex: 0 0 14px; width: 14px; height: 8px; margin-top: 5px; border-left: 3px solid var(--rk-green); border-bottom: 3px solid var(--rk-green); transform: rotate(-45deg); }
+  .rk-pd-list li.is-off { color: var(--rk-muted); }
+  .rk-pd-list li.is-off::before { border-color: var(--rk-line); }
+  .rk-pd-val { color: var(--rk-muted); margin-left: 4px; }
+  .set-group .rk-plans + .rk-plans { display: none; }
 
   .rk-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 22px;
@@ -245,7 +257,7 @@
     .rk-brand img { height: 34px; }
     .rk-brand-text { display: none; }
     .rk-signin { display: none; }
-    .rk-features, .rk-help { display: none; }
+    .rk-features, .rk-help, .rk-plan-detail { display: none; }
     .rk-lead { font-size: 15px; margin-bottom: 4px; }
     .rk-row { grid-template-columns: 1fr; gap: 0; }
     .rk-stepper li span { display: none; }
@@ -293,6 +305,22 @@
           {% endif %}
         </ul>
 
+        {% if plan_sets %}
+        {% set shown = (plan_sets[0].cards | selectattr("comparison") | list) or plan_sets[0].cards %}
+        {% set first = shown[0] if shown else plan_sets[0].cards[0] %}
+        <div class="rk-plan-detail" data-plan-detail>
+          <h2>{{ t.plan_detail_heading }}</h2>
+          <div class="rk-pd-name" data-pd-name>{{ first.plan_name|e }}</div>
+          <div class="rk-pd-price" data-pd-price>{{ first.symbol|e }}{{ first.amount }} / {{ first.period }}</div>
+          {% if first.trial %}<div class="rk-pd-trial" data-pd-trial>{{ first.trial|e }}</div>{% endif %}
+          <ul class="rk-pd-list" data-pd-list>
+            {% for row in first.comparison %}
+            <li{% if not row.included %} class="is-off"{% endif %}>{{ row.feature|e }}{% if row.value %}<span class="rk-pd-val">{{ row.value|e }}</span>{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <div class="rk-help">
           <span class="rk-icon is-whatsapp">{{ icon("whatsapp") }}</span>
           <p>{{ t.questions }}</p>
@@ -337,6 +365,28 @@
               <span class="rk-label" id="rk-plan-label">{{ t.plan }}</span>
               <p class="rk-muted-note" data-plan-note="choose"{% if not show_module_picker or modules|length == 1 %} hidden{% endif %}>{{ t.choose_module_first }}</p>
               <p class="rk-muted-note" data-plan-note="empty" hidden>{{ t.no_plans_for_module }}</p>
+              {% if plan_sets %}
+              {% if plan_currencies|length > 1 %}<div class="rk-cur" role="group" aria-label="{{ t.currency }}">{% for c in plan_currencies %}<button type="button" data-cur-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>{% endif %}
+              {% if plan_cycles|length > 1 %}<div class="rk-cur rk-cycle" role="group" aria-label="{{ t.billing_period }}">{% for c in plan_cycles %}<button type="button" data-cycle-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>{% endif %}
+              <div class="set-group">
+              {% for set in plan_sets %}
+              <div class="cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ set.cur|e }}" data-cycle="{{ set.cycle|e }}">
+                <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
+                  {% for plan in set.cards %}
+                  <label class="rk-plan" data-plan-module="{{ plan.module }}" data-trial-days="{{ plan.trial_days }}" data-comparison='{{ plan.comparison|tojson }}'>
+                    <input type="radio" name="plan" value="{{ plan.name|e }}"{% if loop.first and loop.parentloop.first %} checked{% endif %} data-tier="{{ plan.tier|e }}" data-pd-name="{{ plan.plan_name|e }}" data-pd-price="{{ plan.symbol|e }}{{ plan.amount }} / {{ plan.period }}" data-pd-trial="{{ plan.trial|e }}">
+                    <span class="rk-plan-body">
+                      <span class="rk-plan-name">{{ plan.tier|e }}</span>
+                      <span class="rk-plan-price">{{ plan.symbol|e }}{{ plan.amount }} <small>/ {{ plan.period }}</small></span>
+                      {% if plan.trial %}<small class="rk-plan-trial">{{ plan.trial|e }}</small>{% endif %}
+                    </span>
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endfor %}
+              </div>
+              {% else %}
               <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
                 {% for plan in plan_cards %}
                 <label class="rk-plan" data-plan-module="{{ plan.module }}" data-trial-days="{{ plan.trial_days }}"{% if show_module_picker and modules|length > 1 %} hidden{% endif %}>
@@ -351,6 +401,7 @@
                 </label>
                 {% endfor %}
               </div>
+              {% endif %}
             </div>
 
             <div class="rk-field" data-start-group hidden>
@@ -582,6 +633,47 @@
     }
     document.querySelectorAll('input[name="plan"]').forEach(function (input) { input.addEventListener("change", syncStart); });
     if (startGroup) startGroup.addEventListener("change", function () { startGroup.dataset.touched = "1"; syncStart(); });
+
+    // The left-side "What this plan includes" panel follows whichever plan is checked.
+    const detail = document.querySelector("[data-plan-detail]");
+    function esc(text) { const d = document.createElement("div"); d.textContent = text == null ? "" : String(text); return d.innerHTML; }
+    function syncDetail() {
+      if (!detail) return;
+      const input = document.querySelector('input[name="plan"]:checked');
+      if (!input) return;
+      detail.querySelector("[data-pd-name]").textContent = input.getAttribute("data-pd-name") || "";
+      detail.querySelector("[data-pd-price]").textContent = input.getAttribute("data-pd-price") || "";
+      const trial = detail.querySelector("[data-pd-trial]");
+      const trialText = input.getAttribute("data-pd-trial") || "";
+      if (trial) { trial.hidden = !trialText; trial.textContent = trialText; }
+      let rows = [];
+      try { rows = JSON.parse(input.closest(".rk-plan").getAttribute("data-comparison") || "[]"); } catch (e) { /* keep rows empty */ }
+      detail.querySelector("[data-pd-list]").innerHTML = rows.map(function (row) {
+        return `<li${row.included ? "" : ' class="is-off"'}>${esc(row.feature)}${row.value ? `<span class="rk-pd-val">${esc(row.value)}</span>` : ""}</li>`;
+      }).join("");
+    }
+    document.querySelectorAll('input[name="plan"]').forEach(function (input) {
+      input.addEventListener("change", function () { window.__rkLastTier = input.getAttribute("data-tier"); syncDetail(); });
+    });
+
+    // Plans share one radio group across every currency/billing-period tile set, so switching the
+    // toggle can leave none of the now-visible tiles checked. Re-select one, the same tier if it exists.
+    function visiblePlanRadios() {
+      return Array.from(document.querySelectorAll('input[name="plan"]')).filter(function (i) { return i.offsetParent !== null; });
+    }
+    function ensurePlanSelected() {
+      const radios = visiblePlanRadios();
+      if (!radios.length || radios.some(function (i) { return i.checked; })) return;
+      const wanted = window.__rkLastTier;
+      const pick = (wanted && radios.find(function (i) { return i.getAttribute("data-tier") === wanted; })) || radios[0];
+      pick.checked = true;
+      pick.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    document.querySelectorAll("[data-cur-set], [data-cycle-set]").forEach(function (button) {
+      button.addEventListener("click", function () { setTimeout(ensurePlanSelected, 0); });
+    });
+    syncDetail();
+
     // A plan chosen on the pricing page arrives selected.
     const wantedPlan = new URLSearchParams(window.location.search).get("plan");
     if (wantedPlan) {
