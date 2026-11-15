@@ -41,10 +41,20 @@ def is_company_admin(user: str | None = None) -> bool:
     )
 
 
+def _default_company_to_tenant(bootinfo) -> None:
+    """Reports and forms that default to the system's Company must open on the tenant's own company."""
+    from reckon_saas_platform.tenant_security import tenant_company_or_none
+
+    company = tenant_company_or_none(frappe.session.user)
+    if company and isinstance(bootinfo.get("sysdefaults"), dict):
+        bootinfo["sysdefaults"]["company"] = company
+
+
 def filter_bootinfo(bootinfo) -> None:
     """``extend_bootinfo`` hook: keep other modules' apps off a tenant's Apps menu and apps screen."""
     try:
         bootinfo["reckon_company_admin"] = is_company_admin()
+        _default_company_to_tenant(bootinfo)
         allowed = allowed_apps_for_user()
         if allowed is None:
             return

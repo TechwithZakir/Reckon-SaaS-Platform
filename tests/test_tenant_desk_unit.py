@@ -417,3 +417,15 @@ class SharedCatalogAndReportTests(unittest.TestCase):
             with patch.object(security, "tenant_company_or_none", return_value=None):
                 guard.pin_report_company()  # vendor staff: untouched
             self.assertEqual(json.loads(frappe.local.form_dict["filters"])["company"], "Other")
+
+class BootDefaultCompanyTests(unittest.TestCase):
+    def test_a_tenant_opens_on_its_own_company_not_the_systems(self):
+        with platform_modules("desk_apps", "tenant_security") as (_frappe, (apps, security)):
+            boot = {"sysdefaults": {"company": "Vendor Ltd."}}
+            with patch.object(security, "tenant_company_or_none", return_value="Acme"):
+                apps._default_company_to_tenant(boot)
+            self.assertEqual(boot["sysdefaults"]["company"], "Acme")
+            boot = {"sysdefaults": {"company": "Vendor Ltd."}}
+            with patch.object(security, "tenant_company_or_none", return_value=None):
+                apps._default_company_to_tenant(boot)
+            self.assertEqual(boot["sysdefaults"]["company"], "Vendor Ltd.")
