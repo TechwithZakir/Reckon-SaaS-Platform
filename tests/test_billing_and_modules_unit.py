@@ -368,7 +368,7 @@ class SignupModuleTests(unittest.TestCase):
                 _Dict(enabled=1, saas_module="distribution") if doctype == "SaaS Plan" else 1
             )
             with self.assertRaises(saas.SignupValidationError):
-                saas.create_registration(business_name="Co", owner_email="o@example.com", owner_name="O",
+                saas.create_registration(owner_phone="+15551234567", business_name="Co", owner_email="o@example.com", owner_name="O",
                                          plan="Dist Basic", saas_module="accounts")
             frappe.get_doc.assert_not_called()
 
@@ -419,7 +419,7 @@ class SignupCsrfTests(unittest.TestCase):
             with patch.object(saas, "verify_signup_captcha"), patch.object(
                 saas, "create_registration", return_value=registration
             ) as create, patch.object(saas, "send_registration_verification"):
-                result = saas.public_signup(business_name="Co", owner_email="o@example.com", owner_name="O",
+                result = saas.public_signup(owner_phone="+15551234567", business_name="Co", owner_email="o@example.com", owner_name="O",
                                             plan="Acc Pro", module="accounts")
         self.assertEqual(create.call_args.kwargs["saas_module"], "accounts")
         self.assertTrue(result["ok"])

@@ -152,6 +152,28 @@ class ModuleChoiceScopeTests(unittest.TestCase):
                 self.assertEqual(team.other_modules("Acme"), ["sales_agent"])
 
 
+class SignupMobileTests(unittest.TestCase):
+    def test_numbers_need_a_country_code_and_non_bangladesh_numbers_are_accepted(self):
+        with platform_modules("sms") as (_f, (sms,)):
+            ok = sms.normalize_international_mobile
+            self.assertEqual(ok("+880 1712-345678"), "8801712345678")
+            self.assertEqual(ok("008801712345678"), "8801712345678")
+            self.assertEqual(ok("+1 (555) 123-4567"), "15551234567")
+            self.assertEqual(ok("+44 7911 123456"), "447911123456")
+            for bad in ("01712345678", "1712345678", "", None, "+0123456789", "+880 2 1234567", "+1234567", "+1234567890123456", "+12ab34567890"):
+                self.assertIsNone(ok(bad), bad)  # no country code, a bad Bangladesh mobile, or not 8 to 15 digits
+
+    def test_signup_always_asks_for_the_number_and_sends_the_sms_code_to_bangladesh_numbers_only(self):
+        source = (PKG / "saas.py").read_text(encoding="utf-8")
+        self.assertIn("normalize_international_mobile(owner_phone or \"\")", source)
+        self.assertIn('phone.startswith("880")', source)
+        html = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        field = html[html.index('id="owner_phone"'):][:420]
+        self.assertIn(" required>", field)
+        self.assertIn("+8801XXXXXXXXX", field)
+        self.assertNotIn("optional", html[html.index('<label for="owner_phone">'):][:120])
+
+
 class AddModulePlansTests(unittest.TestCase):
     def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
         with platform_modules("saas") as (_frappe, (saas,)):

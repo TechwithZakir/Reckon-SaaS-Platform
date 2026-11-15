@@ -20,8 +20,7 @@ class SignupValidationTests(unittest.TestCase):
             frappe.db.get_value.side_effect = plan_lookup()
             frappe.db.exists.side_effect = lambda doctype, *args: doctype == "Company"
             with self.assertRaises(saas.SignupConflictError) as raised:
-                saas.create_registration(
-                    business_name="Existing Co",
+                saas.create_registration(owner_phone="+15551234567", business_name="Existing Co",
                     owner_email="guest@example.com",
                     owner_name="Guest",
                     plan="Plan",
@@ -34,8 +33,7 @@ class SignupValidationTests(unittest.TestCase):
             frappe.db.get_value.side_effect = plan_lookup()
             frappe.db.exists.side_effect = lambda doctype, *args: doctype == "User"
             with self.assertRaises(saas.SignupConflictError):
-                saas.create_registration(
-                    business_name="New Co",
+                saas.create_registration(owner_phone="+15551234567", business_name="New Co",
                     owner_email="admin@victim.example",
                     owner_name="Guest",
                     plan="Plan",
@@ -47,8 +45,7 @@ class SignupValidationTests(unittest.TestCase):
             frappe.db.get_value.side_effect = plan_lookup()
             registration = Mock(flags=_Dict())
             frappe.get_doc.return_value.insert.return_value = registration
-            result = saas.create_registration(
-                business_name="New Co",
+            result = saas.create_registration(owner_phone="+15551234567", business_name="New Co",
                 owner_email="Owner@Example.com ",
                 owner_name="Owner",
                 plan="Plan",
@@ -79,6 +76,7 @@ class SignupValidationTests(unittest.TestCase):
                     "owner_email": "o@example.com",
                     "owner_name": "Owner",
                     "plan": "Plan",
+                    "owner_phone": "+15551234567",
                     **case,
                 }
                 with self.assertRaises(saas.SignupValidationError) as raised:
@@ -89,8 +87,7 @@ class SignupValidationTests(unittest.TestCase):
         with platform_modules("saas") as (frappe, (saas,)):
             frappe.db.get_value.side_effect = plan_lookup(enabled=0)
             with self.assertRaises(saas.SignupValidationError):
-                saas.create_registration(
-                    business_name="Co", owner_email="o@example.com", owner_name="O", plan="Old"
+                saas.create_registration(owner_phone="+15551234567", business_name="Co", owner_email="o@example.com", owner_name="O", plan="Old"
                 )
 
     def test_captcha_hook(self):

@@ -45,7 +45,7 @@ from reckon_saas_platform.recaptcha import is_recaptcha_configured, verify_recap
 from reckon_saas_platform.saas_security import is_vendor_user
 from reckon_saas_platform.sms import (
     is_sms_configured,
-    normalize_bd_mobile,
+    normalize_international_mobile,
     send_sms,
 )
 from reckon_saas_platform.tenant_security import get_user_companies, resolve_tenant
@@ -987,17 +987,17 @@ def create_registration(
     plan = (plan or "").strip() if isinstance(plan, str) else ""
     billing_cycle = (billing_cycle or "Monthly").strip() if isinstance(billing_cycle, str) else ""
 
-    phone_required = bool(cint(get_signup_settings().require_phone_verification))
-    phone = None
-    if owner_phone not in (None, ""):
-        phone = normalize_bd_mobile(owner_phone)
-        if not phone:
-            frappe.throw(_("Please enter a valid Bangladesh mobile number."), SignupValidationError)
-    if phone_required:
-        if not phone:
-            frappe.throw(_("Owner Mobile is required."), SignupValidationError)
-        if not is_sms_configured():
-            frappe.throw(_("Signup is temporarily unavailable."), SignupUnavailableError)
+    # The mobile number is always required, written with its country code (+880..., +1...).
+    phone = normalize_international_mobile(owner_phone or "")
+    if not phone:
+        frappe.throw(
+            _("Enter your mobile number with the country code, for example +8801XXXXXXXXX or +1 555 123 4567."),
+            SignupValidationError,
+        )
+    # The SMS code is sent to Bangladesh numbers only; a number from another country is checked by email.
+    phone_required = bool(cint(get_signup_settings().require_phone_verification)) and phone.startswith("880")
+    if phone_required and not is_sms_configured():
+        frappe.throw(_("Signup is temporarily unavailable."), SignupUnavailableError)
 
     if billing_cycle not in BILLING_CYCLES:
         frappe.throw(_("Please select a valid billing cycle."), SignupValidationError)

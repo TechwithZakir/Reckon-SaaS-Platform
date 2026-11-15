@@ -31,7 +31,7 @@ def _create(saas, frappe, **extra):
         owner_email="owner@example.com",
         owner_name="Rahman",
         plan="Plan",
-        **extra,
+        **{"owner_phone": "+15551234567", **extra},
     )
     return frappe.get_doc.call_args.args[0]
 

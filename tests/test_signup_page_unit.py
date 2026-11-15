@@ -154,8 +154,7 @@ class ModuleSpecificSignupTests(unittest.TestCase):
     def _create(self, saas, frappe, saas_module):
         frappe.db.get_value.side_effect = plan_lookup(saas_module="distribution")
         frappe.get_doc.return_value.insert.return_value = Mock(flags=_Dict())
-        return saas.create_registration(
-            business_name="Co", owner_email="o@example.com", owner_name="O", plan="Dist Basic",
+        return saas.create_registration(owner_phone="+15551234567", business_name="Co", owner_email="o@example.com", owner_name="O", plan="Dist Basic",
             saas_module=saas_module,
         )
 

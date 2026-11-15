@@ -168,7 +168,7 @@ class PhoneSignupTests(unittest.TestCase):
             "owner_email": "owner@example.com",
             "owner_name": "Owner",
             "plan": "Plan",
-            "owner_phone": "01712345678",
+            "owner_phone": "+8801712345678",
             **overrides,
         }
         return saas.create_registration(**values), frappe.get_doc.call_args.args[0]

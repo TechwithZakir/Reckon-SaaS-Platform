@@ -424,8 +424,9 @@
                 <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="{{ t.owner_placeholder }}" required>
               </div>
               <div class="rk-field">
-                <label for="owner_phone">{{ t.mobile }}{% if not phone_required %} ({{ t.optional }}){% endif %}</label>
-                <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="01XXXXXXXXX"{% if phone_required %} required{% endif %}>
+                <label for="owner_phone">{{ t.mobile }}</label>
+                <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="22" placeholder="+8801XXXXXXXXX" pattern="(\+|00)[0-9 ()\-]{8,22}" title="{{ t.mobile_hint|e }}" required>
+                <small class="rk-hint">{{ t.mobile_hint }}</small>
               </div>
             </div>
             <div class="rk-field">

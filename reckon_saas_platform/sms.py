@@ -66,6 +66,28 @@ def normalize_bd_mobile(value) -> str | None:
     return digits if _BD_MOBILE.match(digits) else None
 
 
+def normalize_international_mobile(value) -> str | None:
+    """Digits of a mobile number written with its country code (``+880 1712 345678``, ``+1 555 123 4567``), else ``None``.
+
+    The country code is required: a number must start with ``+`` or ``00``. A Bangladesh number must be a
+    valid Bangladesh mobile; any other country needs 8 to 15 digits, as in E.164.
+    """
+    if not isinstance(value, str):
+        return None
+    text = re.sub(r"[\s\-().]", "", value.strip())
+    if text.startswith("+"):
+        digits = text[1:]
+    elif text.startswith("00"):
+        digits = text[2:]
+    else:
+        return None
+    if not digits.isdigit() or digits.startswith("0"):
+        return None
+    if digits.startswith("880"):
+        return normalize_bd_mobile(digits)
+    return digits if 8 <= len(digits) <= 15 else None
+
+
 def get_bulksmsbd_credentials() -> tuple[str, str] | None:
     settings = frappe.get_cached_doc("SaaS Platform Settings")
     api_key = settings.get_password("bulksmsbd_api_key", raise_exception=False)

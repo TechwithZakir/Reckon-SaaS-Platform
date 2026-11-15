@@ -23,7 +23,7 @@ def _create(saas, frappe, **extra):
     registration = Mock(flags=_Dict())
     frappe.get_doc.return_value.insert.return_value = registration
     saas.create_registration(
-        business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan", **extra
+        business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan", **{"owner_phone": "+15551234567", **extra}
     )
     return registration, frappe.get_doc.call_args.args[0]
 
@@ -82,8 +82,7 @@ class OwnerPasswordTests(unittest.TestCase):
             frappe.settings = FakeSettings(require_email_verification=0)
             frappe.db.get_value.side_effect = plan_lookup()
             with patch.object(saas, "verify_signup_captcha"), self.assertRaises(saas.SignupValidationError):
-                saas.public_signup(
-                    business_name="New Co",
+                saas.public_signup(owner_phone="+15551234567", business_name="New Co",
                     owner_email="owner@example.com",
                     owner_name="Owner",
                     plan="Plan",
@@ -109,8 +108,7 @@ class OwnerPasswordTests(unittest.TestCase):
             with patch.object(saas, "verify_signup_captcha"), patch.object(
                 saas, "create_registration", return_value=registration
             ) as create, patch.object(saas, "enqueue_registration_provisioning"):
-                result = saas.public_signup(
-                    business_name="New Co",
+                result = saas.public_signup(owner_phone="+15551234567", business_name="New Co",
                     owner_email="owner@example.com",
                     owner_name="Owner",
                     plan="Plan",

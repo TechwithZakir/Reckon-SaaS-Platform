@@ -179,8 +179,7 @@ class ModuleWiseSellingTests(unittest.TestCase):
         frappe.db.get_value.side_effect = plan_lookup(**lookup)
         registration = Mock(flags=_Dict())
         frappe.get_doc.return_value.insert.return_value = registration
-        saas.create_registration(
-            business_name="New Co", owner_email="o@example.com", owner_name="O", plan="Plan"
+        saas.create_registration(owner_phone="+15551234567", business_name="New Co", owner_email="o@example.com", owner_name="O", plan="Plan"
         )
         return frappe.get_doc.call_args.args[0]
 

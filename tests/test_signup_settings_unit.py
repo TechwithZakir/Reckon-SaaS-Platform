@@ -61,7 +61,7 @@ class OptionalEmailVerificationTests(unittest.TestCase):
         registration = Mock(flags=_Dict())
         frappe.get_doc.return_value.insert.return_value = registration
         saas.create_registration(
-            business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan", **extra
+            business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan", **{"owner_phone": "+15551234567", **extra}
         )
         return registration, frappe.get_doc.call_args.args[0]
 
@@ -100,8 +100,7 @@ class OptionalEmailVerificationTests(unittest.TestCase):
             with patch.object(saas, "verify_signup_captcha"), patch.object(
                 saas, "create_registration", return_value=registration
             ), patch.object(saas, "enqueue_registration_provisioning") as enqueue:
-                result = saas.public_signup(
-                    business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan"
+                result = saas.public_signup(owner_phone="+15551234567", business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan"
                 )
             registration.db_set.assert_called_once_with("status", "Provisioning")
             enqueue.assert_called_once_with("REG-1")
@@ -124,8 +123,7 @@ class OptionalEmailVerificationTests(unittest.TestCase):
             ), patch.object(saas, "send_registration_verification"), patch.object(
                 saas, "enqueue_registration_provisioning"
             ) as enqueue:
-                saas.public_signup(
-                    business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan"
+                saas.public_signup(owner_phone="+15551234567", business_name="New Co", owner_email="owner@example.com", owner_name="Owner", plan="Plan"
                 )
             enqueue.assert_not_called()
 
