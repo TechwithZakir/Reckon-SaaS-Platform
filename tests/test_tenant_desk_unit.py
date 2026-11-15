@@ -441,3 +441,30 @@ class DefaultPreferencesTests(unittest.TestCase):
             self.assertEqual(args[:2], ("User", "a@b.test"))
             self.assertEqual(set(args[2]), set(team.DEFAULT_PREFERENCES))
             self.assertTrue(all(v == 1 for v in args[2].values()))
+
+
+class TenantAuditTests(unittest.TestCase):
+    def _audit(self):
+        import importlib.util
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parents[1] / "reckon_saas_platform" / "tenant_audit.py"
+        spec = importlib.util.spec_from_file_location("tenant_audit_under_test", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_an_unscoped_doctype_is_reported(self):
+        audit = self._audit()
+        found = audit.find_unscoped(
+            ["Invoice", "Open Thing", "Half Thing", "Row", "Country", "Ref"],
+            query_hooks={"Invoice": "q", "Half Thing": "q"},
+            permission_hooks={"Invoice": "p"},
+            child_tables=["Row"], reference=["Ref"])
+        self.assertEqual(found, [("Half Thing", "no permission rule"), ("Open Thing", "no row filter and no permission rule")])
+
+    def test_a_single_record_needs_only_a_permission_rule(self):
+        audit = self._audit()
+        self.assertEqual(audit.find_unscoped(["Some Settings"], {}, {"Some Settings": "p"}, singles=["Some Settings"]), [])
+        self.assertEqual(audit.find_unscoped(["Some Settings"], {}, {}, singles=["Some Settings"]),
+                         [("Some Settings", "no permission rule")])

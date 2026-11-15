@@ -46,6 +46,9 @@ def after_migrate() -> None:
     audit_tenant_roles()
     ensure_file_storage_tracking()
     ensure_subscription_menu()
+    from reckon_saas_platform.tenant_audit import log_gaps
+
+    log_gaps()  # a module that opens a doctype to tenants without a company scope shows up in the Error Log
 
 
 SUBSCRIPTION_MENU_ROUTE = "/reckonerp-subscription"
