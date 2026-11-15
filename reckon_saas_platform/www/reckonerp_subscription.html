@@ -8,6 +8,13 @@
 <main class="rs-portal">
   <div class="rs-portal__inner">
     {% include "reckon_saas_platform/templates/account/header.html" %}
+    <section class="rs-portal__company" aria-label="Company">
+      <div>
+        <div class="rs-portal__label">Company</div>
+        <h2 class="rs-portal__company-name">{{ (summary.company or "Not assigned")|e }}</h2>
+      </div>
+      <div class="rs-portal__row"><span>Operational access</span><strong>{{ "Enabled" if summary.operational_access else "Locked" }}</strong></div>
+    </section>
     <section class="rs-portal__hero">
       <div>
         <p class="rs-portal__eyebrow">Your account</p>
@@ -22,10 +29,6 @@
       <button type="button" role="tab" data-tab="setup" aria-selected="false">Setup</button>
     </div>
     <section class="rs-portal__grid" data-panel="plans">
-      <article class="rs-portal__card">
-        <div class="rs-portal__label">Company</div><div class="rs-portal__value">{{ (summary.company or "Not assigned")|e }}</div>
-        <div class="rs-portal__list"><div class="rs-portal__row"><span>Operational access</span><strong>{{ "Enabled" if summary.operational_access else "Locked" }}</strong></div></div>
-      </article>
 
       {% for sub in subscriptions %}
       <article class="rs-portal__card">

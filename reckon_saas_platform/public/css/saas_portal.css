@@ -137,3 +137,8 @@ body:has(.rs-portal) .page_content, body:has(.rs-portal) .page-content-wrapper, 
   .rs-portal__card--wide { grid-column: auto; }
   .rs-portal__hero { align-items: flex-start; flex-direction: column; }
 }
+
+/* Company title card at the top of the subscription page */
+.rs-portal__company{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 18px;padding:18px 22px;border:1px solid var(--border-color,#dbe3ec);border-radius:14px;background:var(--card-bg,#fff)}
+.rs-portal__company-name{margin:2px 0 0;font-size:26px;line-height:1.2}
+.rs-portal__company .rs-portal__row{border:0;padding:0;gap:10px}
