@@ -79,6 +79,25 @@ class TemplateWiringTests(unittest.TestCase):
             "ensurePlanSelected", "syncDetail",
         ):
             self.assertIn(needle, html, needle)
+        self.assertNotIn("parentloop", html)  # Django syntax; Jinja has no loop.parentloop and the page would be a 500
+
+    def test_the_plan_picker_block_renders_with_real_data(self):
+        """Parsing is not enough: an undefined attribute only fails when the block is rendered."""
+        import re
+
+        import jinja2
+
+        html = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
+        start = html.index("{% if plan_currencies|length > 1 %}")
+        end = html.index('<div class="rk-plans" role="radiogroup"', html.index("</div>\n              {% else %}", start))
+        block = html[start:html.rindex("{% else %}", start, end)]
+        card = {"name": "P", "plan_name": "P", "tier": "Basic", "module": "accounts", "trial_days": 15, "comparison": [{"feature": "Users", "included": True, "value": "5"}],
+                "symbol": "$", "amount": "10", "period": "month", "trial": "15-day free trial"}
+        sets = [{"cur": "BDT", "cycle": "Monthly", "cards": [card, dict(card, name="Q")]}, {"cur": "USD", "cycle": "Monthly", "cards": [dict(card, name="R")]}]
+        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+        out = env.from_string(block).render(plan_sets=sets, plan_currencies=["BDT", "USD"], plan_cycles=["Monthly"], t={"currency": "Currency", "billing_period": "Billing period"})
+        self.assertEqual(len(re.findall(r" checked", out)), 1)  # exactly one plan starts selected
+        self.assertEqual(out.count('class="cur-set'), 2)
 
     def test_modules_page_uses_the_same_comparison_table_as_pricing(self):
         html = (PKG / "www" / "reckon_modules.html").read_text(encoding="utf-8")

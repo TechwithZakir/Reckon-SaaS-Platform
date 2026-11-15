@@ -369,12 +369,12 @@
               {% if plan_currencies|length > 1 %}<div class="rk-cur" role="group" aria-label="{{ t.currency }}">{% for c in plan_currencies %}<button type="button" data-cur-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>{% endif %}
               {% if plan_cycles|length > 1 %}<div class="rk-cur rk-cycle" role="group" aria-label="{{ t.billing_period }}">{% for c in plan_cycles %}<button type="button" data-cycle-set="{{ c|e }}" aria-pressed="false">{{ c|e }}</button>{% endfor %}</div>{% endif %}
               <div class="set-group">
-              {% for set in plan_sets %}
+              {% for set in plan_sets %}{% set first_set = loop.first %}
               <div class="cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ set.cur|e }}" data-cycle="{{ set.cycle|e }}">
                 <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
                   {% for plan in set.cards %}
                   <label class="rk-plan" data-plan-module="{{ plan.module }}" data-trial-days="{{ plan.trial_days }}" data-comparison='{{ plan.comparison|tojson }}'>
-                    <input type="radio" name="plan" value="{{ plan.name|e }}"{% if loop.first and loop.parentloop.first %} checked{% endif %} data-tier="{{ plan.tier|e }}" data-pd-name="{{ plan.plan_name|e }}" data-pd-price="{{ plan.symbol|e }}{{ plan.amount }} / {{ plan.period }}" data-pd-trial="{{ plan.trial|e }}">
+                    <input type="radio" name="plan" value="{{ plan.name|e }}"{% if loop.first and first_set %} checked{% endif %} data-tier="{{ plan.tier|e }}" data-pd-name="{{ plan.plan_name|e }}" data-pd-price="{{ plan.symbol|e }}{{ plan.amount }} / {{ plan.period }}" data-pd-trial="{{ plan.trial|e }}">
                     <span class="rk-plan-body">
                       <span class="rk-plan-name">{{ plan.tier|e }}</span>
                       <span class="rk-plan-price">{{ plan.symbol|e }}{{ plan.amount }} <small>/ {{ plan.period }}</small></span>
