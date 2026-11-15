@@ -137,6 +137,17 @@
    "show_arrow": 0
   },
   {
+   "label": "Scoping Audit",
+   "link_to": "tenant-scoping-audit",
+   "link_type": "Page",
+   "type": "Link",
+   "icon": "shield-check",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
    "label": "Settings",
    "type": "Section Break",
    "icon": "settings",

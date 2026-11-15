@@ -1,0 +1,10 @@
+{
+ "doctype": "Page",
+ "icon": "shield-check",
+ "module": "SaaS Platform",
+ "name": "tenant-scoping-audit",
+ "page_name": "tenant-scoping-audit",
+ "roles": [{"role": "Reckon Vendor Superuser"}, {"role": "System Manager"}],
+ "standard": "Yes",
+ "title": "Tenant Scoping Audit"
+}
