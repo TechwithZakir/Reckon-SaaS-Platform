@@ -77,6 +77,11 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn("with_ask_ai(", text("marketing.py"))  # plan and module feature lists
         self.assertIn("ASK_AI_LABEL.casefold()", text("marketing.py"))  # pricing comparison rows
 
+    def test_an_unpaid_invoice_has_a_pay_button(self):
+        html = text("www", "reckonerp_subscription.html")
+        self.assertIn('inv.status == "Unpaid"', html)
+        self.assertIn("data-invoice-pay", html)
+
 
 if __name__ == "__main__":
     unittest.main()

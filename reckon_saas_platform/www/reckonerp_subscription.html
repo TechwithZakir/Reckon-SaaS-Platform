@@ -95,7 +95,7 @@
       <article class="rs-portal__card rs-portal__card--full">
         <p class="rs-portal__eyebrow">Billing</p><h2>Invoices</h2>
         <div class="rs-portal__list">
-          {% for inv in invoices %}<div class="rs-portal__row"><span><a href="{{ inv.url|e }}">{{ inv.name|e }}</a> &middot; {{ inv.module_name|e }} &middot; due {{ inv.due_date|e }}</span><strong>{{ inv.amount_text|e }} &middot; {{ inv.status|e }} &middot; <a href="{{ inv.pdf_url|e }}">PDF</a></strong></div>{% endfor %}
+          {% for inv in invoices %}<div class="rs-portal__row"><span><a href="{{ inv.url|e }}">{{ inv.name|e }}</a> &middot; {{ inv.module_name|e }} &middot; due {{ inv.due_date|e }}</span><strong>{{ inv.amount_text|e }} &middot; {{ inv.status|e }} &middot; <a href="{{ inv.pdf_url|e }}">PDF</a>{% if inv.status == "Unpaid" and inv.subscription %} &middot; <button type="button" class="rs-portal__button rs-portal__button--primary" style="padding:4px 14px;min-height:0" data-invoice-pay="{{ inv.subscription|e }}">Pay</button>{% endif %}</strong></div>{% endfor %}
         </div>
       </article>
     </section>{% endif %}
@@ -345,6 +345,26 @@
       });
     });
   })();
+
+    // Pay on an unpaid invoice: card plans open checkout, Taka plans go to the payment form for that subscription.
+    document.querySelectorAll("[data-invoice-pay]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const name = button.getAttribute("data-invoice-pay");
+        const plansTab = document.querySelector('[data-tab="plans"]');
+        if (plansTab) plansTab.click();
+        const box = Array.from(document.querySelectorAll("[data-card-subscription]")).find(function (b) { return b.getAttribute("data-card-subscription") === name; });
+        const checkout = box && box.querySelector('[data-card-action="checkout"]');
+        if (checkout) { checkout.scrollIntoView({ block: "center" }); checkout.click(); return; }
+        const form = Array.from(document.querySelectorAll("[data-pay-subscription]")).find(function (f) { return f.getAttribute("data-pay-subscription") === name; });
+        if (form) {
+          const more = form.closest("details");
+          if (more) more.open = true;
+          form.scrollIntoView({ block: "center" });
+          const input = form.querySelector("input[name=reference]");
+          if (input) input.focus();
+        }
+      });
+    });
 </script>
 {% endif %}
 {% endblock %}
