@@ -683,8 +683,12 @@ MODULE_COPY.update(
 ASK_AI_LABEL = "Ask AI: Reckon AI agentic support"  # every plan of every module includes it
 
 
+# Every plan of every module also includes these; shown on plans, comparisons and service pages.
+EVERY_PLAN_LABELS = (ASK_AI_LABEL, "Multi currency", "Multi language", "Multi branch", "Multi warehouse")
+
+
 def with_ask_ai(features: list[str]) -> list[str]:
-    return features if ASK_AI_LABEL in features else [*features, ASK_AI_LABEL]
+    return [*features, *(label for label in EVERY_PLAN_LABELS if label not in features)]
 
 
 FEATURE_LABELS = {
@@ -1060,8 +1064,14 @@ def comparison_matrix(plans: list[dict]) -> dict:
     """
     lines = [p.get("comparison") or [{"feature": f, "included": True, "value": ""} for f in p.get("features") or []] for p in plans]
     lines = lines if not any(lines) else [
-        plan_lines if any(x["feature"].casefold() == ASK_AI_LABEL.casefold() for x in plan_lines)
-        else [*plan_lines, {"feature": ASK_AI_LABEL, "included": True, "value": ""}]
+        [
+            *plan_lines,
+            *(
+                {"feature": label, "included": True, "value": ""}
+                for label in EVERY_PLAN_LABELS
+                if not any(x["feature"].casefold() == label.casefold() for x in plan_lines)
+            ),
+        ]
         for plan_lines in lines
     ]
     order: list[str] = []
@@ -1215,7 +1225,7 @@ def get_modules() -> list[dict]:
         details = module_content.MODULE_DETAILS.get(key, {})
         features = with_ask_ai([feature_label(k) for k in feature_keys])
         ready = learning_ready()
-        inclusions = list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS)
+        inclusions = with_ask_ai(list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS))
         inclusions.append(module_content.LEARNING_INCLUSION if ready else module_content.LEARNING_SOON)
         exclusions = list(details.get("exclusions") or []) + list(module_content.COMMON_EXCLUSIONS)
         by_currency: dict[str, list[dict]] = {}

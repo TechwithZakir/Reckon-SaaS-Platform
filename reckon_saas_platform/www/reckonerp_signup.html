@@ -310,9 +310,10 @@
         </ul>
 
         {% if plan_sets %}
+        {% set always_included = [[t.ask_ai_item, t.ask_ai_detail], [t.inc_multi_currency, ""], [t.inc_multi_language, ""], [t.inc_multi_branch, ""], [t.inc_multi_warehouse, ""]] %}
         {% set shown = (plan_sets[0].cards | selectattr("comparison") | list) or plan_sets[0].cards %}
         {% set first = shown[0] if shown else plan_sets[0].cards[0] %}
-        <div class="rk-plan-detail" data-plan-detail data-ai-item="{{ t.ask_ai_item|e }}" data-ai-value="{{ t.ask_ai_value|e }}" data-ai-text="{{ t.ask_ai_text|e }}">
+        <div class="rk-plan-detail" data-plan-detail data-always="{{ always_included|tojson|e }}">
           <h2>{{ t.plan_detail_heading }}</h2>
           <div class="rk-pd-name" data-pd-name>{{ first.plan_name|e }}</div>
           <div class="rk-pd-price" data-pd-price>{{ first.symbol|e }}{{ first.amount }} / {{ first.period }}</div>
@@ -321,7 +322,7 @@
             {% for row in first.comparison %}
             <li{% if not row.included %} class="is-off"{% endif %}>{{ row.feature|e }}{% if row.value %}<span class="rk-pd-val">{{ row.value|e }}</span>{% endif %}</li>
             {% endfor %}
-            <li title="{{ t.ask_ai_text|e }}">{{ t.ask_ai_item }}<span class="rk-pd-val">{{ t.ask_ai_value }}</span></li>
+            {% for line in always_included %}<li>{{ line[0]|e }}{% if line[1] %}<small style="display:block;opacity:.8;font-weight:400">{{ line[1]|e }}</small>{% endif %}</li>{% endfor %}
           </ul>
         </div>
         {% endif %}
@@ -675,9 +676,13 @@
       if (trial) { trial.hidden = !trialText; trial.textContent = trialText; }
       let rows = [];
       try { rows = JSON.parse(input.closest(".rk-plan").getAttribute("data-comparison") || "[]"); } catch (e) { /* keep rows empty */ }
+      let always = [];
+      try { always = JSON.parse(detail.dataset.always || "[]"); } catch (e) { /* none */ }
       detail.querySelector("[data-pd-list]").innerHTML = rows.map(function (row) {
         return `<li${row.included ? "" : ' class="is-off"'}>${esc(row.feature)}${row.value ? `<span class="rk-pd-val">${esc(row.value)}</span>` : ""}</li>`;
-      }).join("") + `<li title="${esc(detail.dataset.aiText)}">${esc(detail.dataset.aiItem)}<span class="rk-pd-val">${esc(detail.dataset.aiValue)}</span></li>`;  // Ask AI closes every plan's list
+      }).join("") + always.map(function (line) {
+        return `<li>${esc(line[0])}${line[1] ? `<small style="display:block;opacity:.8;font-weight:400">${esc(line[1])}</small>` : ""}</li>`;
+      }).join("");  // what every plan includes closes the list
     }
     document.querySelectorAll('input[name="plan"]').forEach(function (input) {
       input.addEventListener("change", function () { window.__rkLastTier = input.getAttribute("data-tier"); syncDetail(); });

@@ -438,7 +438,7 @@ class MarketingDataTests(unittest.TestCase):
         self.assertEqual(distribution["url"], "/modules/distribution")
         self.assertEqual(
             distribution["features"],
-            ["DSR route planning and delivery tracking", "Bangla-first mobile app", "Unknown future feature", "Ask AI: Reckon AI agentic support"],
+            ["DSR route planning and delivery tracking", "Bangla-first mobile app", "Unknown future feature", "Ask AI: Reckon AI agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"],
         )
         self.assertTrue(distribution["benefits"])
 
@@ -459,7 +459,7 @@ class MarketingDataTests(unittest.TestCase):
         accounts = modules[1]
         self.assertEqual(accounts["name"], "Reckon Books")
         self.assertEqual(accounts["description"], "Edited by the vendor.")
-        self.assertEqual(accounts["features"], ["Stock and warehouses", "Custom thing", "Ask AI: Reckon AI agentic support"])
+        self.assertEqual(accounts["features"], ["Stock and warehouses", "Custom thing", "Ask AI: Reckon AI agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
 
     def test_apps_can_publish_integrations(self):
         published = [

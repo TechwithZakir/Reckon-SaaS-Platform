@@ -75,7 +75,7 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn("add_ask_ai_to_plans", text("patches.txt"))
         self.assertIn("Ask AI: Reckon AI agentic support", text("marketing.py"))
         self.assertIn("with_ask_ai(", text("marketing.py"))  # plan and module feature lists
-        self.assertIn("ASK_AI_LABEL.casefold()", text("marketing.py"))  # pricing comparison rows
+        self.assertIn("EVERY_PLAN_LABELS", text("marketing.py"))  # pricing comparison rows
 
     def test_an_unpaid_invoice_has_a_pay_button(self):
         html = text("www", "reckonerp_subscription.html")
@@ -84,8 +84,8 @@ class LegalPagesTests(unittest.TestCase):
 
     def test_signup_lists_ask_ai_as_the_last_line_of_what_the_plan_includes(self):
         html = text("www", "reckonerp_signup.html")
-        self.assertIn("data-ai-item", html)
-        self.assertIn("detail.dataset.aiItem", html)
+        self.assertIn("data-always", html)
+        self.assertIn("always.map(", html)
         self.assertNotIn('class="rk-note"', html)
 
 

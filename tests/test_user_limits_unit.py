@@ -70,7 +70,7 @@ class UserLimitWiringTests(unittest.TestCase):
             a = {**plan("A", 1, "BDT"), "max_users": 5, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             b = {**plan("B", 2, "BDT"), "max_users": 0, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             rows = marketing.comparison_matrix([a, b])["rows"]
-        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X", "Ask AI: Reckon AI agentic support"])
+        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X", "Ask AI: Reckon AI agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
         self.assertEqual([c["users"] for c in rows[0]["cells"]], [5, 0])
 
 
@@ -121,7 +121,7 @@ class FileStorageTests(unittest.TestCase):
             b = {**plan("B", 2, "BDT"), "max_storage_mb": 2048, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             c = {**plan("C", 3, "BDT"), "max_storage_mb": 0, "comparison": [{"feature": "X", "included": True, "value": ""}]}
             rows = marketing.comparison_matrix([a, b, c])["rows"]
-        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X", "Ask AI: Reckon AI agentic support"])
+        self.assertEqual([r["feature"] for r in rows], ["Users", "File storage", "X", "Ask AI: Reckon AI agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
         self.assertEqual([x["text"] for x in rows[1]["cells"]], ["500 MB", "2 GB", ""])
 
 
