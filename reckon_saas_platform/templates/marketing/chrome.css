@@ -95,3 +95,13 @@ header.top .actions .btn{padding:8px 14px;font-size:14px;min-height:36px}
 .rk-theme button,.rk-lang a,.rk-cur button{min-height:32px;padding:6px 11px}
 nav.main{gap:2px 12px}
 }
+
+/* Footer rows shared by every page that shows the site footer, the signup page included. */
+.foot-seo{display:flex;flex-wrap:wrap;gap:6px 18px;padding:14px 0;margin-top:14px;border-top:1px solid var(--line);font-size:.9rem}
+.foot-svc{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 0;font-size:.9rem;border-top:1px solid var(--line)}
+.foot-seo a,.foot-svc a{color:var(--mut);text-decoration:none;display:inline-block;padding:3px 0}
+.foot-seo a:hover,.foot-svc a:hover{text-decoration:underline}
+.foot-svc strong{color:var(--ink)}
+.foot-co a{font-weight:700}
+footer.foot .note{font-size:.85rem;color:var(--mut)}
+footer.foot .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}

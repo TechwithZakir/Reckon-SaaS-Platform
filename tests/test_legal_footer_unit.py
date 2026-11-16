@@ -88,10 +88,13 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn("always.map(", html)
         self.assertNotIn('class="rk-note"', html)
 
-    def test_the_payment_panel_opens_the_invoiced_module_not_a_fixed_one(self):
+    def test_the_subscription_page_has_no_open_app_buttons_and_the_signup_footer_is_styled(self):
         html = text("www", "reckonerp_subscription.html")
-        self.assertIn("pay_apps", html)
-        self.assertNotIn("app/distribution", html)
+        self.assertNotIn("Open {{ sub.module_name", html)
+        self.assertNotIn("pay_apps", html)
+        chrome = text("templates", "marketing", "chrome.css")
+        for needle in (".foot-seo", ".foot-svc", ".foot-co"):
+            self.assertIn(needle, chrome)  # the signup page loads chrome.css, not the full marketing stylesheet
 
 
 if __name__ == "__main__":
