@@ -673,7 +673,7 @@ class MarketingRenderTests(unittest.TestCase):
             self.assertEqual(html.count("<title>"), 1)
             self.assertNotIn("frappe", html.lower(), page["path"])
             for href in parser.hrefs:
-                if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/", "https://share.google/", "https://www.facebook.com/")):
+                if href.startswith(("#", "mailto:", "https://wa.me/", "https://www.reckon.tech/", "https://share.google/", "https://www.facebook.com/", "https://drive.google.com/file/d/")):
                     continue
                 if href.startswith("/assets/reckon_saas_platform/"):
                     target = asset_root / href.removeprefix("/assets/reckon_saas_platform/")

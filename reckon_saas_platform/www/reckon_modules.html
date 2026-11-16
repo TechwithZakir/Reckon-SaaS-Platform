@@ -19,6 +19,15 @@
       <ul class="tick">{% for b in page.module.benefits %}<li>{{ b|e }}</li>{% endfor %}</ul>
       {% endif %}
       <div class="actions"><a class="btn solid lg" href="{{ u(page.signup_url)|e }}">{{ tr("Sign up for {name}")|replace("{name}", page.module.name|e) }}</a><a class="btn lg" href="{{ u("/login") }}">{{ tr("Log in") }}</a></div>
+      {% if page.video_id %}
+      <figure class="vid" data-vid="{{ page.video_id }}" data-title="{{ page.module.name|e }}">
+        <a class="vid-poster" href="https://drive.google.com/file/d/{{ page.video_id }}/view" target="_blank" rel="noopener" style="background-image:url('https://drive.google.com/thumbnail?id={{ page.video_id }}&sz=w1000')" aria-label="{{ tr("See {name} in action")|replace("{name}", page.module.name|e) }}">
+          <span class="vid-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5v14l11-7z"/></svg></span>
+          <span class="vid-cap">{{ tr("See {name} in action")|replace("{name}", page.module.name|e) }}</span>
+        </a>
+      </figure>
+      <script>document.querySelectorAll("[data-vid]").forEach(function(f){f.querySelector("a").addEventListener("click",function(e){e.preventDefault();var i=document.createElement("iframe");i.src="https://drive.google.com/file/d/"+f.dataset.vid+"/preview";i.title=f.dataset.title;i.allow="autoplay; fullscreen";i.allowFullscreen=true;i.referrerPolicy="no-referrer";f.replaceChildren(i);});});</script>
+      {% endif %}
     </div>
     <aside class="card" aria-label="{{ tr("Module details") }}">
       {% if page.module.image %}<img src="{{ page.module.image.src|e }}" width="{{ page.module.image.width }}" height="{{ page.module.image.height }}" alt="{{ page.module.image.alt|e }}" decoding="async">{% endif %}
@@ -85,14 +94,6 @@
       <li><article class="card"><img src="{{ mod.image.src|e }}" width="{{ mod.image.width }}" height="{{ mod.image.height }}" alt="{{ mod.image.alt|e }}" loading="lazy" decoding="async"><h3>{{ mod.name|e }}</h3><p>{{ mod.tagline|e }}</p><a class="more" href="{{ u(mod.url)|e }}">{{ tr("About {name}")|replace("{name}", mod.name|e) }}</a></article></li>
       {% endfor %}
     </ul>
-  </div>
-</section>
-{% endif %}
-{% if page.video_id %}
-<section aria-labelledby="video-h">
-  <div class="wrap">
-    <div class="head"><h2 id="video-h">{{ tr("See {name} in action")|replace("{name}", page.module.name|e) }}</h2></div>
-    <div class="vid"><iframe src="https://drive.google.com/file/d/{{ page.video_id }}/preview" title="{{ page.module.name|e }}" loading="lazy" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="no-referrer"></iframe></div>
   </div>
 </section>
 {% endif %}
