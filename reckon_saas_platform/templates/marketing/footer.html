@@ -18,6 +18,10 @@
       <strong>{{ tr("Services") }}</strong>
       {% for label, link in company_links.services %}<a href="{{ link|e }}">{{ tr(label) }}</a>{% endfor %}
     </nav>
+    <nav class="foot-svc" aria-label="{{ tr("Legal") }}">
+      <strong>{{ tr("Legal") }}</strong>
+      <a href="{{ u("/security") }}">{{ tr("Security") }}</a><a href="{{ u("/payment-policy") }}">{{ tr("Payment policy") }}</a><a href="{{ u("/refund-policy") }}">{{ tr("Refund policy") }}</a><a href="{{ u("/privacy-policy") }}">{{ tr("Privacy policy") }}</a>
+    </nav>
     <div class="foot-bottom">
       <a class="foot-logo" href="{{ u("/") }}" aria-label="{{ tr("ReckonERP home") }}"><img src="{{ logo|e }}" width="{{ logo_width }}" height="{{ logo_height }}" alt="{{ tr("ReckonERP") }}" loading="lazy" decoding="async"></a>
       <address class="contact">

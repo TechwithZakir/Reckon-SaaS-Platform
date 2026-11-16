@@ -1,0 +1,54 @@
+{# How you can pay, the policy links and the company's legal contact. Shown under the signup and Subscription pages.
+   pay_show: "bdt" (Taka only), "usd" (card and wallets only) or anything else for both. #}
+{% if tr is not defined %}{% macro tr(text) %}{{ text }}{% endmacro %}{% endif %}
+<style>
+  .pf { margin: 28px auto 0; max-width: 1180px; padding: 20px 0 8px; border-top: 1px solid rgba(128,128,128,.35); font-size: 14px; line-height: 1.6; }
+  .pf h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+  .pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
+  .pf-chips li { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 1px solid rgba(128,128,128,.4); border-radius: 8px; font-weight: 700; font-size: 13px; background: rgba(128,128,128,.10); }
+  .pf-chips svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pf p { margin: 6px 0; opacity: .9; }
+  .pf a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .pf-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 18px 0 8px; padding: 0; list-style: none; font-weight: 600; }
+  .pf-legal { margin: 8px 0 0; font-size: 13px; opacity: .8; }
+</style>
+<section class="pf" aria-label="{{ tr("Payment methods and policies") }}">
+  <div class="pf-grid">
+    {% if pay_show != "usd" %}
+    <div>
+      <h2>{{ tr("Paying in Taka") }}</h2>
+      <p>{{ tr("Other ways: bank transfer, bKash, Nagad and Rocket. Pay with the details on your invoice, then enter the transaction ID and we unlock your workspace once the payment is verified.") }}</p>
+      <ul class="pf-chips" aria-label="{{ tr("Taka payment methods") }}">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>{{ tr("Bank transfer") }}</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>bKash</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>Nagad</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>Rocket</li>
+      </ul>
+    </div>
+    {% endif %}
+    {% if pay_show != "bdt" %}
+    <div>
+      <h2>{{ tr("Paying by card or wallet (USD and other currencies)") }}</h2>
+      <p>{{ tr("Secure checkout by Paddle, our payment provider. Cards and wallets are available; the methods shown depend on your country and device.") }}</p>
+      <ul class="pf-chips" aria-label="{{ tr("Card and wallet payment methods") }}">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>Visa</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>Mastercard</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>American Express</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20l2-14h6a4 4 0 0 1 0 8H10"/></svg>PayPal</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/></svg>Apple Pay</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/></svg>Google Pay</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>{{ tr("Local methods by country") }}</li>
+      </ul>
+      <p><a href="https://developer.paddle.com/concepts/payment-methods/overview" rel="noopener" target="_blank">{{ tr("See all Paddle payment methods") }}</a></p>
+    </div>
+    {% endif %}
+  </div>
+  <ul class="pf-links" aria-label="{{ tr("Policies") }}">
+    <li><a href="/security">{{ tr("Security") }}</a></li>
+    <li><a href="/payment-policy">{{ tr("Payment policy") }}</a></li>
+    <li><a href="/refund-policy">{{ tr("Refund policy") }}</a></li>
+    <li><a href="/privacy-policy">{{ tr("Privacy policy") }}</a></li>
+  </ul>
+  <p class="pf-legal">Reckon Technologies Ltd. &middot; Saleh Tower, 5th Floor, Garib-E-Nawaz Avenue, Plot 1, Road 13, Sector 13, Uttara, Dhaka 1230, Bangladesh &middot; <a href="mailto:info@reckon.tech">info@reckon.tech</a></p>
+</section>

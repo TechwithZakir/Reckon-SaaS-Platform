@@ -54,6 +54,25 @@ HANDLED_EVENTS = frozenset(
 )
 
 
+# Paddle chooses the currency from the buyer's country. A buyer who wants another currency picks one here, and
+# checkout opens for that country (they can still change the country there; tax follows the country entered).
+PAY_CURRENCIES = (
+    {"code": "", "name": "Automatic (your location)", "country": ""},
+    {"code": "USD", "name": "US dollar", "country": "US"},
+    {"code": "EUR", "name": "Euro", "country": "DE"},
+    {"code": "GBP", "name": "Pound sterling", "country": "GB"},
+    {"code": "AUD", "name": "Australian dollar", "country": "AU"},
+    {"code": "CAD", "name": "Canadian dollar", "country": "CA"},
+    {"code": "SGD", "name": "Singapore dollar", "country": "SG"},
+    {"code": "INR", "name": "Indian rupee", "country": "IN"},
+    {"code": "JPY", "name": "Japanese yen", "country": "JP"},
+    {"code": "CHF", "name": "Swiss franc", "country": "CH"},
+    {"code": "NZD", "name": "New Zealand dollar", "country": "NZ"},
+    {"code": "SEK", "name": "Swedish krona", "country": "SE"},
+    {"code": "ZAR", "name": "South African rand", "country": "ZA"},
+)
+
+
 class PaddleNotConfigured(frappe.ValidationError):
     pass
 

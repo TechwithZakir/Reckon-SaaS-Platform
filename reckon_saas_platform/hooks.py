@@ -135,6 +135,10 @@ website_route_rules = [
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
     {"from_route": "/reckonerp-subscription", "to_route": "reckonerp_subscription"},
     {"from_route": "/reckonerp-team", "to_route": "reckonerp_team"},
+    {"from_route": "/privacy-policy", "to_route": "reckon_legal"},
+    {"from_route": "/refund-policy", "to_route": "reckon_legal"},
+    {"from_route": "/payment-policy", "to_route": "reckon_legal"},
+    {"from_route": "/security", "to_route": "reckon_legal"},
 ]
 
 permission_query_conditions = {

@@ -45,6 +45,11 @@
         {% if sub.card_payment or (sub.paddle and sub.paddle.can_manage) %}
         <div class="rs-portal__form" data-card-subscription="{{ sub.name|e }}">
           {% if sub.card_payment %}<div class="rs-portal__label">Pay by card (recommended)</div>
+          <label class="rs-portal__label" for="cur-{{ loop.index }}" style="margin-top:6px">Pay in</label>
+          <select id="cur-{{ loop.index }}" data-card-currency aria-describedby="curnote-{{ loop.index }}">
+            {% for c in pay_currencies %}<option value="{{ c.country|e }}">{{ (c.code ~ " · " ~ c.name) if c.code else c.name }}</option>{% endfor %}
+          </select>
+          <small id="curnote-{{ loop.index }}" class="rs-portal__message" data-card-preview>Paddle shows the price in your currency. Tax follows the country you enter at checkout.</small>
           <button class="rs-portal__button rs-portal__button--primary" type="button" data-card-action="checkout">Pay {{ sub.currency|e }} {{ sub.price }} by card &middot; renews automatically</button>
           <p class="rs-portal__notice" style="margin:0">Your module unlocks as soon as the payment goes through. No reference to enter. Outside the US? Checkout shows your local currency, and you can change your country there to pick another. If your card is declined, try another card or use "Other ways to pay" below.</p>{% endif %}
           {% if sub.paddle and sub.paddle.can_manage %}<button class="rs-portal__button" type="button" data-card-action="portal">Manage card or cancel</button>{% endif %}
@@ -138,6 +143,7 @@
         {% if summary.provisioning %}<div class="rs-portal__list"><div class="rs-portal__row"><span>Status</span><strong>{{ summary.provisioning.status|e }}</strong></div><div class="rs-portal__row"><span>Current step</span><strong>{{ (summary.provisioning.current_step or "Queued")|e }}</strong></div></div>{% else %}<p>Provisioning starts after verification.</p>{% endif %}
       </article>
     </section>
+    {% include "reckon_saas_platform/templates/marketing/pay_footer.html" %}
     <footer class="rs-portal__footer">Need help? Contact {{ company_info.name|e }} at <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a> or {{ company_info.phone }}.</footer>
   </div>
 </main>
@@ -292,6 +298,20 @@
     document.querySelectorAll("[data-card-subscription]").forEach(function (box) {
       const subscription = box.getAttribute("data-card-subscription");
       const message = box.querySelector(".rs-portal__message");
+      const picker = box.querySelector("[data-card-currency]");
+      if (picker) picker.addEventListener("change", async function () {
+        // Show what the price is in the chosen currency, straight from Paddle.
+        const note = box.querySelector("[data-card-preview]");
+        try {
+          const checkout = await call("create_checkout", subscription);
+          setupPaddle(checkout.client_token, message);
+          const options = { items: [{ priceId: checkout.price_id, quantity: 1 }] };
+          if (picker.value) options.address = { countryCode: picker.value };
+          const preview = await window.Paddle.PricePreview(options);
+          const line = preview.data.details.lineItems[0];
+          note.textContent = line.formattedTotals.total + " per " + (line.price.billingCycle ? line.price.billingCycle.interval : "period") + ". Tax follows the country you enter at checkout.";
+        } catch (error) { /* the price shown at checkout is the one that counts */ }
+      });
       box.querySelectorAll("[data-card-action]").forEach(function (button) {
         button.addEventListener("click", async function () {
           button.disabled = true;
@@ -306,9 +326,12 @@
             if (!window.Paddle) throw new Error("Card checkout could not load. Check your connection and try again.");
             const checkout = await call("create_checkout", subscription);
             setupPaddle(checkout.client_token, message);
+            const country = (box.querySelector("[data-card-currency]") || {}).value || "";
+            let customer = checkout.customer_email ? { email: checkout.customer_email } : undefined;
+            if (customer && country) customer.address = { countryCode: country };  // checkout opens in that country's currency
             window.Paddle.Checkout.open({
               items: [{ priceId: checkout.price_id, quantity: 1 }],
-              customer: checkout.customer_email ? { email: checkout.customer_email } : undefined,
+              customer: customer,
               customData: checkout.custom_data,
             });
           } catch (error) {

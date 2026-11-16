@@ -1,0 +1,28 @@
+{% extends "reckon_saas_platform/templates/marketing/base.html" %}
+
+{% block content %}
+{% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
+{{ m.crumbs(page.trail) }}
+<section class="page-hero">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">{{ tr("Legal") }}</p>
+      <h1>{{ page.h1|e }}</h1>
+      <p class="lead">{{ page.legal.lead|e }}</p>
+      <p class="note">{{ tr("Last updated") }}: {{ page.legal.updated|e }}</p>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="wrap legal">
+    {% for heading, blocks in page.legal.sections %}
+    <h2 style="margin-top:28px">{{ heading|e }}</h2>
+    {% for block in blocks %}
+    {% if block is string %}<p>{{ block|e }}</p>{% else %}<ul>{% for item in block %}<li>{{ item|e }}</li>{% endfor %}</ul>{% endif %}
+    {% endfor %}
+    {% endfor %}
+    <p class="note" style="margin-top:28px">{{ page.legal.company|e }} &middot; <a href="mailto:{{ page.legal.email|e }}">{{ page.legal.email|e }}</a></p>
+    <p class="note">{% for label, link in page.legal.links %}<a href="{{ link|e }}">{{ tr(label) }}</a>{{ " · " if not loop.last }}{% endfor %}</p>
+  </div>
+</section>
+{% endblock %}

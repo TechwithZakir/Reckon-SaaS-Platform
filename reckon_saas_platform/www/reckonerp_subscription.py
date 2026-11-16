@@ -51,6 +51,9 @@ def get_context(context):
     context.paddle_environment = ""
     if company and context.can_add_modules:
         context.paddle_environment = _safely(lambda: _add_card_payment(context.subscriptions), "")
+    context.pay_currencies = [dict(c) for c in paddle.PAY_CURRENCIES]
+    currencies = {card["currency"] for card in context.subscriptions if card.get("currency")}
+    context.pay_show = "bdt" if currencies == {"BDT"} else ("usd" if currencies and "BDT" not in currencies else "both")
     context.payment_instructions = _safely(lambda: invoices._setting("invoice_payment_instructions"), "") or invoices.DEFAULT_INSTRUCTIONS
     context.product = " · ".join(card["module_name"] for card in context.subscriptions if card["module_name"])
     return context

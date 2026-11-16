@@ -505,6 +505,7 @@
           <p class="rk-sub">{{ t.pay_sub }}</p>
           <div class="rk-paybox"><strong data-pay-plan></strong><span data-pay-amount></span></div>
           <div data-pay-card hidden>
+            <div class="rk-field"><label for="rk-pay-currency">{{ t.pay_currency }}</label><select id="rk-pay-currency" data-pay-currency></select><small class="rk-hint" data-pay-preview>{{ t.pay_currency_hint }}</small></div>
             <button type="button" class="rk-btn is-block" data-pay-card-button>{{ t.pay_card }}</button>
             <small class="rk-hint">{{ t.pay_card_hint }}</small>
           </div>
@@ -531,6 +532,7 @@
     </div>
   </main>
 
+  <div class="rk-wrap">{% set pay_show = "both" %}{% include "reckon_saas_platform/templates/marketing/pay_footer.html" %}</div>
   {% include "reckon_saas_platform/templates/marketing/footer.html" %}
 
   {% include "reckon_saas_platform/templates/marketing/chat.html" %}
@@ -818,6 +820,10 @@
       const card = document.querySelector("[data-pay-card]");
       card.hidden = !info.card;
       state.card = info.card || null;
+      const currency = document.querySelector("[data-pay-currency]");
+      if (info.card && !currency.options.length) {
+        (info.card.currencies || []).forEach(function (c) { currency.appendChild(new Option(c.code ? c.code + " · " + c.name : c.name, c.country)); });
+      }
       document.querySelector("[data-pay-more]").open = !info.card;
     }
     document.querySelector("[data-pay-card-button]").addEventListener("click", function () {
@@ -841,9 +847,28 @@
           customData: card.custom_data,
           settings: { displayMode: "overlay", variant: "one-page" },
         };
-        if (state.email) options.customer = { email: state.email };
+        let email = state.email;
+        try { email = email || localStorage.getItem("reckon_signup_email") || ""; } catch (e) { /* no storage */ }
+        const country = document.querySelector("[data-pay-currency]").value;
+        if (email) {
+          options.customer = { email: email };
+          if (country) options.customer.address = { countryCode: country };  // checkout opens in that country's currency
+        }
         window.Paddle.Checkout.open(options);
       }).catch(function () { showAlert(PAY.cardError, "error"); });
+    });
+    document.querySelector("[data-pay-currency]").addEventListener("change", function (event) {
+      const card = state.card, note = document.querySelector("[data-pay-preview]");
+      if (!card) return;
+      loadPaddle().then(function () {
+        if (card.environment === "sandbox") window.Paddle.Environment.set("sandbox");
+        window.Paddle.Initialize({ token: card.client_token });
+        const request = { items: [{ priceId: card.price_id, quantity: 1 }] };
+        if (event.target.value) request.address = { countryCode: event.target.value };
+        return window.Paddle.PricePreview(request);
+      }).then(function (preview) {
+        note.textContent = preview.data.details.lineItems[0].formattedTotals.total;
+      }).catch(function () { /* the price shown at checkout is the one that counts */ });
     });
     document.getElementById("rk-pay-form").addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -949,6 +974,7 @@
           state.email = form.owner_email.value.trim();
           document.querySelector("[data-email-target]").textContent = fill(T.email_sent_to, { email: state.email });
           rememberRegistration();
+          try { localStorage.setItem("reckon_signup_email", state.email); } catch (e) { /* no storage */ }
           showAlert(data.message, "success");
           const emailRequired = data.email_verification_required !== false;
           applyStatus({

@@ -1282,6 +1282,7 @@ def signup_payment_info(registration: str) -> dict:
             "client_token": public["client_token"],
             "price_id": price_id,
             "custom_data": {"registration": registration},
+            "currencies": [dict(c) for c in paddle.PAY_CURRENCIES],
         }
     return info
 

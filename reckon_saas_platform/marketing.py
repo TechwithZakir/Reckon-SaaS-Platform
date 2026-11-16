@@ -1733,6 +1733,29 @@ def faq_page(base: str, modules: list[dict]) -> dict:
     )
 
 
+def legal_page(base: str, slug: str) -> dict:
+    """A policy page (privacy, refunds, payments, security): English only, linked from checkout and the footers."""
+    from reckon_saas_platform import legal_pages
+
+    entry = legal_pages.PAGES[slug]
+    return make_page(
+        base,
+        path=f"/{slug}",
+        title=f"{entry['title']} | ReckonERP",
+        description=entry["description"],
+        h1=entry["title"],
+        trail=[("Home", HOME), (entry["title"], f"/{slug}")],
+        legal={
+            "lead": entry["lead"],
+            "sections": entry["sections"],
+            "updated": legal_pages.UPDATED,
+            "company": legal_pages.COMPANY,
+            "email": legal_pages.CONTACT_EMAIL,
+            "links": list(legal_pages.LINKS),
+        },
+    )
+
+
 def integrations_page(base: str, integrations=None) -> dict:
     integrations = list(integrations or INTEGRATIONS_LIST)
     return make_page(
