@@ -74,6 +74,15 @@ ILLUSTRATIONS = {
     ),
     "ai": ("illus-ai.svg", "AI assistant drafting a reply that waits for a person to approve", 480, 320),
 }
+# Product videos kept on Google Drive (shared "anyone with the link"); the module page embeds Drive's player.
+MODULE_VIDEOS = {
+    "distribution": "1xOYmfJ0r3OBb9Dx3nwvdNbeBGng4I19K",
+    "accounts": "1nsikahuExyRWXHbxCPVwcWShTQR_lNA2",
+    "sales_agent": "1CqrHqIzJlR5nAIXtJ-10Svgagii9vA-f",
+    "crm": "1u0XKAARC3RoaCKumnwRXLXzUdPYFSrhc",
+    "hrms": "12iCVfyI4MruuRvWQwNUZOAZrdnWlKNQw",
+    "reckonerp": "1UdQlqWjnKVnaNwfjCMav--6kPIlxTp7p",
+}
 # Which illustration describes a module or feature best.
 MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm", "hrms": "erp", "crm": "crm", "reckonerp": "erp"}
 FEATURE_ILLUSTRATION = {
@@ -1748,6 +1757,7 @@ def module_page(base: str, module: dict, modules: list[dict]) -> dict:
         ),
         og_image=f"{base}{module['banner']['og']}" if module["banner"]["og"] else None,
         module=module,
+        video_id=MODULE_VIDEOS.get(module["key"]),
         module_articles=[a for a in _articles_for(module["key"])][:3],
         modules=[m for m in modules if m["key"] != module["key"]],
         signup_url=signup_url(module["key"]),
