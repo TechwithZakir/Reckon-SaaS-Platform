@@ -208,6 +208,47 @@ class MobileMenuTests(unittest.TestCase):
             self.assertIn(needle, js)
 
 
+NL = chr(10)
+
+
+class SuiteTests(unittest.TestCase):
+    def test_a_suite_subscription_covers_its_modules_for_every_app(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.get_all.return_value = [_Dict(saas_module="reckonerp", covered_modules=NL.join(["accounts", "hrms", "sales_agent"]))]
+            self.assertEqual(saas.get_company_module_keys("Co"), ["accounts", "hrms", "reckonerp", "sales_agent"])
+            self.assertEqual(saas._company_module_keys("Co"), {"reckonerp", "accounts", "hrms", "sales_agent"})  # each module is seeded
+            plan = _Dict(saas_module="reckonerp", covered_modules=NL.join(["hrms", "accounts", "reckonerp"]))
+            self.assertEqual(saas.plan_covered_modules(plan), ["accounts", "hrms"])
+            self.assertEqual(saas.plan_covered_modules(_Dict(saas_module="crm", covered_modules=None)), [])
+
+    def test_a_new_subscription_carries_the_plans_covered_modules(self):
+        with platform_modules("saas") as (frappe, (saas,)):
+            frappe.get_doc = Mock(side_effect=lambda values: Mock(insert=Mock(return_value=values)))
+            saas.nowdate = Mock(return_value="2026-11-16")
+            plan = _Dict(name="ReckonERP Enterprise", saas_module="reckonerp", plan_version="1", price=5000, currency="BDT", trial_days=15, grace_days=5, covered_modules=NL.join(["accounts", "hrms", "sales_agent"]))
+            plan.get = lambda key, default=None: plan[key] if key in plan else default
+            sub = saas._create_registration_subscription(_Dict(name="REG-1", billing_cycle="Monthly", start_mode="Free Trial"), plan, "Acme", "a@x.test")
+        self.assertEqual((sub["saas_module"], sub["covered_modules"]), ("reckonerp", NL.join(["accounts", "hrms", "sales_agent"])))
+
+    def test_the_suite_is_registered_last_so_it_is_never_the_default_module(self):
+        with platform_modules("module_registry") as (frappe, (registry,)):
+            frappe.get_installed_apps = Mock(return_value=["reckon_saas_platform", "reckon_distribution"])
+            frappe.get_hooks = Mock(side_effect=lambda hook, app_name=None: [{"key": "reckonerp", "bundle": True}] if app_name == "reckon_saas_platform" else [{"key": "distribution"}])
+            keys = [m["key"] for m in registry.get_saas_modules()]
+        self.assertEqual(keys, ["distribution", "reckonerp"])
+
+    def test_the_suite_definition_and_plan_field_ship(self):
+        import json
+
+        from reckon_saas_platform import suite
+
+        definition = suite.get_module_definition()
+        self.assertEqual((definition["key"], definition["bundle"]), ("reckonerp", True))
+        self.assertIn("reckon_saas_platform.suite.get_module_definition", (PKG / "hooks.py").read_text(encoding="utf-8"))
+        plan = json.loads((PKG / "saas_platform" / "doctype" / "saas_plan" / "saas_plan.json").read_text(encoding="utf-8"))
+        self.assertIn("covered_modules", [f["fieldname"] for f in plan["fields"]])
+
+
 class AddModulePlansTests(unittest.TestCase):
     def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
         with platform_modules("saas") as (_frappe, (saas,)):

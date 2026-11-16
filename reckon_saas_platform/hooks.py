@@ -21,6 +21,9 @@ add_to_apps_screen = [
     },
 ]
 
+# ReckonERP, the suite: one subscription for Accounts, HRMS and more. It is listed like any module.
+reckon_saas_modules = ["reckon_saas_platform.suite.get_module_definition"]
+
 required_apps = ["frappe", "erpnext"]
 
 after_install = "reckon_saas_platform.install.after_install"

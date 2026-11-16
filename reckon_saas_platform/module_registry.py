@@ -15,7 +15,8 @@ def get_saas_modules() -> list[frappe._dict]:
             module = frappe._dict(module)
             module.setdefault("app", app)
             modules.append(module)
-    return modules
+    # A suite comes after the real modules, so "the default module" is still the first of those.
+    return [m for m in modules if not m.get("bundle")] + [m for m in modules if m.get("bundle")]
 
 
 def get_default_module() -> frappe._dict | None:

@@ -590,7 +590,7 @@ def get_addable_modules(company: str) -> list[dict]:
             "url": m["url"],
         }
         for m in marketing.get_modules()
-        if m["key"] not in held and m["plans"]
+        if m["key"] not in held and m["plans"] and not held & {c for p in m["plans"] for c in p.get("covered", [])}
     ]
 
 
@@ -659,8 +659,12 @@ def add_module_subscription(plan: str, billing_cycle: str | None = None):
     module_key = plan_row.saas_module
     if not get_module_definition(module_key) or not frappe.db.get_value("SaaS Module", module_key, "enabled"):
         frappe.throw(_("This module is not available right now."), SignupValidationError)
-    if module_key in _open_module_keys(tenant.company):
+    open_keys = _open_module_keys(tenant.company)
+    if module_key in open_keys:
         frappe.throw(_("Your company already has this module."), SignupValidationError)
+    included = plan_covered_modules(frappe.db.get_value("SaaS Plan", plan_row.name, ["saas_module", "covered_modules"], as_dict=True))
+    if open_keys & set(included):
+        frappe.throw(_("Your company already has a module this plan includes."), SignupValidationError)
     cycle = next((c for c in (billing_cycle, plan_row.billing_cycle) if c in BILLING_CYCLES), "Monthly")
 
     savepoint = "reckon_saas_add_module"
@@ -685,7 +689,7 @@ def add_module_subscription(plan: str, billing_cycle: str | None = None):
         raise
     invalidate_operational_access_cache(tenant.company)
 
-    seeded = seed_added_module(tenant.company, module_key)
+    seeded = all([seed_added_module(tenant.company, key) for key in [module_key, *included]])
     try:
         _reconcile_company_users(tenant.company)
     except Exception:
@@ -1351,6 +1355,7 @@ def _create_registration_subscription(doc, plan_doc, company: str, admin_user: s
             "company_admin": admin_user,
             "plan": plan_doc.name,
             "saas_module": plan_doc.saas_module or doc.get("saas_module"),
+            "covered_modules": "\n".join(plan_covered_modules(plan_doc)) or None,
             "plan_version": plan_doc.plan_version,
             "billing_cycle": doc.billing_cycle,
             # With a trial the tenant works at once; without one Desk opens when
@@ -1447,16 +1452,33 @@ def run_tenant_seed_job(company: str, seed_version: str = CURRENT_SEED_VERSION):
 
 
 def _company_module_keys(company: str) -> set[str] | None:
-    """Modules the company subscribes to; ``None`` (all modules) for legacy rows."""
-    keys = set(
-        frappe.get_all(
-            "SaaS Subscription",
-            filters={"company": company, "saas_module": ["is", "set"]},
-            pluck="saas_module",
-            ignore_permissions=True,
-        )
-    )
+    """Modules the company subscribes to, including those a suite covers; ``None`` (all modules) for legacy rows."""
+    keys = _subscribed_module_keys(company)
     return keys or None
+
+
+def _subscribed_module_keys(company: str) -> set[str]:
+    """The primary module of each subscription and every module it also covers."""
+    from reckon_saas_platform.entitlements import parse_covered_modules
+
+    keys: set[str] = set()
+    for row in frappe.get_all(
+        "SaaS Subscription",
+        filters={"company": company, "saas_module": ["is", "set"]},
+        fields=["saas_module", "covered_modules"],
+        ignore_permissions=True,
+    ):
+        keys.add(row.saas_module)
+        keys |= parse_covered_modules(row.get("covered_modules"))
+    return keys
+
+
+def plan_covered_modules(plan) -> list[str]:
+    """The other modules a plan gives (its "Also Includes Modules"), without its own module."""
+    from reckon_saas_platform.entitlements import parse_covered_modules
+
+    own = plan.get("saas_module")
+    return sorted(parse_covered_modules(plan.get("covered_modules")) - {own})
 
 
 def verify_payment(payment: str, reference: str | None = None, period_end=None):
@@ -1735,16 +1757,7 @@ def get_company_module_keys(company: str | None) -> list[str]:
     cached = frappe.cache.get_value(key)
     if cached is not None:
         return list(cached)
-    modules = sorted(
-        set(
-            frappe.get_all(
-                "SaaS Subscription",
-                filters={"company": company, "saas_module": ["is", "set"]},
-                pluck="saas_module",
-                ignore_permissions=True,
-            )
-        )
-    )
+    modules = sorted(_subscribed_module_keys(company))
     frappe.cache.set_value(key, modules, expires_in_sec=OPERATIONAL_ACCESS_CACHE_TTL_SECONDS)
     return modules
 

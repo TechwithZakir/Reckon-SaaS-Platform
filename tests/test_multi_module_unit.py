@@ -14,7 +14,7 @@ ACCOUNTS = {"key": "accounts", "admin_role": "Reckon Accounts SaaS Admin"}
 class CompanyModulesTests(unittest.TestCase):
     def test_company_modules_are_cached_and_invalidated(self):
         with platform_modules("saas") as (frappe, (saas,)):
-            frappe.get_all.return_value = ["accounts", "distribution", "accounts"]
+            frappe.get_all.return_value = [_Dict(saas_module=m, covered_modules=None) for m in ("accounts", "distribution", "accounts")]
             self.assertEqual(saas.get_company_module_keys("Co"), ["accounts", "distribution"])
             frappe.get_all.return_value = []
             self.assertEqual(saas.get_company_module_keys("Co"), ["accounts", "distribution"])

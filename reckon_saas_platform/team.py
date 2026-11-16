@@ -274,7 +274,7 @@ def other_modules(company: str) -> list[str]:
     return [
         module_label(m["key"]) or m.get("label") or m["key"]
         for m in get_saas_modules()
-        if m.get("key") in held and m.get("key") not in MODULE_ACCESS_AWARE
+        if m.get("key") in held and m.get("key") not in MODULE_ACCESS_AWARE and not m.get("bundle")
     ]
 
 

@@ -75,7 +75,7 @@ ILLUSTRATIONS = {
     "ai": ("illus-ai.svg", "AI assistant drafting a reply that waits for a person to approve", 480, 320),
 }
 # Which illustration describes a module or feature best.
-MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm", "hrms": "erp", "crm": "crm"}
+MODULE_ILLUSTRATION = {"distribution": "erp", "accounts": "erp", "sales_agent": "crm", "hrms": "erp", "crm": "crm", "reckonerp": "erp"}
 FEATURE_ILLUSTRATION = {
     "self-serve-signup": "automation",
     "separate-company-workspaces": "erp",
@@ -530,6 +530,25 @@ FEATURE_LIST = (
 
 # --- Module copy: marketing text layered on the registry's own fields -----------
 MODULE_COPY = {
+    "reckonerp": {
+        "seo_title": "ReckonERP: accounts, HR and payroll in one plan",
+        "headline": "Accounts, HR and payroll in one ReckonERP subscription",
+        "tagline": "Reckon Accounts and Reckon HRMS together, with biometric attendance, a mobile app and geo tracking.",
+        "audience": "Growing businesses that want their books and their people in one place",
+        "benefits": [
+            "Reckon Accounts and Reckon HRMS in one subscription and one invoice",
+            "Biometric attendance from your ZKTeco devices, and a mobile app for staff",
+            "App-based geo check-in so you know where field staff clock in from",
+            "The top plan adds Sales AI Agent to find and follow up customers",
+        ],
+        "faqs": [
+            (
+                "What is in a ReckonERP plan?",
+                "Every plan includes Reckon Accounts and Reckon HRMS, with biometric attendance, the mobile app and geo check-in. "
+                "The Enterprise plan also includes Reckon Sales AI Agent. AI and channel usage is billed separately.",
+            ),
+        ],
+    },
     "distribution": {
         "seo_title": "Distribution management software in Bangladesh",
         "headline": "FMCG distribution software for route sales, collections and stock",
@@ -632,6 +651,11 @@ MODULE_COPY.update(
 
 # Plain-language labels for the registry's ``subscription_features`` keys.
 FEATURE_LABELS = {
+    "reckon_accounts": "Reckon Accounts: invoices, bills, stock and books",
+    "reckon_hrms": "Reckon HRMS: employees, attendance, leave and payroll",
+    "biometric_attendance": "Biometric attendance from ZKTeco devices",
+    "mobile_app": "Mobile app for staff attendance and leave",
+    "geo_tracking": "App-based geo check-in for field staff",
     "dsr_routes": "DSR route planning and delivery tracking",
     "retailer_receivable": "Retailer dues and collections",
     "dsr_cash_custody": "DSR cash custody",
@@ -1054,7 +1078,7 @@ def get_plans() -> dict[str, list[dict]]:
     try:
         if not frappe.db.exists("DocType", "SaaS Plan"):
             return plans
-        fields = ["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified"]
+        fields = ["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified", "covered_modules"]
         try:
             rows = frappe.get_all(
                 "SaaS Plan", filters={"enabled": 1}, fields=[*fields, "paddle_price_id", "paddle_environment"], order_by="price asc", ignore_permissions=True
@@ -1091,6 +1115,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "cycle": cycle,
                 "price_text": _price_text(price, symbol, cycle),
                 "trial_days": int(row.get("trial_days") or 0),
+                "covered": sorted(set(str(row.get("covered_modules") or "").split()) - {key}),
                 "max_users": int(row.get("max_users") or 0),
                 "max_storage_mb": int(row.get("max_storage_mb") or 0),
                 "modified": str(row.get("modified") or "")[:10],
