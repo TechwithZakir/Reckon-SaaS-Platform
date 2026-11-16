@@ -176,7 +176,14 @@ def _api_create_product(name: str, description: str | None, saas_module: str) ->
 def _api_create_price(
     product_id: str, name: str, description: str, amount: str, currency: str, cycle: str, plan: str
 ) -> str:
-    from paddle_billing.Entities.Shared import CurrencyCode, CustomData, Duration, Interval, Money
+    from paddle_billing.Entities.Shared import (
+        CurrencyCode,
+        CustomData,
+        Duration,
+        Interval,
+        Money,
+        TaxMode,
+    )
     from paddle_billing.Resources.Prices.Operations import CreatePrice
 
     interval, frequency = CYCLE_TO_PADDLE[cycle]
@@ -187,6 +194,7 @@ def _api_create_price(
             product_id=product_id,
             unit_price=Money(amount, CurrencyCode(currency)),
             billing_cycle=Duration(Interval(interval), frequency),
+            tax_mode=TaxMode.External,  # listed prices exclude tax; Paddle adds it on top where it applies
             custom_data=CustomData({"saas_plan": plan}),
         )
     )
@@ -243,7 +251,42 @@ def sync_plan(plan: str) -> dict:
     from reckon_saas_platform.saas import _require_vendor
 
     _require_vendor()
-    doc = frappe.get_doc("SaaS Plan", plan)
+    return _sync_plan_doc(frappe.get_doc("SaaS Plan", plan))
+
+
+def plan_needs_sync(doc) -> bool:
+    """A card-currency plan whose Paddle price is missing or was made from different values."""
+    if not (supports_currency(doc.get("currency")) and doc.get("saas_module") and doc.get("billing_cycle") in CYCLE_TO_PADDLE):
+        return False
+    return not (
+        doc.get("paddle_price_id")
+        and doc.get("paddle_environment") == environment()
+        and doc.get("paddle_price_signature") == price_signature(doc)
+    )
+
+
+def queue_plan_sync(doc, method=None) -> None:
+    """doc_event on SaaS Plan: push a changed price to Paddle in the background, only once Paddle is switched on."""
+    try:
+        if not (is_enabled() and plan_needs_sync(doc)):
+            return
+        frappe.enqueue(
+            "reckon_saas_platform.paddle.sync_plan_in_background", plan=doc.name, enqueue_after_commit=True, queue="short"
+        )
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Queue Paddle plan sync")
+
+
+def sync_plan_in_background(plan: str) -> None:
+    try:
+        doc = frappe.get_doc("SaaS Plan", plan)
+        if plan_needs_sync(doc):
+            _sync_plan_doc(doc)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Paddle plan sync {plan}")
+
+
+def _sync_plan_doc(doc) -> dict:
     currency = (doc.get("currency") or "").upper()
     if not supports_currency(currency):
         frappe.throw(

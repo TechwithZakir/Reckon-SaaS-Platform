@@ -51,7 +51,8 @@ class SiteHealthTests(unittest.TestCase):
             block = hooks[hooks.index(f'"{doctype}": {{'):]
             block = block[: block.index("},")]
             for event in ("after_insert", "on_update", "on_trash"):
-                self.assertIn(f'"{event}": "reckon_saas_platform.marketing.refresh_public_pages"', block, f"{doctype} {event}")
+                at = block.index(f'"{event}":', 0)
+                self.assertIn("reckon_saas_platform.marketing.refresh_public_pages", block[at : at + 260], f"{doctype} {event}")
         settings = hooks[hooks.index('"SaaS Platform Settings": {'):]
         self.assertIn("refresh_public_pages", settings[: settings.index("},")])
 

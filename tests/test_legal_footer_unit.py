@@ -56,6 +56,18 @@ class LegalPagesTests(unittest.TestCase):
         self.assertEqual(set(legal.GLANCE), set(legal.PAGES))
         self.assertEqual(len({tuple(v) for v in map(tuple, legal.GLANCE.values())}), len(legal.PAGES))
 
+    def test_each_policy_has_its_own_page_so_none_is_served_from_anothers_cache(self):
+        hooks = text("hooks.py")
+        for slug, mod in (("privacy-policy", "reckon_privacy_policy"), ("refund-policy", "reckon_refund_policy"),
+                          ("payment-policy", "reckon_payment_policy"), ("security", "reckon_security")):
+            self.assertIn(f'"/{slug}", "to_route": "{mod}"', hooks)
+            self.assertIn(slug, text("www", mod + ".py"))
+            self.assertTrue((PKG / "www" / (mod + ".html")).exists())
+
+    def test_plans_sync_to_paddle_when_saved_and_prices_add_tax_on_top(self):
+        self.assertIn("paddle.queue_plan_sync", text("hooks.py"))
+        self.assertIn("TaxMode.External", text("paddle.py"))
+
 
 if __name__ == "__main__":
     unittest.main()

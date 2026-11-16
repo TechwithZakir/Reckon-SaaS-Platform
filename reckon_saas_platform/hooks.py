@@ -74,7 +74,11 @@ doc_events = {
     # Public pages show these records, so any change refreshes the cached pages straight away.
     "SaaS Plan": {
         "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
-        "on_update": "reckon_saas_platform.marketing.refresh_public_pages",
+        # A saved price change reaches Paddle by itself, so card checkout never charges a stale price.
+        "on_update": [
+            "reckon_saas_platform.marketing.refresh_public_pages",
+            "reckon_saas_platform.paddle.queue_plan_sync",
+        ],
         "on_trash": "reckon_saas_platform.marketing.refresh_public_pages",
     },
     "SaaS Module": {
@@ -135,10 +139,10 @@ website_route_rules = [
     {"from_route": "/reckon-saas-admin", "to_route": "reckon_saas_admin"},
     {"from_route": "/reckonerp-subscription", "to_route": "reckonerp_subscription"},
     {"from_route": "/reckonerp-team", "to_route": "reckonerp_team"},
-    {"from_route": "/privacy-policy", "to_route": "reckon_legal"},
-    {"from_route": "/refund-policy", "to_route": "reckon_legal"},
-    {"from_route": "/payment-policy", "to_route": "reckon_legal"},
-    {"from_route": "/security", "to_route": "reckon_legal"},
+    {"from_route": "/privacy-policy", "to_route": "reckon_privacy_policy"},
+    {"from_route": "/refund-policy", "to_route": "reckon_refund_policy"},
+    {"from_route": "/payment-policy", "to_route": "reckon_payment_policy"},
+    {"from_route": "/security", "to_route": "reckon_security"},
 ]
 
 permission_query_conditions = {
