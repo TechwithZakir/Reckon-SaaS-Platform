@@ -312,7 +312,7 @@
         {% if plan_sets %}
         {% set shown = (plan_sets[0].cards | selectattr("comparison") | list) or plan_sets[0].cards %}
         {% set first = shown[0] if shown else plan_sets[0].cards[0] %}
-        <div class="rk-plan-detail" data-plan-detail>
+        <div class="rk-plan-detail" data-plan-detail data-ai-item="{{ t.ask_ai_item|e }}" data-ai-value="{{ t.ask_ai_value|e }}" data-ai-text="{{ t.ask_ai_text|e }}">
           <h2>{{ t.plan_detail_heading }}</h2>
           <div class="rk-pd-name" data-pd-name>{{ first.plan_name|e }}</div>
           <div class="rk-pd-price" data-pd-price>{{ first.symbol|e }}{{ first.amount }} / {{ first.period }}</div>
@@ -321,6 +321,7 @@
             {% for row in first.comparison %}
             <li{% if not row.included %} class="is-off"{% endif %}>{{ row.feature|e }}{% if row.value %}<span class="rk-pd-val">{{ row.value|e }}</span>{% endif %}</li>
             {% endfor %}
+            <li title="{{ t.ask_ai_text|e }}">{{ t.ask_ai_item }}<span class="rk-pd-val">{{ t.ask_ai_value }}</span></li>
           </ul>
         </div>
         {% endif %}
@@ -532,7 +533,6 @@
     </div>
   </main>
 
-  <div class="rk-wrap"><section class="rk-note" style="margin:24px 0 0;padding:16px 20px;border:1px solid rgba(128,128,128,.4);border-radius:12px"><strong>{{ t.ask_ai_title }}</strong><p style="margin:6px 0 0">{{ t.ask_ai_text }}</p></section></div>
   <div class="rk-wrap">{% set pay_show = "both" %}{% include "reckon_saas_platform/templates/marketing/pay_footer.html" %}</div>
   {% include "reckon_saas_platform/templates/marketing/footer.html" %}
 
@@ -677,7 +677,7 @@
       try { rows = JSON.parse(input.closest(".rk-plan").getAttribute("data-comparison") || "[]"); } catch (e) { /* keep rows empty */ }
       detail.querySelector("[data-pd-list]").innerHTML = rows.map(function (row) {
         return `<li${row.included ? "" : ' class="is-off"'}>${esc(row.feature)}${row.value ? `<span class="rk-pd-val">${esc(row.value)}</span>` : ""}</li>`;
-      }).join("");
+      }).join("") + `<li title="${esc(detail.dataset.aiText)}">${esc(detail.dataset.aiItem)}<span class="rk-pd-val">${esc(detail.dataset.aiValue)}</span></li>`;  // Ask AI closes every plan's list
     }
     document.querySelectorAll('input[name="plan"]').forEach(function (input) {
       input.addEventListener("change", function () { window.__rkLastTier = input.getAttribute("data-tier"); syncDetail(); });

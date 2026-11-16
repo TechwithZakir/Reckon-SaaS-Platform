@@ -82,6 +82,12 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn('inv.status == "Unpaid"', html)
         self.assertIn("data-invoice-pay", html)
 
+    def test_signup_lists_ask_ai_as_the_last_line_of_what_the_plan_includes(self):
+        html = text("www", "reckonerp_signup.html")
+        self.assertIn("data-ai-item", html)
+        self.assertIn("detail.dataset.aiItem", html)
+        self.assertNotIn('class="rk-note"', html)
+
 
 if __name__ == "__main__":
     unittest.main()
