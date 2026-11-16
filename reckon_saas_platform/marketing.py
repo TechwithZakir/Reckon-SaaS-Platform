@@ -394,6 +394,33 @@ FEATURE_LIST = (
         ],
     },
     {
+        "slug": "ask-ai",
+        "title": "Ask AI",
+        "icon": "spark",
+        "summary": "Self-service help in every plan: setup, how-to answers, your language, even by voice.",
+        "description": "Ask AI is Reckon AI's agentic support, included in every plan: self-service setup and "
+        "usage help, answers in your language, and voice questions.",
+        "intro": "Ask AI is the help desk built into ReckonERP. Instead of waiting for support, you ask a "
+        "question in your own words and get the steps, from first setup to everyday use.",
+        "points": [
+            "Self-service implementation: it walks you through setting up your company, users, items and opening data",
+            "Self-service usability: ask how to create, find or report on anything and get the steps for the screen you are on",
+            "Multi-language answers: ask in Bangla or English and it replies in the language you used",
+            "Voice support: speak your question, which suits mobile and staff in the field",
+            "It works inside your permissions, and changes are applied only after you approve",
+        ],
+        "faqs": [
+            (
+                "What is Ask AI and how does it help me set up and use ReckonERP myself?",
+                "Ask AI is Reckon AI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+            ),
+            (
+                "Does Ask AI answer in my language, and can I talk to it?",
+                "Yes. Ask in Bangla or English and Ask AI replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+            ),
+        ],
+    },
+    {
         "slug": "reckon-ai-assistant",
         "title": "Reckon AI assistant",
         "icon": "spark",
@@ -423,7 +450,8 @@ FEATURE_LIST = (
             ),
             (
                 "Is Reckon AI included in the subscription?",
-                "AI and integration tools are additional. Ask us for pricing for your usage.",
+                "Ask AI help is included in every plan. AI model and messaging channel usage, "
+                "and custom integrations, are additional; ask us for pricing for your usage.",
             ),
         ],
     },
@@ -786,6 +814,14 @@ EXPERTISE = (
 )
 
 HOME_FAQS = (
+    (
+        "What is Ask AI and how does it help me set up and use ReckonERP myself?",
+        "Ask AI is Reckon AI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+    ),
+    (
+        "Does Ask AI answer in my language, and can I talk to it?",
+        "Yes. Ask in Bangla or English and Ask AI replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+    ),
     (
         "What is ReckonERP?",
         "ReckonERP is a cloud ERP for growing businesses, built on ERPNext, with Reckon AI "
@@ -1642,7 +1678,7 @@ def pricing_page(base: str, modules: list[dict]) -> dict:
         "or INR, with trial days and what each includes. Sign up online in minutes.",
         h1="ReckonERP plans and pricing",
         trail=[("Home", HOME), ("Pricing", PRICING)],
-        faqs=[row for row in HOME_FAQS if any(w in row[0].lower() for w in ("pricing", "implementation", "ai and integration", "licences"))],
+        faqs=[row for row in HOME_FAQS if any(w in row[0].lower() for w in ("pricing", "implementation", "ai and integration", "licences", "ask ai", "my language"))],
         modules=modules,
         priced=[m for m in modules if m["plans"]],
         currencies=sorted({c for m in modules for c in m.get("currencies", [])}, key=lambda c: (c != "BDT", c)),

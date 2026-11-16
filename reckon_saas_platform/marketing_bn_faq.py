@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 HOME_FAQS = {
+    "What is Ask AI and how does it help me set up and use ReckonERP myself?": "Ask AI কী, আর এটি কীভাবে আমাকে নিজে নিজে ReckonERP সেটআপ ও ব্যবহারে সাহায্য করে?",
+    "Ask AI is Reckon AI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.": "Ask AI হলো Reckon AI-এর এজেন্টিক সাপোর্ট, যা প্রতিটি মডিউলের প্রতিটি প্ল্যানে অন্তর্ভুক্ত। কোম্পানি সেটআপ, ডেটা Import, ইনভয়েস তৈরি বা রিপোর্ট চালানো কীভাবে হয় জিজ্ঞাসা করুন; এটি প্রোডাক্টের নিজস্ব গাইড থেকে উত্তর দিয়ে ধাপগুলো দেখায়, ফলে কারও জন্য অপেক্ষা না করেই চালু করে এগিয়ে যেতে পারবেন। এটি আপনার নিজের অনুমতির মধ্যে কাজ করে, আর আপনি দেখে অনুমোদন না দেওয়া পর্যন্ত কোনো রেকর্ড বদলায় না।",
+    "Does Ask AI answer in my language, and can I talk to it?": "Ask AI কি আমার ভাষায় উত্তর দেয়, আর কণ্ঠে কথা বলা যায়?",
+    "Yes. Ask in Bangla or English and Ask AI replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.": "হ্যাঁ। বাংলা বা ইংরেজিতে প্রশ্ন করুন, Ask AI আপনি যে ভাষায় লিখেছেন সেই ভাষাতেই উত্তর দেয়, অন্য ভাষাও বোঝে। ভয়েস সাপোর্টে লিখে না বলে কণ্ঠে প্রশ্ন করা যায়, যা মোবাইলে ও চলতি পথে থাকা কর্মীদের জন্য সুবিধাজনক।",
     "About ReckonERP": "ReckonERP সম্পর্কে",
     "More answers": "আরও উত্তর",
     "What is ReckonERP?": "ReckonERP কী?",
@@ -95,8 +99,8 @@ SITE = {
     "All channels": "সব চ্যানেল",
     "Coming soon": "শীঘ্রই আসছে",
     "coming soon": "শীঘ্রই আসছে",
-    "The plan price is for the software only. Bangla and English user manuals and training videos are being prepared; until they are ready, ask us for help wherever you need it.": "Plan-এর মূল্য শুধু সফটওয়্যারের জন্য। বাংলা ও ইংরেজি ইউজার ম্যানুয়াল এবং ট্রেনিং ভিডিও তৈরি হচ্ছে; সেগুলো তৈরি না হওয়া পর্যন্ত যেখানে দরকার আমাদের কাছে সাহায্য চান।",
-    "Bangla and English user manuals": "বাংলা ও ইংরেজি ইউজার ম্যানুয়াল",
+    "The plan price is for the software only. Bangla and English user manuals and training videos are being prepared; until they are ready, ask us for help wherever you need it.": "Plan-এর মূল্য শুধু সফটওয়্যারের জন্য। বাংলা ও ইংরেজি User ম্যানুয়াল এবং ট্রেনিং ভিডিও তৈরি হচ্ছে; সেগুলো তৈরি না হওয়া পর্যন্ত যেখানে দরকার আমাদের কাছে সাহায্য চান।",
+    "Bangla and English user manuals": "বাংলা ও ইংরেজি User ম্যানুয়াল",
     "Training videos": "ট্রেনিং ভিডিও",
     "Optional paid service": "ঐচ্ছিক সশুল্ক সেবা",
     "What the plan price covers": "Plan-এর মূল্যে কী কী থাকে",
@@ -136,7 +140,7 @@ SITE = {
     "Sales AI Agent lead sync (agent billed separately)": "Sales AI Agent থেকে লিড সিঙ্ক (এজেন্ট আলাদা বিল)",
     "ReckonERP is a cloud ERP with built-in AI for growing businesses in Bangladesh and worldwide, made by Reckon Technologies Ltd.": "ReckonERP বাংলাদেশ ও বিশ্বজুড়ে বর্ধনশীল ব্যবসার জন্য AI সহ একটি Cloud ERP, Reckon Technologies Ltd.-এর তৈরি।",
     "Features": "ফিচার",
-    "Users": "ইউজার",
+    "Users": "User",
     "File storage": "ফাইল স্টোরেজ",
     "Up to {n}": "সর্বোচ্চ {n} জন",
     "Unlimited": "আনলিমিটেড",
