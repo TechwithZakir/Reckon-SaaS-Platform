@@ -88,6 +88,11 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn("always.map(", html)
         self.assertNotIn('class="rk-note"', html)
 
+    def test_the_payment_panel_opens_the_invoiced_module_not_a_fixed_one(self):
+        html = text("www", "reckonerp_subscription.html")
+        self.assertIn("pay_app_route", html)
+        self.assertNotIn("app/distribution", html)
+
 
 if __name__ == "__main__":
     unittest.main()
