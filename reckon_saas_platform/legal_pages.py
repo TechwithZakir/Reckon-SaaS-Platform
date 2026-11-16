@@ -92,7 +92,7 @@ PAGES = {
                 "Card subscriptions renew automatically each billing period until you cancel. You can change your card or cancel in the customer portal under Subscription.",
             ]),
             ("Taxes and invoices", [
-                "Prices may be shown with or without VAT or other taxes depending on your country; checkout shows the total before you pay. We send an invoice and a receipt by email for every payment.",
+                "Listed prices exclude VAT, GST and other sales taxes. Where tax applies to your purchase, it is added on top at checkout, and the total is shown before you pay. Business customers are responsible for the taxes that apply to them in their own country, and can enter a tax ID at checkout where it is accepted. We send an invoice and a receipt by email for every payment.",
             ]),
             ("If a payment fails or is late", [
                 "Your access continues to the end of the period you paid for and then through the grace days of your plan. If the payment is still missing after that, your workspace is locked. Your data is kept, and access returns when the payment is verified.",
