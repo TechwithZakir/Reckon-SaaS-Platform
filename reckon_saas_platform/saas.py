@@ -1270,6 +1270,7 @@ def signup_payment_info(registration: str) -> dict:
         "plan": plan.plan_name or plan.name,
         "amount": invoices.money(plan.price, plan.currency),
         "billing_cycle": plan.billing_cycle or "Monthly",
+        "currency": plan.currency or "",
         "instructions": invoices._setting("invoice_payment_instructions") or invoices.DEFAULT_INSTRUCTIONS,
         "providers": list(PAYMENT_PROVIDERS),
         "card": None,

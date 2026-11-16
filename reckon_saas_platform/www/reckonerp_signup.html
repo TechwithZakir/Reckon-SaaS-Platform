@@ -824,6 +824,10 @@
       if (info.card && !currency.options.length) {
         (info.card.currencies || []).forEach(function (c) { currency.appendChild(new Option(c.code ? c.code + " · " + c.name : c.name, c.country)); });
       }
+      document.querySelectorAll("[data-pf]").forEach(function (box) {
+        // Taka plans show the Taka ways only; card-currency plans show card and wallets only.
+        if (info.currency) box.hidden = (box.getAttribute("data-pf") === "bdt") !== (info.currency === "BDT");
+      });
       const more = document.querySelector("[data-pay-more]");
       more.hidden = info.manual === false;
       more.open = !info.card;

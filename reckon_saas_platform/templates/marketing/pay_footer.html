@@ -8,6 +8,7 @@
   .pf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; padding: 0; list-style: none; }
   .pf-chips li { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 1px solid rgba(128,128,128,.4); border-radius: 8px; font-weight: 700; font-size: 13px; background: rgba(128,128,128,.10); }
   .pf-chips svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pf [hidden] { display: none; }
   .pf p { margin: 6px 0; opacity: .9; }
   .pf a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
   .pf-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 18px 0 8px; padding: 0; list-style: none; font-weight: 600; }
@@ -16,7 +17,7 @@
 <section class="pf" aria-label="{{ tr("Payment methods and policies") }}">
   <div class="pf-grid">
     {% if pay_show != "usd" %}
-    <div>
+    <div data-pf="bdt">
       <h2>{{ tr("Paying in Taka") }}</h2>
       <p>{{ tr("Other ways: bank transfer, bKash, Nagad and Rocket. Pay with the details on your invoice, then enter the transaction ID and we unlock your workspace once the payment is verified.") }}</p>
       <ul class="pf-chips" aria-label="{{ tr("Taka payment methods") }}">
@@ -28,7 +29,7 @@
     </div>
     {% endif %}
     {% if pay_show != "bdt" %}
-    <div>
+    <div data-pf="usd">
       <h2>{{ tr("Paying by card or wallet (USD and other currencies)") }}</h2>
       <p>{{ tr("Secure checkout by Paddle, our payment provider. Cards and wallets are available; the methods shown depend on your country and device.") }}</p>
       <ul class="pf-chips" aria-label="{{ tr("Card and wallet payment methods") }}">
