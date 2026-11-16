@@ -75,6 +75,7 @@ doc_events = {
     # Public pages show these records, so any change refreshes the cached pages straight away.
     "SaaS Plan": {
         "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
+        "before_save": "reckon_saas_platform.paddle.ensure_ask_ai_feature",
         # A saved price change reaches Paddle by itself, so card checkout never charges a stale price.
         "on_update": [
             "reckon_saas_platform.marketing.refresh_public_pages",

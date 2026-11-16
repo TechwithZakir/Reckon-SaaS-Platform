@@ -652,6 +652,13 @@ MODULE_COPY.update(
 )
 
 # Plain-language labels for the registry's ``subscription_features`` keys.
+ASK_AI_LABEL = "Ask AI: Reckon AI agentic support"  # every plan of every module includes it
+
+
+def with_ask_ai(features: list[str]) -> list[str]:
+    return features if ASK_AI_LABEL in features else [*features, ASK_AI_LABEL]
+
+
 FEATURE_LABELS = {
     "reckon_accounts": "Reckon Accounts: invoices, bills, stock and books",
     "reckon_hrms": "Reckon HRMS: employees, attendance, leave and payroll",
@@ -675,6 +682,7 @@ FEATURE_LABELS = {
     "frappe_crm_sync": "CRM sync",
     "email_sequences_with_approval": "Email sequences with approval",
     "claude_ai_research_and_drafting": "AI research and drafting",
+    "ask_ai": ASK_AI_LABEL,
 }
 
 ACRONYMS = frozenset({"sr", "dsr", "pwa", "erp", "crm", "hr", "pos", "sms", "vat", "gl", "ai"})
@@ -1015,6 +1023,11 @@ def comparison_matrix(plans: list[dict]) -> dict:
     while the plans have features.
     """
     lines = [p.get("comparison") or [{"feature": f, "included": True, "value": ""} for f in p.get("features") or []] for p in plans]
+    lines = lines if not any(lines) else [
+        plan_lines if any(x["feature"].casefold() == ASK_AI_LABEL.casefold() for x in plan_lines)
+        else [*plan_lines, {"feature": ASK_AI_LABEL, "included": True, "value": ""}]
+        for plan_lines in lines
+    ]
     order: list[str] = []
     labels: dict[str, str] = {}
     for plan_lines in lines:
@@ -1122,7 +1135,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "max_storage_mb": int(row.get("max_storage_mb") or 0),
                 "modified": str(row.get("modified") or "")[:10],
                 "comparison": comparison.get(row.get("name"), []),
-                "features": [feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()],
+                "features": with_ask_ai([feature_label(line.strip()) for line in str(row.get("features") or "").splitlines() if line.strip()]),
             }
         )
     return plans
@@ -1164,7 +1177,7 @@ def get_modules() -> list[dict]:
             line.strip() for line in (record.get("features") or "").splitlines() if line.strip()
         ] or list(definition.get("subscription_features") or [])
         details = module_content.MODULE_DETAILS.get(key, {})
-        features = [feature_label(k) for k in feature_keys]
+        features = with_ask_ai([feature_label(k) for k in feature_keys])
         ready = learning_ready()
         inclusions = list(details.get("inclusions") or features) + list(module_content.COMMON_INCLUSIONS)
         inclusions.append(module_content.LEARNING_INCLUSION if ready else module_content.LEARNING_SOON)

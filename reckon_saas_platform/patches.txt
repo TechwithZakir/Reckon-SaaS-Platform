@@ -8,3 +8,4 @@ reckon_saas_platform.patches.refresh_comparison_blog_posts
 reckon_saas_platform.patches.seed_guide_blog_drafts
 reckon_saas_platform.patches.tenant_users_default_company
 reckon_saas_platform.patches.tenant_users_default_preferences
+reckon_saas_platform.patches.add_ask_ai_to_plans

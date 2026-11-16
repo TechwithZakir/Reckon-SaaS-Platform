@@ -277,6 +277,16 @@ def queue_plan_sync(doc, method=None) -> None:
         frappe.log_error(frappe.get_traceback(), "Queue Paddle plan sync")
 
 
+ASK_AI_FEATURE = "ask_ai"
+
+
+def ensure_ask_ai_feature(doc, method=None) -> None:
+    """Every plan of every module includes Ask AI (Reckon AI agentic support); add the line when a plan lacks it."""
+    lines = [line for line in str(doc.get("features") or "").splitlines() if line.strip()]
+    if ASK_AI_FEATURE not in (line.strip() for line in lines):
+        doc.features = chr(10).join([*lines, ASK_AI_FEATURE])
+
+
 def sync_all_plans() -> None:
     """Hourly catch-up: any card-currency plan whose Paddle price is missing or out of date is synced.
 

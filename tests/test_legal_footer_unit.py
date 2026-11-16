@@ -70,6 +70,13 @@ class LegalPagesTests(unittest.TestCase):
         self.assertIn("paddle.sync_all_plans", text("hooks.py"))  # hourly catch-up
         self.assertIn("paddle.archive_deleted_plan_price", text("hooks.py"))
 
+    def test_every_plan_lists_ask_ai(self):
+        self.assertIn("paddle.ensure_ask_ai_feature", text("hooks.py"))
+        self.assertIn("add_ask_ai_to_plans", text("patches.txt"))
+        self.assertIn("Ask AI: Reckon AI agentic support", text("marketing.py"))
+        self.assertIn("with_ask_ai(", text("marketing.py"))  # plan and module feature lists
+        self.assertIn("ASK_AI_LABEL.casefold()", text("marketing.py"))  # pricing comparison rows
+
 
 if __name__ == "__main__":
     unittest.main()
