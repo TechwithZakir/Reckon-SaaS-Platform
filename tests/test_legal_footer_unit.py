@@ -67,6 +67,8 @@ class LegalPagesTests(unittest.TestCase):
     def test_plans_sync_to_paddle_when_saved_and_prices_add_tax_on_top(self):
         self.assertIn("paddle.queue_plan_sync", text("hooks.py"))
         self.assertIn("TaxMode.External", text("paddle.py"))
+        self.assertIn("paddle.sync_all_plans", text("hooks.py"))  # hourly catch-up
+        self.assertIn("paddle.archive_deleted_plan_price", text("hooks.py"))
 
 
 if __name__ == "__main__":

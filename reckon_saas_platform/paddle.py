@@ -277,6 +277,30 @@ def queue_plan_sync(doc, method=None) -> None:
         frappe.log_error(frappe.get_traceback(), "Queue Paddle plan sync")
 
 
+def sync_all_plans() -> None:
+    """Hourly catch-up: any card-currency plan whose Paddle price is missing or out of date is synced.
+
+    Covers plans created before Paddle was switched on, a failed earlier sync, and a change made by import or
+    patch, which skip the save hook.
+    """
+    try:
+        if not is_enabled():
+            return
+        for name in frappe.get_all("SaaS Plan", pluck="name"):
+            sync_plan_in_background(name)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), "Paddle plan catch-up sync")
+
+
+def archive_deleted_plan_price(doc, method=None) -> None:
+    """A deleted plan must not leave a live Paddle price that checkout could still use."""
+    try:
+        if is_enabled() and doc.get("paddle_price_id") and doc.get("paddle_environment") == environment():
+            _api_archive_price(doc.paddle_price_id)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Archive Paddle price for deleted plan {doc.name}")
+
+
 def sync_plan_in_background(plan: str) -> None:
     try:
         doc = frappe.get_doc("SaaS Plan", plan)

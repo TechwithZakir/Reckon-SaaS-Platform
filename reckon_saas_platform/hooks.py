@@ -58,6 +58,7 @@ web_include_js = ["/assets/reckon_saas_platform/js/reckon_login.js"]
 # Access itself is decided from the dates, so the gate never waits for this job.
 scheduler_events = {
     "weekly": ["reckon_saas_platform.seo_agent.run_agent_weekly"],
+    "hourly": ["reckon_saas_platform.paddle.sync_all_plans"],
     "daily": [
         "reckon_saas_platform.saas.refresh_subscription_statuses",
         "reckon_saas_platform.seo.refresh_seo_daily",
@@ -79,7 +80,10 @@ doc_events = {
             "reckon_saas_platform.marketing.refresh_public_pages",
             "reckon_saas_platform.paddle.queue_plan_sync",
         ],
-        "on_trash": "reckon_saas_platform.marketing.refresh_public_pages",
+        "on_trash": [
+            "reckon_saas_platform.marketing.refresh_public_pages",
+            "reckon_saas_platform.paddle.archive_deleted_plan_price",
+        ],
     },
     "SaaS Module": {
         "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
