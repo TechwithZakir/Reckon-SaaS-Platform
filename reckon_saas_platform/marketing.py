@@ -115,8 +115,10 @@ CRAWLERS = (
 )
 PRIVATE_PATHS = (
     "/reckon_",
-    "/index",
-    "/app",
+    "/index/",
+    "/index$",
+    "/app/",
+    "/app$",
     "/desk",
     "/api",
     "/login",
@@ -1780,7 +1782,7 @@ def integrations_page(base: str, integrations=None) -> dict:
 
 # --- Machine-readable files --------------------------------------------------------
 def public_paths(modules: list[dict], articles=None) -> list[str]:
-    """Every indexable page, in sitemap order. The blog appears once it has a published post."""
+    """Every indexable page, in sitemap order."""
     from reckon_saas_platform import blog
 
     articles = blog.get_articles() if articles is None else articles
@@ -1791,8 +1793,7 @@ def public_paths(modules: list[dict], articles=None) -> list[str]:
     from reckon_saas_platform.industries import INDUSTRIES
 
     paths += [industry_url(i["slug"]) for i in INDUSTRIES]
-    if articles:
-        paths += [blog.BLOG] + [a["url"] for a in articles]
+    paths += [blog.BLOG] + [a["url"] for a in articles]
     paths += [SIGNUP]
     return paths
 

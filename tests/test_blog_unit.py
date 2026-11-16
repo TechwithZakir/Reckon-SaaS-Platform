@@ -106,13 +106,13 @@ class BlogPageTests(unittest.TestCase):
         self.assertEqual(len(home["latest_articles"]), 2)
         self.assertEqual([a["slug"] for a in module["module_articles"]], ["route-planning-guide"])
 
-    def test_an_empty_blog_is_not_indexed_or_in_the_sitemap(self):
+    def test_an_empty_blog_is_still_indexed_and_in_the_sitemap(self):
         with platform_modules("marketing", "blog") as (frappe, (marketing, blog)):
             modules = _site(frappe, marketing, [])
             page = blog.blog_page(BASE, [])
             sitemap = marketing.sitemap_xml(BASE, modules)
-        self.assertTrue(page["noindex"])
-        self.assertNotIn("/blog", sitemap)
+        self.assertFalse(page["noindex"])
+        self.assertIn(f"<loc>{BASE}/blog</loc>", sitemap)
 
     def test_unknown_or_unsafe_slugs_have_no_page(self):
         with platform_modules("marketing", "blog") as (frappe, (marketing, blog)):
@@ -166,7 +166,8 @@ class BlogPageTests(unittest.TestCase):
         self.assertIn('rel="alternate" type="application/rss+xml"', post)
         self.assertIn("From the blog", home)
         self.assertIn('href="/blog"', home)
-        self.assertIn("noindex,follow", empty)
+        self.assertIn("index,follow,max-image-preview:large", empty)
+        self.assertNotIn("noindex", empty)
         self.assertIn("Articles are on their way", empty)
 
 

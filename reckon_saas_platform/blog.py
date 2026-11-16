@@ -277,7 +277,6 @@ def blog_page(base: str, articles: list[dict]) -> dict:
         trail=[("Home", marketing.HOME), ("Blog", BLOG)],
         articles=articles,
         categories=[c for c in CATEGORIES if any(a["category"] == c for a in articles)],
-        noindex=not articles,
         extra_ld=[{"@context": "https://schema.org", "@type": "Blog", "name": "ReckonERP blog", "url": f"{base}{BLOG}", "blogPost": items}],
     )
     return page

@@ -11,7 +11,7 @@ Install before product modules:
 
 ```bash
 bench get-app reckon_saas_platform <platform-repo-url>
-bench --site distribution.reckon.tech install-app reckon_saas_platform
+bench --site app.reckon.tech install-app reckon_saas_platform
 ```
 
 Then install a product module such as `reckon_distribution`.
@@ -134,8 +134,7 @@ The landing page, header and footer link to **/blog**: articles, tutorials, feat
 guides and weekly updates, each at `/blog/<slug>`, with an RSS feed at
 `/blog/rss.xml`. Posts are **SEO Article** records (`/app/seo-article`) written in a **rich-text editor**; the website outputs only an allow-list of the HTML (headings, lists, links, images, code, quotes, tables), never scripts or event handlers. Published
 posts feed the sitemap (with `lastmod`), `llms.txt`, BlogPosting structured data, the
-landing page's "From the blog" section and the related module page. An empty blog is
-`noindex` and stays out of the sitemap.
+landing page's "From the blog" section and the related module page. The blog index is always indexable and in the sitemap, even before the first post.
 
 To have the agent write: in **SaaS Platform Settings > SEO Agent (AI)** enable the agent,
 tick **Write Blog Drafts**, set **Articles per Run** (1-3), **Blog Frequency** (Monthly by default) and, for the weekly update,

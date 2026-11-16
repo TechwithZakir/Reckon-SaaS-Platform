@@ -542,7 +542,10 @@ class MarketingDataTests(unittest.TestCase):
         for agent in ("*", "Googlebot", "GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"):
             self.assertIn(f"User-agent: {agent}\n", text)
         self.assertIn("Allow: /\n", text)
-        self.assertIn("Disallow: /app\n", text)
+        self.assertIn("Disallow: /app/\n", text)
+        self.assertIn("Disallow: /app$\n", text)
+        for private in ("/desk", "/api", "/login", "/me", "/update-password"):
+            self.assertIn(f"Disallow: {private}\n", text)
         self.assertNotIn("Disallow: /\n", text)
         self.assertTrue(text.rstrip().endswith(f"Sitemap: {BASE}/sitemap.xml"))
 

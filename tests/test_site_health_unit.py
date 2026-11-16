@@ -73,7 +73,7 @@ class SiteHealthTests(unittest.TestCase):
             frappe.local.request = Mock(path="/reckon_pricing")
             marketing.apply_context(_Dict(), page, modules)
         self.assertIn("Disallow: /reckon_" + chr(10), robots)
-        self.assertIn("Disallow: /index" + chr(10), robots)
+        self.assertIn("Disallow: /index/" + chr(10), robots)
         self.assertNotIn("Disallow: /industries", robots)
         self.assertFalse(page["noindex"])  # a request path must never change what is cached for the public address
         self.assertEqual(page["canonical"], f"{BASE}/pricing")  # the raw route still points search engines at the real page
