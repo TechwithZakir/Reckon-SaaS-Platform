@@ -161,6 +161,10 @@
   .rk-plan-module { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--rk-muted); text-transform: uppercase; letter-spacing: 0.04em; }
   .rk-start { display: grid; gap: 12px; }
   .rk-start-hint { display: block; margin-top: 6px; color: var(--rk-muted); font-size: 13px; line-height: 1.4; }
+  .rk-paybox { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #cfe0ee; border-radius: 12px; }
+  .rk-paybox span { font-size: 22px; font-weight: 800; }
+  .rk-paymore { margin-top: 16px; }
+  .rk-paymore > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
   .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
   .rk-plan-detail { margin-top: 10px; padding: 18px 20px; border: 1.5px solid var(--rk-line); border-radius: 14px; background: var(--rk-card); }
   .rk-plan-detail h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--rk-muted); margin: 0 0 10px; }
@@ -496,6 +500,25 @@
           </div>
         </div>
 
+        <div data-step="payment" hidden>
+          <h2>{{ t.pay_title }}</h2>
+          <p class="rk-sub">{{ t.pay_sub }}</p>
+          <div class="rk-paybox"><strong data-pay-plan></strong><span data-pay-amount></span></div>
+          <div data-pay-card hidden>
+            <button type="button" class="rk-btn is-block" data-pay-card-button>{{ t.pay_card }}</button>
+            <small class="rk-hint">{{ t.pay_card_hint }}</small>
+          </div>
+          <details class="rk-paymore" data-pay-more>
+            <summary>{{ t.pay_other }}</summary>
+            <p class="rk-sub" data-pay-instructions></p>
+            <form id="rk-pay-form" novalidate>
+              <div class="rk-field"><label for="rk-pay-provider">{{ t.pay_provider }}</label><select id="rk-pay-provider" name="provider" data-pay-provider></select></div>
+              <div class="rk-field"><label for="rk-pay-reference">{{ t.pay_reference }}</label><input id="rk-pay-reference" name="reference" maxlength="140" autocomplete="off" required></div>
+              <button type="submit" class="rk-btn is-blue is-block">{{ t.pay_submit }}</button>
+            </form>
+          </details>
+        </div>
+
         <div data-step="done" hidden>
           <div class="rk-done">
             <div class="rk-done-icon" data-done-icon>✓</div>
@@ -686,7 +709,7 @@
     syncStart();
 
     function setStep(step) {
-      const order = ["details", "verify", "done"];
+      const order = ["details", "verify", "payment", "done"];
       document.querySelectorAll("[data-step]").forEach(function (panel) {
         panel.hidden = panel.getAttribute("data-step") !== step;
       });
@@ -764,9 +787,84 @@
         setStep("verify");
         return true;
       }
+      if (status.stage === "payment") {
+        // Pay Now: the payment comes first, then the workspace. Keep checking only once a payment has been started.
+        setStep("payment");
+        renderPayment(status.payment || {});
+        return Boolean(state.payWait);
+      }
       showDone(status.stage);
       return status.stage === "provisioning";
     }
+
+    // ---- Pay Now: take the first payment before the workspace is created ----
+    const PAY = { wait: {{ t.pay_wait|tojson }}, cardError: {{ t.pay_card_error|tojson }} };
+    function loadPaddle() {
+      if (window.Paddle) return Promise.resolve();
+      return new Promise(function (resolve, reject) {
+        const script = document.createElement("script");
+        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+    function renderPayment(info) {
+      document.querySelector("[data-pay-plan]").textContent = info.plan || "";
+      document.querySelector("[data-pay-amount]").textContent = info.amount || "";
+      document.querySelector("[data-pay-instructions]").textContent = info.instructions || "";
+      const select = document.querySelector("[data-pay-provider]");
+      if (!select.options.length) (info.providers || []).forEach(function (name) { select.appendChild(new Option(name, name)); });
+      const card = document.querySelector("[data-pay-card]");
+      card.hidden = !info.card;
+      state.card = info.card || null;
+      document.querySelector("[data-pay-more]").open = !info.card;
+    }
+    document.querySelector("[data-pay-card-button]").addEventListener("click", function () {
+      const card = state.card;
+      if (!card) return;
+      loadPaddle().then(function () {
+        if (card.environment === "sandbox") window.Paddle.Environment.set("sandbox");
+        window.Paddle.Initialize({
+          token: card.client_token,
+          eventCallback: function (event) {
+            if (event && event.name === "checkout.completed") {
+              state.payWait = true;
+              showAlert(PAY.wait, "success");
+              clearTimeout(state.timer);
+              state.timer = setTimeout(refreshStatus, 2000);
+            }
+          },
+        });
+        const options = {
+          items: [{ priceId: card.price_id, quantity: 1 }],
+          customData: card.custom_data,
+          settings: { displayMode: "overlay", variant: "one-page" },
+        };
+        if (state.email) options.customer = { email: state.email };
+        window.Paddle.Checkout.open(options);
+      }).catch(function () { showAlert(PAY.cardError, "error"); });
+    });
+    document.getElementById("rk-pay-form").addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      if (!form.reportValidity()) return;
+      const button = form.querySelector("button[type=submit]");
+      button.disabled = true;
+      try {
+        const data = await call("reckon_saas_platform.saas.submit_registration_payment", {
+          registration: state.registration, provider: form.provider.value, reference: form.reference.value.trim(),
+        });
+        state.payWait = true;
+        showAlert(data.message, "success");
+        showDone("provisioning");
+        clearTimeout(state.timer);
+        state.timer = setTimeout(refreshStatus, 2500);
+      } catch (error) {
+        showAlert(error.message, "error");
+        button.disabled = false;
+      }
+    });
 
     async function refreshStatus() {
       if (!state.registration) return;

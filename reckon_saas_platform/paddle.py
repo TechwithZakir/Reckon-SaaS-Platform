@@ -468,8 +468,53 @@ def apply_event(event: dict) -> bool:
     if event_type not in HANDLED_EVENTS:
         return False
     if event_type == "transaction.completed":
-        return _apply_transaction(data)
+        return _apply_transaction(data, event.get("event_id"))
     return _apply_subscription(data, event.get("occurred_at"))
+
+
+def _registration_paid(registration: str, data: dict, event_id: str | None) -> bool:
+    """The first payment of a Pay Now signup: it unlocks creating the workspace, once it is for the plan chosen."""
+    from reckon_saas_platform import saas
+
+    row = frappe.db.get_value("SaaS Registration", registration, ["status", "plan", "subscription"], as_dict=True)
+    if not row:
+        raise PaddleEventError(f"No signup {registration}; review and refund in Paddle.")
+    if row.subscription or row.status in {"Provisioning", "Pending Payment", "Active"}:
+        return True  # already handled: a replayed event
+    if row.status != "Awaiting Payment":
+        raise PaddleEventError(f"Signup {registration} is {row.status}, not waiting for a payment; review and refund in Paddle.")
+    paid = {((item.get("price") or {}).get("id")) for item in data.get("items") or []}
+    paid.discard(None)
+    plan = frappe.db.get_value("SaaS Plan", row.plan, ["paddle_price_id", "paddle_environment"], as_dict=True)
+    if not paid or paid != {plan_price_id(plan)}:
+        raise PaddleEventError(f"Paddle price(s) {sorted(paid)} are not the price of {row.plan}; review and refund in Paddle.")
+    saas.mark_registration_paid(registration, PROVIDER, data.get("id"), event_id)
+    return True
+
+
+def finish_registration_payment(registration: str) -> None:
+    """After a Pay Now signup's workspace exists: apply its card payment, then replay what Paddle sent meanwhile."""
+    row = frappe.db.get_value("SaaS Registration", registration, ["subscription", "company", "payment_event"], as_dict=True)
+    if not row or not row.subscription:
+        return
+    events = frappe.get_all(
+        "Paddle Webhook Event",
+        filters={"payload": ["like", f"%{registration}%"]},
+        fields=["name", "status"],
+        order_by="occurred_at asc",
+        ignore_permissions=True,
+    )
+    for event in events:
+        try:
+            if event.name == row.payment_event:
+                data = (json.loads(frappe.db.get_value(EVENT_DOCTYPE, event.name, "payload") or "{}")).get("data") or {}
+                custom = data.get("custom_data") or {}
+                data["custom_data"] = {**custom, "saas_subscription": row.subscription, "company": row.company}
+                _apply_transaction(data)
+            elif event.status == "Failed":
+                process_event(event.name)
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Paddle signup payment {registration}")
 
 
 def _find_saas_subscription(custom_data: dict | None, paddle_subscription_id: str | None):
@@ -482,6 +527,13 @@ def _find_saas_subscription(custom_data: dict | None, paddle_subscription_id: st
         if row:
             return row
     custom_data = custom_data or {}
+    registration = custom_data.get("registration")
+    if registration and not custom_data.get("saas_subscription"):
+        # A Pay Now signup paid before its workspace existed: find the subscription it became.
+        made = frappe.db.get_value("SaaS Registration", registration, "subscription")
+        if not made:
+            raise PaddleEventError(f"The workspace for {registration} is still being created; this event is processed again when it is ready.")
+        custom_data = {"saas_subscription": made, "company": frappe.db.get_value("SaaS Subscription", made, "company")}
     name = custom_data.get("saas_subscription")
     if not name:
         return None
@@ -507,7 +559,7 @@ def _module_price_ids(saas_module: str | None) -> set[str]:
     }
 
 
-def _apply_transaction(data: dict) -> bool:
+def _apply_transaction(data: dict, event_id: str | None = None) -> bool:
     """A completed (paid) transaction: a verified payment for the period Paddle billed."""
     paddle_subscription_id = data.get("subscription_id")
     if not paddle_subscription_id:
@@ -515,6 +567,9 @@ def _apply_transaction(data: dict) -> bool:
     transaction_id = data.get("id")
     if not transaction_id:
         raise PaddleEventError("Transaction without an id.")
+    custom = data.get("custom_data") or {}
+    if custom.get("registration") and not custom.get("saas_subscription"):
+        return _registration_paid(custom["registration"], data, event_id)
     row = _find_saas_subscription(data.get("custom_data"), paddle_subscription_id)
     if not row:
         raise PaddleEventError(f"No SaaS Subscription for Paddle subscription {paddle_subscription_id}.")

@@ -309,6 +309,7 @@ def get_registration_verification_status(registration: str):
 
 REGISTRATION_STAGES = {
     "Pending Verification": "verify",
+    "Awaiting Payment": "payment",
     "Provisioning": "provisioning",
     "Pending Payment": "ready",
     "Active": "ready",
@@ -334,7 +335,7 @@ def registration_verification_status(registration: str) -> dict:
         )
     if not row:
         frappe.throw(_("This verification request is invalid or has expired."), SignupValidationError)
-    return {
+    result = {
         "stage": REGISTRATION_STAGES.get(row.status, "closed"),
         "email_required": row.email_verification_required is None
         or bool(row.email_verification_required),
@@ -342,6 +343,9 @@ def registration_verification_status(registration: str) -> dict:
         "phone_required": bool(row.phone_verification_required),
         "phone_verified": bool(row.phone_verified),
     }
+    if result["stage"] == "payment":
+        result["payment"] = signup_payment_info(registration)
+    return result
 
 
 def resend_registration_verification_email(registration: str):
@@ -1207,8 +1211,79 @@ def _start_provisioning_if_verified(registration) -> None:
         return
     if registration.phone_verification_required and not registration.phone_verified:
         return
+    if registration.get("start_mode") == "Pay Now":
+        # They chose to pay first: the workspace is created once the payment (or its reference) is in.
+        registration.db_set("status", "Awaiting Payment")
+        return
     registration.db_set("status", "Provisioning")
     enqueue_registration_provisioning(registration.name)
+
+
+def mark_registration_paid(registration: str, provider: str, reference: str, event_id: str | None = None):
+    """A Pay Now signup has paid (or given its transaction reference): create the workspace."""
+    doc = frappe.get_doc("SaaS Registration", registration, for_update=True)
+    if doc.status != "Awaiting Payment":
+        return doc  # already on its way: a repeated payment event or a double click changes nothing
+    doc.db_set(
+        {
+            "payment_provider": provider,
+            "payment_reference": reference,
+            "payment_event": event_id or "",
+            "status": "Provisioning",
+        }
+    )
+    enqueue_registration_provisioning(doc.name)
+    return doc
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=_verify_rate_limit, seconds=60 * 60)
+def submit_registration_payment(registration: str, provider: str, reference: str):
+    """Pay Now by bKash, Nagad, bank transfer and so on: the transaction reference comes first, then the workspace."""
+    reference = (reference or "").strip() if isinstance(reference, str) else ""
+    if not reference or len(reference) > 140:
+        frappe.throw(_("Enter the transaction ID or reference of your payment."), SignupValidationError)
+    if provider not in PAYMENT_PROVIDERS:
+        frappe.throw(_("Choose how you paid."), SignupValidationError)
+    status = frappe.db.get_value("SaaS Registration", registration, "status") if isinstance(registration, str) and registration else None
+    if status != "Awaiting Payment":
+        frappe.throw(_("This signup is not waiting for a payment."), SignupValidationError)
+    mark_registration_paid(registration, provider, reference)
+    return {"ok": True, "message": _("Thank you. We are creating your workspace now; it opens when we verify your payment.")}
+
+
+def signup_payment_info(registration: str) -> dict:
+    """What the signup page needs to take the first payment: the amount, and how to pay."""
+    from reckon_saas_platform import invoices, marketing, paddle
+
+    row = frappe.db.get_value("SaaS Registration", registration, ["plan"], as_dict=True)
+    plan = (
+        frappe.db.get_value(
+            "SaaS Plan", row.plan, ["name", "plan_name", "price", "currency", "billing_cycle", "paddle_price_id", "paddle_environment"], as_dict=True
+        )
+        if row
+        else None
+    )
+    if not plan:
+        return {}
+    info = {
+        "plan": plan.plan_name or plan.name,
+        "amount": invoices.money(plan.price, plan.currency),
+        "billing_cycle": plan.billing_cycle or "Monthly",
+        "instructions": invoices._setting("invoice_payment_instructions") or invoices.DEFAULT_INSTRUCTIONS,
+        "providers": list(PAYMENT_PROVIDERS),
+        "card": None,
+    }
+    public = marketing.paddle_public()
+    price_id = paddle.plan_price_id(plan)
+    if public and price_id and paddle.card_payment_available(plan):
+        info["card"] = {
+            "environment": public["environment"],
+            "client_token": public["client_token"],
+            "price_id": price_id,
+            "custom_data": {"registration": registration},
+        }
+    return info
 
 
 def _send_otp_sms(phone: str, otp: str) -> None:
@@ -1296,6 +1371,11 @@ def _provision_registration(registration: str):
                 "amount": plan_doc.price,
                 "currency": plan_doc.currency,
                 "status": "Pending Verification",
+                **(
+                    {"gateway_provider": doc.payment_provider, "gateway_reference": doc.payment_reference}
+                    if doc.get("payment_provider") and doc.payment_provider != "Paddle"
+                    else {}
+                ),
             }
         ).insert(ignore_permissions=True)
         job = ensure_tenant_seed_job(company.name)
@@ -1316,6 +1396,14 @@ def _provision_registration(registration: str):
         }
     )
     _forget_registration_password(doc)
+    if doc.get("payment_provider") == "Paddle":
+        # The card was charged before the workspace existed: attach that payment to it, and replay what Paddle sent since.
+        frappe.enqueue(
+            "reckon_saas_platform.paddle.finish_registration_payment",
+            registration=doc.name,
+            queue="short",
+            enqueue_after_commit=True,
+        )
     # The invoice goes out in the background, so a mail or SMS problem never touches the signup.
     frappe.enqueue(
         "reckon_saas_platform.invoices.issue_and_send",
