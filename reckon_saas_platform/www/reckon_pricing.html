@@ -11,6 +11,7 @@
       <p class="lead">{{ tr("Each module is its own subscription with its own plan, so you pay only for what you use. Prices, billing periods and trial days are exactly what you will see at signup.") }}</p>
     </div>
     {{ m.currency_switch(page.currencies) }}{{ m.cycle_switch(page.cycles) }}
+    {% if paddle_public %}<p class="note" data-local-currency>{{ tr("Paying by card from another country? Checkout shows the price in your local currency, and you can change your country there to pick another.") }}</p>{% endif %}
     {% if page.priced %}
     {% for mod in page.priced %}
     <div class="price-mod">

@@ -249,6 +249,17 @@ class SuiteTests(unittest.TestCase):
         self.assertIn("covered_modules", [f["fieldname"] for f in plan["fields"]])
 
 
+class LocalCurrencyNoteTests(unittest.TestCase):
+    def test_card_payers_are_told_checkout_shows_their_local_currency(self):
+        pricing = (PKG / "www" / "reckon_pricing.html").read_text(encoding="utf-8")
+        self.assertIn("{% if paddle_public %}", pricing[pricing.index("data-local-currency") - 80 : pricing.index("data-local-currency")])
+        self.assertIn("local currency", pricing)
+        self.assertIn("Outside the US? Checkout shows your local currency", (PKG / "www" / "reckonerp_subscription.html").read_text(encoding="utf-8"))
+        with platform_modules("marketing") as (_f, (marketing,)):
+            text = "Paying by card from another country? Checkout shows the price in your local currency, and you can change your country there to pick another."
+            self.assertNotEqual(marketing.marketing_bn.translate(text), text)  # Bangla for the pricing page
+
+
 class AddModulePlansTests(unittest.TestCase):
     def test_plans_group_by_billing_period_and_tier_with_short_labels(self):
         with platform_modules("saas") as (_frappe, (saas,)):

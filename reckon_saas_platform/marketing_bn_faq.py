@@ -57,6 +57,7 @@ SITE = {
     "Branches that share a central store and kitchen: requisition, stock movement, production, delivery and branch-wise sales.": "যেসব ব্রাঞ্চ একটি সেন্ট্রাল স্টোর ও কিচেন ভাগ করে নেয়: রিকুইজিশন, স্টক স্থানান্তর, প্রোডাকশন, ডেলিভারি ও ব্রাঞ্চ অনুযায়ী বিক্রি।",
     "Google Business Profile": "Google Business Profile",
     "Services": "সেবা",
+    "Paying by card from another country? Checkout shows the price in your local currency, and you can change your country there to pick another.": "অন্য দেশ থেকে কার্ডে পেমেন্ট করছেন? চেকআউটে আপনার স্থানীয় মুদ্রায় মূল্য দেখানো হয়, আর সেখানে দেশ বদলে অন্য মুদ্রাও বেছে নিতে পারবেন।",
     "Reckon Accounts": "Reckon Accounts",
     "Reckon HRMS (employees, attendance, leave, payroll)": "Reckon HRMS (কর্মী, উপস্থিতি, ছুটি, পেরোল)",
     "Biometric attendance (ZKTeco devices)": "বায়োমেট্রিক উপস্থিতি (ZKTeco ডিভাইস)",
