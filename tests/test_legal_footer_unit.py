@@ -90,7 +90,7 @@ class LegalPagesTests(unittest.TestCase):
 
     def test_the_payment_panel_opens_the_invoiced_module_not_a_fixed_one(self):
         html = text("www", "reckonerp_subscription.html")
-        self.assertIn("pay_app_route", html)
+        self.assertIn("pay_apps", html)
         self.assertNotIn("app/distribution", html)
 
 

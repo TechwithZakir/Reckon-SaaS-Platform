@@ -50,7 +50,11 @@ def get_context(context):
         card["invoice"] = by_subscription.get(card["name"])
     # The Open app button in the Payment panel goes to the app of the subscription being invoiced.
     unpaid = [c for c in context.subscriptions if (c.get("invoice") or {}).get("status") == "Unpaid" and c.get("landing_route")]
-    context.pay_app_route = (unpaid or [c for c in context.subscriptions if c.get("landing_route")] or [{}])[0].get("landing_route", "")
+    # Each module is invoiced on its own, so each unpaid one gets its own button.
+    context.pay_apps = [
+        {"route": c["landing_route"], "name": c.get("module_name") or ""}
+        for c in (unpaid or [c for c in context.subscriptions if c.get("landing_route")])
+    ]
     context.paddle_environment = ""
     if company and context.can_add_modules:
         context.paddle_environment = _safely(lambda: _add_card_payment(context.subscriptions), "")
