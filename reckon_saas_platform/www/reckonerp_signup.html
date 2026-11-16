@@ -824,7 +824,9 @@
       if (info.card && !currency.options.length) {
         (info.card.currencies || []).forEach(function (c) { currency.appendChild(new Option(c.code ? c.code + " · " + c.name : c.name, c.country)); });
       }
-      document.querySelector("[data-pay-more]").open = !info.card;
+      const more = document.querySelector("[data-pay-more]");
+      more.hidden = info.manual === false;
+      more.open = !info.card;
     }
     document.querySelector("[data-pay-card-button]").addEventListener("click", function () {
       const card = state.card;

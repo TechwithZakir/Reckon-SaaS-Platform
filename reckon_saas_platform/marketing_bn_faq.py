@@ -58,6 +58,7 @@ SITE = {
     "Google Business Profile": "Google Business Profile",
     "Services": "সেবা",
     "Legal": "আইনি",
+    "On this page": "এই পাতায়",
     "Last updated": "সর্বশেষ হালনাগাদ",
     "Security": "নিরাপত্তা",
     "Payment policy": "পেমেন্ট নীতি",

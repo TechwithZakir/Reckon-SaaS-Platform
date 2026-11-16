@@ -59,7 +59,7 @@
         {% if sub.access and summary.operational_access and sub.landing_route %}
         <p><a class="rs-portal__button rs-portal__button--primary" href="{{ sub.landing_route|e }}">Open {{ sub.module_name|e }}</a></p>
         {% endif %}
-        {% if sub.can_pay and not (sub.paddle and sub.paddle.live) %}
+        {% if sub.can_pay and not (sub.paddle and sub.paddle.live) and not (sub.card_payment and sub.currency != "BDT") %}
         {# Card is the default for a plan that can take it; the manual report stays one click away. #}
         {% if sub.card_payment %}<details class="rs-portal__other"><summary>Other ways to pay (bank transfer or mobile wallet)</summary>{% endif %}
         <form class="rs-portal__form" data-pay-subscription="{{ sub.name|e }}">
@@ -83,7 +83,8 @@
 
       <article class="rs-portal__card rs-portal__card--wide">
         <p class="rs-portal__eyebrow">How to pay</p><h2>Payment</h2>
-        {% if paddle_environment %}<p><strong>By card (default for plans priced in USD):</strong> click Pay by card on the subscription card above. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>
+        {% if pay_show == "usd" %}<p>Click Pay by card on the subscription card above. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>
+        {% elif paddle_environment %}<p><strong>By card (default for plans priced in USD):</strong> click Pay by card on the subscription card above. Card payments renew automatically each billing cycle and unlock the module as soon as the payment goes through. Our reseller Paddle processes card payments and appears on your statement.</p>
         <p><strong>Other ways:</strong> {{ payment_instructions|e }} Then open "Other ways to pay" on the subscription card, enter the transaction reference, and we unlock the module once the payment is verified.</p>
         {% else %}<p>{{ payment_instructions|e }}</p>
         <p>Choose your method on a subscription card above, enter the transaction reference, and we unlock the module once the payment is verified.</p>{% endif %}

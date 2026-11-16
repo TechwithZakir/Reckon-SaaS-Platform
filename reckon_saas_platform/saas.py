@@ -1284,6 +1284,8 @@ def signup_payment_info(registration: str) -> dict:
             "custom_data": {"registration": registration},
             "currencies": [dict(c) for c in paddle.PAY_CURRENCIES],
         }
+    # A plan priced in a card currency (USD) is paid by card only; bank transfer and wallets are for Taka plans.
+    info["manual"] = not (info["card"] and plan.currency != "BDT")
     return info
 
 

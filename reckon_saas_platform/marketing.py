@@ -1752,6 +1752,9 @@ def legal_page(base: str, slug: str) -> dict:
             "company": legal_pages.COMPANY,
             "email": legal_pages.CONTACT_EMAIL,
             "links": list(legal_pages.LINKS),
+            "glance": legal_pages.GLANCE[slug],
+            "icon": legal_pages.ICONS[slug],
+            "others": [(label, link) for label, link in legal_pages.LINKS if link != f"/{slug}"],
         },
     )
 

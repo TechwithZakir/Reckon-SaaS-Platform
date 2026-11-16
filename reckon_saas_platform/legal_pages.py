@@ -129,6 +129,41 @@ PAGES = {
     },
 }
 
+# The facts a reader wants first, per page: (label, value). Each page answers its own question.
+GLANCE = {
+    "privacy-policy": [
+        ("We collect", "Business, name, email, mobile, usage logs"),
+        ("We never", "Sell your data or store your card number"),
+        ("Your data", "Export, correct or delete it on request"),
+        ("Ask us at", CONTACT_EMAIL),
+    ],
+    "refund-policy": [
+        ("First payment", "Full refund within 14 days"),
+        ("Renewals", "Cancel before the renewal date"),
+        ("Refund time", "5 to 10 working days to your bank"),
+        ("Ask us at", CONTACT_EMAIL),
+    ],
+    "payment-policy": [
+        ("Taka plans", "Bank transfer, bKash, Nagad, Rocket"),
+        ("USD plans", "Card and wallet through Paddle"),
+        ("Renewal", "Automatic by card; invoice for Taka"),
+        ("Late payment", "Grace days, then workspace locks, data kept"),
+    ],
+    "security": [
+        ("Workspaces", "Private per company"),
+        ("In transit", "HTTPS everywhere"),
+        ("Card data", "Never reaches our servers"),
+        ("Report a flaw", CONTACT_EMAIL),
+    ],
+}
+
+ICONS = {
+    "privacy-policy": "M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4",
+    "refund-policy": "M4 12a8 8 0 1 0 3-6.2M4 4v4h4M12 8v4l3 2",
+    "payment-policy": "M3 7h18v11H3zM3 11h18M7 15h3",
+    "security": "M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5zM12 15v2",
+}
+
 LINKS = (
     ("Security", "/security"),
     ("Payment policy", "/payment-policy"),

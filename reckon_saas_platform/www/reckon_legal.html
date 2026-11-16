@@ -2,27 +2,60 @@
 
 {% block content %}
 {% import "reckon_saas_platform/templates/marketing/macros.html" as m with context %}
+<style>
+  .lg-hero{display:flex;gap:18px;align-items:center}
+  .lg-ico{flex:none;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--green)}
+  .lg-ico svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .lg-glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0 0 30px}
+  .lg-glance div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+  .lg-glance dt{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin:0 0 4px}
+  .lg-glance dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+  .lg-body{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;align-items:start}
+  .lg-toc{position:sticky;top:90px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+  .lg-toc strong{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+  .lg-toc a{padding:6px 10px;border-left:2px solid var(--line);text-decoration:none;color:inherit}
+  .lg-toc a:hover{border-left-color:var(--green)}
+  .lg-sec{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;margin:0 0 16px;scroll-margin-top:90px}
+  .lg-sec h2{margin:0 0 10px;font-size:1.15rem;display:flex;gap:10px;align-items:center}
+  .lg-sec h2 span{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:var(--green);color:#fff}
+  .lg-sec p{margin:8px 0;line-height:1.7}
+  .lg-sec ul{margin:8px 0;padding-left:20px;line-height:1.7}
+  .lg-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:26px 0 8px}
+  .lg-more a{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-weight:700;text-decoration:none}
+  .lg-more a:hover{border-color:var(--green)}
+  .lg-foot{margin-top:18px}
+  @media(max-width:820px){.lg-body{grid-template-columns:1fr}.lg-toc{position:static;flex-direction:row;flex-wrap:wrap;gap:6px}.lg-toc strong{width:100%}.lg-toc a{border:1px solid var(--line);border-radius:999px}}
+</style>
 {{ m.crumbs(page.trail) }}
 <section class="page-hero">
   <div class="wrap">
-    <div class="head">
-      <p class="eyebrow">{{ tr("Legal") }}</p>
-      <h1>{{ page.h1|e }}</h1>
-      <p class="lead">{{ page.legal.lead|e }}</p>
-      <p class="note">{{ tr("Last updated") }}: {{ page.legal.updated|e }}</p>
+    <div class="head lg-hero">
+      <div class="lg-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="{{ page.legal.icon }}"/></svg></div>
+      <div>
+        <p class="eyebrow">{{ tr("Legal") }}</p>
+        <h1>{{ page.h1|e }}</h1>
+        <p class="lead">{{ page.legal.lead|e }}</p>
+        <p class="note">{{ tr("Last updated") }}: {{ page.legal.updated|e }}</p>
+      </div>
     </div>
   </div>
 </section>
 <section>
-  <div class="wrap legal">
-    {% for heading, blocks in page.legal.sections %}
-    <h2 style="margin-top:28px">{{ heading|e }}</h2>
-    {% for block in blocks %}
-    {% if block is string %}<p>{{ block|e }}</p>{% else %}<ul>{% for item in block %}<li>{{ item|e }}</li>{% endfor %}</ul>{% endif %}
-    {% endfor %}
-    {% endfor %}
-    <p class="note" style="margin-top:28px">{{ page.legal.company|e }} &middot; <a href="mailto:{{ page.legal.email|e }}">{{ page.legal.email|e }}</a></p>
-    <p class="note">{% for label, link in page.legal.links %}<a href="{{ link|e }}">{{ tr(label) }}</a>{{ " · " if not loop.last }}{% endfor %}</p>
+  <div class="wrap">
+    <dl class="lg-glance">{% for label, value in page.legal.glance %}<div><dt>{{ label|e }}</dt><dd>{{ value|e }}</dd></div>{% endfor %}</dl>
+    <div class="lg-body">
+      <nav class="lg-toc" aria-label="{{ page.h1|e }}"><strong>{{ tr("On this page") }}</strong>{% for heading, blocks in page.legal.sections %}<a href="#s{{ loop.index }}">{{ heading|e }}</a>{% endfor %}</nav>
+      <div>
+        {% for heading, blocks in page.legal.sections %}
+        <section class="lg-sec" id="s{{ loop.index }}">
+          <h2><span>{{ loop.index }}</span>{{ heading|e }}</h2>
+          {% for block in blocks %}{% if block is string %}<p>{{ block|e }}</p>{% else %}<ul>{% for item in block %}<li>{{ item|e }}</li>{% endfor %}</ul>{% endif %}{% endfor %}
+        </section>
+        {% endfor %}
+        <div class="lg-more">{% for label, link in page.legal.others %}<a href="{{ link|e }}">{{ tr(label) }} &rarr;</a>{% endfor %}</div>
+        <p class="note lg-foot">{{ page.legal.company|e }} &middot; <a href="mailto:{{ page.legal.email|e }}">{{ page.legal.email|e }}</a></p>
+      </div>
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -42,6 +42,20 @@ class LegalPagesTests(unittest.TestCase):
             self.assertIn("countryCode", text("www", page))
         self.assertIn("PAY_CURRENCIES", text("paddle.py"))
 
+    def test_usd_plans_do_not_offer_bank_or_wallet_payment(self):
+        self.assertIn('info["manual"]', text("saas.py"))
+        self.assertIn("more.hidden = info.manual === false", text("www", "reckonerp_signup.html"))
+        self.assertIn('sub.currency != "BDT"', text("www", "reckonerp_subscription.html"))
+
+    def test_each_policy_has_its_own_at_a_glance_facts(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("legal_pages", PKG / "legal_pages.py")
+        legal = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(legal)
+        self.assertEqual(set(legal.GLANCE), set(legal.PAGES))
+        self.assertEqual(len({tuple(v) for v in map(tuple, legal.GLANCE.values())}), len(legal.PAGES))
+
 
 if __name__ == "__main__":
     unittest.main()
