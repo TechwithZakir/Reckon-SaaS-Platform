@@ -451,6 +451,14 @@
             </div>
             {% endif %}
 
+            <div class="rk-field">
+              <label for="coupon_code">{{ t.coupon_label }}</label>
+              <div style="display:flex;gap:8px">
+                <input id="coupon_code" name="coupon_code" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="{{ t.coupon_placeholder }}" style="text-transform:uppercase">
+                <button type="button" class="rk-btn" data-coupon-apply style="white-space:nowrap">{{ t.coupon_apply }}</button>
+              </div>
+              <small class="rk-hint" data-coupon-note role="status">{{ t.coupon_hint }}</small>
+            </div>
             <input type="hidden" name="billing_cycle" value="Monthly">
             <input type="hidden" id="captcha_token" name="captcha_token" value="">
             {% if recaptcha_site_key and not recaptcha_v3 %}
@@ -820,7 +828,7 @@
     }
     function renderPayment(info) {
       document.querySelector("[data-pay-plan]").textContent = info.plan || "";
-      document.querySelector("[data-pay-amount]").textContent = info.amount || "";
+      document.querySelector("[data-pay-amount]").textContent = (info.amount || "") + (info.coupon ? " (" + info.coupon + ": " + (info.list_amount || "") + ")" : "");
       document.querySelector("[data-pay-instructions]").textContent = info.instructions || "";
       const select = document.querySelector("[data-pay-provider]");
       if (!select.options.length) (info.providers || []).forEach(function (name) { select.appendChild(new Option(name, name)); });
@@ -860,6 +868,7 @@
           customData: card.custom_data,
           settings: { displayMode: "overlay", variant: "one-page" },
         };
+        if (card.discount_id) options.discountId = card.discount_id;  // the coupon's first-payment discount
         let email = state.email;
         try { email = email || localStorage.getItem("reckon_signup_email") || ""; } catch (e) { /* no storage */ }
         const country = document.querySelector("[data-pay-currency]").value;
@@ -883,6 +892,25 @@
         note.textContent = preview.data.details.lineItems[0].formattedTotals.total;
       }).catch(function () { /* the price shown at checkout is the one that counts */ });
     });
+    (function () {
+      const input = document.getElementById("coupon_code"), note = document.querySelector("[data-coupon-note]");
+      if (!input) return;
+      async function applyCoupon() {
+        const plan = document.querySelector('input[name="plan"]:checked');
+        if (!input.value.trim()) { note.textContent = T.coupon_hint; return; }
+        if (!plan) { note.textContent = T.coupon_pick_plan; return; }
+        try {
+          const data = await call("reckon_saas_platform.coupons.check_coupon", { plan: plan.value, code: input.value.trim() }, "GET");
+          note.textContent = data.valid ? data.message + " " + T.coupon_total + " " + data.final_text : data.message;
+          note.style.color = data.valid ? "var(--rk-green, #16a34a)" : "var(--rk-red, #dc2626)";
+        } catch (error) { note.textContent = error.message; }
+      }
+      document.querySelector("[data-coupon-apply]").addEventListener("click", applyCoupon);
+      input.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); applyCoupon(); } });
+      document.querySelectorAll('input[name="plan"]').forEach(function (radio) {
+        radio.addEventListener("change", function () { if (input.value.trim()) applyCoupon(); });
+      });
+    })();
     document.getElementById("rk-pay-form").addEventListener("submit", async function (event) {
       event.preventDefault();
       const form = event.currentTarget;

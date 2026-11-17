@@ -57,6 +57,10 @@ def create_invoice(subscription_name: str, period_start: str | None = None, due_
     if existing:
         return frappe.get_doc(DOCTYPE, existing)
     owner = _owner(subscription)
+    # The coupon's discount belongs to the first invoice only; renewals (given a period start) are at the plan price.
+    discount = 0.0 if period_start else float(subscription.get("discount_amount") or 0)
+    price = float(subscription.get("price") or 0)
+    discount = min(discount, price)
     invoice = frappe.get_doc(
         {
             "doctype": DOCTYPE,
@@ -74,7 +78,9 @@ def create_invoice(subscription_name: str, period_start: str | None = None, due_
             "period_start": start,
             "period_end": end,
             "currency": subscription.get("currency"),
-            "amount": subscription.get("price"),
+            "amount": price - discount if discount else subscription.get("price"),
+            "coupon": subscription.get("coupon") if discount else None,
+            "discount_amount": discount,
             "status": "Unpaid",
             "access_key": secrets.token_hex(16),
         }
@@ -162,6 +168,9 @@ def invoice_context(invoice, pdf: bool = False) -> dict:
         "description": description,
         "billing_cycle": invoice.get("billing_cycle") or "Monthly",
         "amount_text": money(invoice.amount, invoice.currency),
+        "discount": float(invoice.get("discount_amount") or 0),
+        "list_amount_text": money(float(invoice.amount or 0) + float(invoice.get("discount_amount") or 0), invoice.currency),
+        "discount_text": money(invoice.get("discount_amount") or 0, invoice.currency),
         "paid": invoice.status == "Paid",
         "instructions": _setting("invoice_payment_instructions") or DEFAULT_INSTRUCTIONS,
         "note": _setting("invoice_footer_note") or "",

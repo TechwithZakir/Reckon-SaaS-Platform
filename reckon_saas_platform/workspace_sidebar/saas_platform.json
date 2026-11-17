@@ -83,6 +83,17 @@
    "show_arrow": 0
   },
   {
+   "label": "Coupons",
+   "link_to": "SaaS Coupon",
+   "link_type": "DocType",
+   "type": "Link",
+   "icon": "tag",
+   "child": 1,
+   "indent": 0,
+   "collapsible": 1,
+   "show_arrow": 0
+  },
+  {
    "label": "Payments",
    "link_to": "SaaS Payment",
    "link_type": "DocType",

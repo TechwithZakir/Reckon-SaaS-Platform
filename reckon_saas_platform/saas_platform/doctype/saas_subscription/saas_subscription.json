@@ -27,8 +27,7 @@
   "column_break_paddle",
   "paddle_status",
   "paddle_scheduled_change",
-  "paddle_updated_at"
- ],
+  "paddle_updated_at", "section_coupon", "coupon", "discount_amount"],
  "fields": [
   {
    "fieldname": "registration",
@@ -183,7 +182,10 @@
    "read_only": 1,
    "no_copy": 1,
    "hidden": 1
-  }
+  },
+  {"fieldname": "section_coupon", "fieldtype": "Section Break", "label": "Coupon", "collapsible": 1},
+  {"fieldname": "coupon", "fieldtype": "Link", "label": "Coupon", "options": "SaaS Coupon", "read_only": 1},
+  {"fieldname": "discount_amount", "fieldtype": "Currency", "label": "First Payment Discount", "options": "currency", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,
  "modified": "2026-11-11 12:00:00.000000",

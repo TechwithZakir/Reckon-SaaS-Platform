@@ -121,7 +121,12 @@
                   <li>{% if p.max_users %}Up to {{ p.max_users }} users{% else %}Unlimited users{% endif %}</li>
                   <li>{% if p.max_storage_mb %}{{ (p.max_storage_mb / 1024)|round(1)|string|replace(".0", "") ~ " GB" if p.max_storage_mb >= 1024 else p.max_storage_mb ~ " MB" }} file storage{% else %}Unlimited file storage{% endif %}</li>
                 </ul>
-                <button class="rs-portal__button rs-portal__button--primary" type="submit">Subscribe</button>
+                <label class="rs-portal__label" style="margin-top:8px">Coupon code (optional)
+                  <input name="coupon_code" autocomplete="off" maxlength="40" placeholder="Enter your coupon code" style="text-transform:uppercase" data-coupon-input>
+                </label>
+                <small class="rs-portal__message" data-coupon-note>Have a coupon? Enter it to see your discount before you confirm.</small>
+                <button class="rs-portal__button" type="button" data-coupon-apply style="margin-bottom:6px">Apply coupon</button>
+                <button class="rs-portal__button rs-portal__button--primary" type="submit">Confirm subscription</button>
                 <div class="rs-portal__message" role="status"></div>
               </form>
               {% endfor %}
@@ -173,12 +178,25 @@
       return token === "None" ? "" : token;
     }
     document.querySelectorAll("[data-add-module]").forEach(function (form) {
+      const apply = form.querySelector("[data-coupon-apply]");
+      if (apply) apply.addEventListener("click", async function () {
+        const note = form.querySelector("[data-coupon-note]"), code = form.querySelector("[data-coupon-input]").value.trim();
+        if (!code) { note.textContent = "Enter a coupon code first."; return; }
+        try {
+          const response = await fetch("/api/method/reckon_saas_platform.coupons.check_coupon?" + new URLSearchParams({ plan: form.getAttribute("data-add-module"), code: code }), { credentials: "same-origin", headers: { Accept: "application/json" } });
+          const data = ((await response.json()).message) || {};
+          note.textContent = data.valid ? data.message + " First payment: " + data.final_text : (data.message || "This coupon code is not valid.");
+          note.className = "rs-portal__message " + (data.valid ? "is-success" : "is-error");
+        } catch (error) { note.textContent = "Network error. Please try again."; }
+      });
       form.addEventListener("submit", async function (event) {
         event.preventDefault();
         const message = form.querySelector(".rs-portal__message");
         const button = form.querySelector("button[type=submit]");
         const body = new URLSearchParams();
         body.append("plan", form.getAttribute("data-add-module"));
+        const couponInput = form.querySelector("[data-coupon-input]");
+        if (couponInput && couponInput.value.trim()) body.append("coupon_code", couponInput.value.trim());
         button.disabled = true;
         message.className = "rs-portal__message";
         try {
@@ -332,6 +350,7 @@
               items: [{ priceId: checkout.price_id, quantity: 1 }],
               customer: customer,
               customData: checkout.custom_data,
+              discountId: checkout.discount_id || undefined,
             });
           } catch (error) {
             message.className = "rs-portal__message is-error";

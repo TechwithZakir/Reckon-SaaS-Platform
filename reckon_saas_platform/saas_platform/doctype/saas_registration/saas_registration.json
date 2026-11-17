@@ -37,8 +37,7 @@
   "phone_otp_attempts",
   "phone_otp_resends",
   "phone_otp_hash",
-  "error"
- ],
+  "error", "coupon"],
  "fields": [
   {
    "fieldname": "business_name",
@@ -262,7 +261,8 @@
    "fieldtype": "Small Text",
    "label": "Provisioning Error",
    "read_only": 1
-  }
+  },
+  {"fieldname": "coupon", "fieldtype": "Link", "label": "Coupon", "options": "SaaS Coupon", "read_only": 1}
  ],
  "index_web_pages_for_search": 0,
  "modified": "2026-10-19 12:00:00.000000",

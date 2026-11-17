@@ -13,6 +13,7 @@ SEO_AGENT_DOCTYPES: set[str] = set()  # the agent is one page; its settings reus
 ALL_SAAS_DOCTYPES = {
     "SaaS Module",
     "SaaS Plan",
+    "SaaS Coupon",
     "SaaS Registration",
     "SaaS Subscription",
     "SaaS Payment",

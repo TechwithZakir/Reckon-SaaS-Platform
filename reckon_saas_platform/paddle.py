@@ -201,6 +201,57 @@ def _api_create_price(
     return price.id
 
 
+def _api_create_discount(coupon) -> str:
+    """A Paddle discount with the coupon's value: first payment only, applied by id (never typed at checkout)."""
+    from paddle_billing.Entities.Discounts import DiscountType
+    from paddle_billing.Entities.Shared import CurrencyCode
+    from paddle_billing.Resources.Discounts.Operations import CreateDiscount
+
+    percent = coupon.get("discount_type") == "Percent"
+    operation = CreateDiscount(
+        amount=f"{float(coupon.get('percent') or 0):g}" if percent else to_lowest_unit(coupon.get("amount"), coupon.get("currency")),
+        description=f"SaaS coupon {coupon.get('name')}",
+        type=DiscountType.Percentage if percent else DiscountType.Flat,
+        enabled_for_checkout=False,
+        recur=False,
+        currency_code=None if percent else CurrencyCode(coupon.get("currency")),
+        usage_limit=int(coupon.get("max_redemptions") or 0) or None,
+    )
+    return _client().discounts.create(operation).id
+
+
+def coupon_signature(coupon) -> str:
+    return ":".join(str(coupon.get(k) or "") for k in ("discount_type", "percent", "amount", "currency", "max_redemptions")) + ":" + environment()
+
+
+def coupon_discount_id(coupon) -> str | None:
+    """The Paddle discount for this coupon in the current environment, when it has been created."""
+    if coupon and coupon.get("paddle_discount_id") and (coupon.get("paddle_environment") or "").endswith(":" + environment()):
+        return coupon.get("paddle_discount_id")
+    return None
+
+
+def sync_coupon(name: str) -> None:
+    """Create the Paddle discount for a coupon (or a new one when its value changed). Never raises."""
+    try:
+        if not is_enabled():
+            return
+        coupon = frappe.db.get_value("SaaS Coupon", name, ["*"], as_dict=True)
+        if not coupon or not coupon.get("enabled"):
+            return
+        signature = coupon_signature(coupon)
+        if coupon.get("paddle_discount_id") and coupon.get("paddle_environment") == signature:
+            return
+        discount_id = _api_create_discount(coupon)
+        frappe.db.set_value("SaaS Coupon", name, {"paddle_discount_id": discount_id, "paddle_environment": signature}, update_modified=False)
+    except Exception:
+        frappe.log_error(frappe.get_traceback(), f"Paddle coupon sync {name}")
+
+
+def queue_coupon_sync(doc, method=None) -> None:
+    frappe.enqueue("reckon_saas_platform.paddle.sync_coupon", name=doc.name, queue="short", enqueue_after_commit=True)
+
+
 def _api_archive_price(price_id: str) -> None:
     from paddle_billing.Entities.Shared import Status
     from paddle_billing.Resources.Prices.Operations import UpdatePrice
@@ -431,7 +482,12 @@ def create_checkout(subscription: str) -> dict:
     if not client_token:
         frappe.throw(_("Card payment is not set up yet. Please contact support."), PaddleNotConfigured)
     email = frappe.db.get_value("User", row.company_admin, "email") if row.get("company_admin") else None
+    discount_id = None
+    coupon_name = frappe.db.get_value("SaaS Subscription", row.name, "coupon")
+    if coupon_name and not frappe.db.exists("SaaS Payment", {"subscription": row.name, "status": "Verified"}):
+        discount_id = coupon_discount_id(frappe.db.get_value("SaaS Coupon", coupon_name, ["*"], as_dict=True))
     return {
+        "discount_id": discount_id,
         "environment": environment(),
         "client_token": client_token,
         "price_id": plan_price_id(plan),

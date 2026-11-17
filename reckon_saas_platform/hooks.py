@@ -64,6 +64,7 @@ scheduler_events = {
         "reckon_saas_platform.seo.refresh_seo_daily",
         "reckon_saas_platform.invoices.create_renewal_invoices",
         "reckon_saas_platform.invoices.send_payment_reminders",
+        "reckon_saas_platform.erp_billing.sync_pending",
     ],
 }
 
@@ -85,6 +86,13 @@ doc_events = {
             "reckon_saas_platform.marketing.refresh_public_pages",
             "reckon_saas_platform.paddle.archive_deleted_plan_price",
         ],
+    },
+    "SaaS Coupon": {
+        "on_update": "reckon_saas_platform.paddle.queue_coupon_sync",
+    },
+    "SaaS Invoice": {
+        "after_insert": "reckon_saas_platform.erp_billing.queue_sales_invoice",
+        "on_update": "reckon_saas_platform.erp_billing.queue_payment_entry",
     },
     "SaaS Module": {
         "after_insert": "reckon_saas_platform.marketing.refresh_public_pages",
@@ -156,6 +164,7 @@ permission_query_conditions = {
     "SEO Article": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SEO Suggestion": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Plan": "reckon_saas_platform.saas_security.get_vendor_only_query",
+    "SaaS Coupon": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Registration": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "SaaS Subscription": "reckon_saas_platform.saas_security.get_vendor_only_query",
     "Tenant Provisioning Job": "reckon_saas_platform.saas_security.get_vendor_only_query",
@@ -168,6 +177,7 @@ has_permission = {
     "SEO Article": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SEO Suggestion": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Plan": "reckon_saas_platform.saas_security.has_vendor_only_permission",
+    "SaaS Coupon": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Platform Settings": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Registration": "reckon_saas_platform.saas_security.has_vendor_only_permission",
     "SaaS Subscription": "reckon_saas_platform.saas_security.has_vendor_only_permission",

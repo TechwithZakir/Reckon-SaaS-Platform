@@ -41,7 +41,8 @@ td,th{padding:8px 6px;vertical-align:top;text-align:left}
     <tr><th>Description</th><th>Period</th><th class="right">Amount</th></tr>
     <tr><td>{{ description|e }}<br><span class="muted">{{ billing_cycle|e }} subscription</span></td>
         <td>{{ invoice.period_start|e }} to {{ invoice.period_end|e }}</td>
-        <td class="right">{{ amount_text|e }}</td></tr>
+        <td class="right">{{ list_amount_text|e if discount else amount_text|e }}</td></tr>
+    {% if discount %}<tr><td colspan="2" class="right">Coupon {{ invoice.coupon|e }}</td><td class="right">&minus;{{ discount_text|e }}</td></tr>{% endif %}
     <tr class="total"><td colspan="2" class="right">Total</td><td class="right">{{ amount_text|e }}</td></tr>
   </table>
 
