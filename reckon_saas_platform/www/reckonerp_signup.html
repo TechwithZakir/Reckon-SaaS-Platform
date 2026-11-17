@@ -459,6 +459,8 @@
               </div>
               <small class="rk-hint" data-coupon-note role="status">{{ t.coupon_hint }}</small>
             </div>
+            <p class="rk-hint" data-lead-note>{{ t.lead_note }} <a href="/privacy-policy" target="_blank" rel="noopener">{{ t.lead_note_link }}</a></p>
+            <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
             <input type="hidden" name="billing_cycle" value="Monthly">
             <input type="hidden" id="captcha_token" name="captcha_token" value="">
             {% if recaptcha_site_key and not recaptcha_v3 %}
@@ -892,6 +894,57 @@
         note.textContent = preview.data.details.lineItems[0].formattedTotals.total;
       }).catch(function () { /* the price shown at checkout is the one that counts */ });
     });
+    // A visitor who has typed contact details but not submitted: tell the team (see SaaS Platform Settings, CRM Leads).
+    (function () {
+      const form = document.getElementById("rk-signup-form");
+      if (!form || navigator.doNotTrack === "1") return;
+      let last = "", timer = null;
+      function details() {
+        const f = form.elements, plan = document.querySelector('input[name="plan"]:checked');
+        const data = new FormData();
+        const email = (f.owner_email && f.owner_email.value || "").trim(), phone = (f.owner_phone && f.owner_phone.value || "").trim();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email) && phone.replace(/\D/g, "").length < 8) return null;
+        data.append("business_name", (f.business_name && f.business_name.value || "").trim());
+        data.append("owner_name", (f.owner_name && f.owner_name.value || "").trim());
+        data.append("owner_email", email);
+        data.append("owner_phone", phone);
+        data.append("module", state.module || "");
+        data.append("plan", plan ? plan.value : "");
+        data.append("website", (f.website && f.website.value) || "");
+        try { data.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || ""); } catch (e) { /* no Intl */ }
+        data.append("language", navigator.language || "");
+        data.append("referrer", document.referrer || "");
+        data.append("page", location.href);
+        data.append("screen", screen.width + "x" + screen.height);
+        // What the visitor did before this (pages, language, currency, module, plan), only the part not sent yet.
+        const trail = window.reckonTrail ? window.reckonTrail.pending() : [];
+        data.append("trail", JSON.stringify(trail));
+        return data;
+      }
+      function send(useBeacon) {
+        if (state.registration) return;  // submitted: the signup itself takes over
+        const data = details();
+        if (!data) return;
+        const key = [...data.entries()].filter((e) => !["page", "referrer"].includes(e[0])).map((e) => e[1]).join("|");
+        if (key === last) return;
+        last = key;
+        if (window.reckonTrail) window.reckonTrail.markSent();
+        const url = "/api/method/reckon_saas_platform.signup_leads.capture";
+        if (useBeacon && navigator.sendBeacon) navigator.sendBeacon(url, data);
+        else fetch(url, { method: "POST", body: data, credentials: "same-origin", keepalive: true }).catch(function () { /* quiet */ });
+      }
+      function later() { clearTimeout(timer); timer = setTimeout(function () { send(false); }, 2000); }
+      form.addEventListener("change", function (e) {
+        const t = e.target;
+        if (!window.reckonTrail || !t) return;
+        if (t.id === "rk-module") window.reckonTrail.add("module", t.value);
+        else if (t.name === "plan") window.reckonTrail.add("plan", t.value);
+      });
+      form.addEventListener("input", later);
+      form.addEventListener("change", later);
+      document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") send(true); });
+      window.addEventListener("pagehide", function () { send(true); });
+    })();
     (function () {
       const input = document.getElementById("coupon_code"), note = document.querySelector("[data-coupon-note]");
       if (!input) return;

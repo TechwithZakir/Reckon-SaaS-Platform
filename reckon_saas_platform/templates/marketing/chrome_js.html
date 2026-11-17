@@ -1,4 +1,37 @@
 <script>
+/* The visitor's own activity trail, kept in this browser only: pages viewed, language and currency chosen.
+   Nothing is sent anywhere unless the visitor types contact details on the signup page and leaves the form
+   unfinished (see the note under that form and the privacy policy). Switched off by Do Not Track. */
+(function(){
+  try{
+    if(navigator.doNotTrack==="1")return;
+    var K="reckon_trail",now=Date.now(),s={};
+    try{s=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){s={}}
+    if(!s.first||now-(s.last||0)>30*864e5)s={first:now,ref:document.referrer||"",land:location.href,ev:[],sent:0};
+    function save(){try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}
+    function add(kind,value){
+      s.ev.push({t:Date.now(),e:kind,v:String(value||"").slice(0,100),p:location.pathname.slice(0,120),l:(document.documentElement.lang||"").slice(0,5)});
+      if(s.ev.length>150){var cut=s.ev.length-150;s.ev.splice(0,cut);s.sent=Math.max(0,(s.sent||0)-cut)}
+      s.last=Date.now();save();
+    }
+    add("view",(document.title||"").slice(0,100));
+    document.addEventListener("click",function(e){
+      var t=e.target&&e.target.closest?e.target.closest("[data-cur-set],[data-cycle-set],.rk-lang a"):null;
+      if(!t)return;
+      if(t.hasAttribute("data-cur-set"))add("cur",t.getAttribute("data-cur-set"));
+      else if(t.hasAttribute("data-cycle-set"))add("cycle",t.getAttribute("data-cycle-set"));
+      else add("lang",t.getAttribute("data-lang")||"");
+    },true);
+    window.reckonTrail={
+      add:add,
+      pending:function(){return s.ev.slice(s.sent||0)},
+      markSent:function(){s.sent=s.ev.length;save()},
+      first:s.first,ref:s.ref,land:s.land
+    };
+  }catch(e){}
+})();
+</script>
+<script>
 (function(){
   var d=document;
   d.addEventListener('click',function(e){d.querySelectorAll('nav.main details[open]').forEach(function(x){if(!x.contains(e.target))x.open=false})});

@@ -90,6 +90,9 @@ doc_events = {
     "SaaS Coupon": {
         "on_update": "reckon_saas_platform.paddle.queue_coupon_sync",
     },
+    "SaaS Registration": {
+        "after_insert": "reckon_saas_platform.signup_leads.mark_signup_submitted",
+    },
     "SaaS Invoice": {
         "after_insert": "reckon_saas_platform.erp_billing.queue_sales_invoice",
         "on_update": "reckon_saas_platform.erp_billing.queue_payment_entry",
