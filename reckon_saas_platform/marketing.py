@@ -1060,7 +1060,7 @@ def _plan_rows(plan_names: list[str]) -> dict[str, list[dict]]:
     return rows
 
 
-LEARNING_ROWS = {"bangla and english user manuals", "training videos"}
+LEARNING_ROWS = {"bangla and english user manuals", "multi-language user manuals", "training videos"}
 
 
 def _storage_text(mb) -> str:
