@@ -11,3 +11,4 @@ reckon_saas_platform.patches.tenant_users_default_preferences
 reckon_saas_platform.patches.add_ask_ai_to_plans
 reckon_saas_platform.patches.set_tenant_landing_apps
 reckon_saas_platform.patches.set_ai_fill_plan_defaults
+reckon_saas_platform.patches.rename_reckon_ai_to_auraai

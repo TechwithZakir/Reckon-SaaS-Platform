@@ -407,7 +407,7 @@ FEATURE_LIST = (
         "title": "Ask AI",
         "icon": "spark",
         "summary": "Self-service help in every plan: setup, how-to answers, your language, even by voice.",
-        "description": "Ask AI is Reckon AI's agentic support, included in every plan: self-service setup and "
+        "description": "Ask AI is AuraAI's agentic support, included in every plan: self-service setup and "
         "usage help, answers in your language, and voice questions.",
         "intro": "Ask AI is the help desk built into ReckonERP. Instead of waiting for support, you ask a "
         "question in your own words and get the steps, from first setup to everyday use.",
@@ -416,12 +416,32 @@ FEATURE_LIST = (
             "Self-service usability: ask how to create, find or report on anything and get the steps for the screen you are on",
             "Multi-language answers: ask in Bangla or English and it replies in the language you used",
             "Voice support: speak your question, which suits mobile and staff in the field",
+            "Fill with AI: paste a purchase order or email, speak it, or upload a photo or PDF, and it fills the sales or purchase form for you to review",
+            "It can offer to create the customer, supplier or items it does not find, only after you confirm",
             "It works inside your permissions, and changes are applied only after you approve",
         ],
         "faqs": [
             (
                 "What is Ask AI and how does it help me set up and use ReckonERP myself?",
-                "Ask AI is Reckon AI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+                "Ask AI is AuraAI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+            ),
+            (
+                "What is Fill with AI and which forms does it work on?",
+                "Fill with AI reads a purchase order, bill, email or your own notes and fills a new Sales Invoice, Sales Order, "
+                "Delivery Note, Quotation, Purchase Order, Purchase Invoice or Purchase Receipt. Paste the text, speak it in English "
+                "or Bangla, or upload a photo or PDF. It finds the customer or supplier, the items, quantities and rates, matches them "
+                "to your own records, and fills the form. Nothing is saved until you click Save.",
+            ),
+            (
+                "Can Fill with AI create a new customer, supplier or item?",
+                "Yes, but only after you confirm. When it finds a name that is not in your records yet, it lists them and you choose "
+                "which to create and can rename them first. Each new record is made with your own permissions and the default "
+                "settings, and is marked for review.",
+            ),
+            (
+                "Is Fill with AI limited by plan?",
+                "Each plan can switch Fill with AI on or off and sets how many times each person can use it per day. Ask us which "
+                "applies to the plan you choose.",
             ),
             (
                 "Does Ask AI answer in my language, and can I talk to it?",
@@ -431,12 +451,12 @@ FEATURE_LIST = (
     },
     {
         "slug": "reckon-ai-assistant",
-        "title": "Reckon AI assistant",
+        "title": "AuraAI assistant",
         "icon": "spark",
         "summary": "Ask questions about your own records and approve the actions it suggests.",
-        "description": "Reckon AI answers questions from your own ERP records, raises insights, "
+        "description": "AuraAI answers questions from your own ERP records, raises insights, "
         "alerts and forecasts, and changes data only after you review and approve.",
-        "intro": "Reckon AI sits inside the ERP. It works from the records the signed-in person "
+        "intro": "AuraAI sits inside the ERP. It works from the records the signed-in person "
         "is allowed to see, explains what needs attention, and proposes actions that the "
         "person reviews before anything is applied.",
         "points": [
@@ -448,7 +468,7 @@ FEATURE_LIST = (
         ],
         "faqs": [
             (
-                "Can Reckon AI change my data on its own?",
+                "Can AuraAI change my data on its own?",
                 "No. It shows a preview of the target and values. Nothing is applied until you "
                 "approve, and the server checks your permissions again at that moment.",
             ),
@@ -458,7 +478,7 @@ FEATURE_LIST = (
                 "that person cannot open.",
             ),
             (
-                "Is Reckon AI included in the subscription?",
+                "Is AuraAI included in the subscription?",
                 "Ask AI help is included in every plan. AI model and messaging channel usage, "
                 "and custom integrations, are additional; ask us for pricing for your usage.",
             ),
@@ -494,7 +514,7 @@ FEATURE_LIST = (
         "summary": "Custom AI agents, assistants and workflow automation, built around your ERP and CRM data.",
         "description": "Custom AI agents for business: LLM assistants, RAG on your own "
         "documents, MCP, multi-agent workflows and integrations, with human approval.",
-        "intro": "Beyond the ready-made Reckon AI assistant and Sales AI Agent, we design and "
+        "intro": "Beyond the ready-made AuraAI assistant and Sales AI Agent, we design and "
         "build AI agents for your own processes. Each one is scoped after a requirement "
         "analysis, works inside your permissions, and shows its work before anything changes.",
         "points": [
@@ -689,7 +709,7 @@ MODULE_COPY.update(
 )
 
 # Plain-language labels for the registry's ``subscription_features`` keys.
-ASK_AI_LABEL = "Ask AI: Reckon AI agentic support"  # every plan of every module includes it
+ASK_AI_LABEL = "Ask AI: AuraAI agentic support"  # every plan of every module includes it
 
 
 # Every plan of every module also includes these; shown on plans, comparisons and service pages.
@@ -736,14 +756,14 @@ SHOWCASE = (
 )
 
 AI_POINTS = (
-    "Reckon AI reads and summarises invoices, orders, stock and customer records so people find answers faster",
+    "AuraAI reads and summarises invoices, orders, stock and customer records so people find answers faster",
     "Researches leads from their own websites and keeps the evidence next to every claim",
     "Drafts replies and follow-ups; a person approves before anything is sent",
     "Scores leads with fixed rules you can read, then syncs them to your CRM",
 )
 FAMILY_APPS = (
     {
-        "name": "Reckon AI assistant",
+        "name": "AuraAI assistant",
         "text": "Ask questions about your own records, get insights and alerts, and approve "
         "suggested actions.",
         "url": "/features/reckon-ai-assistant",
@@ -811,7 +831,7 @@ SERVICES = (
     ("Multi-language", "Screens in English and Bangla today, and more languages through translation on request."),
     ("Easy to customise", "The enterprise package shapes fields, workflows, reports, print formats and integrations to how you work."),
     ("Dedicated cloud or on-premises", "Your own server or ours, with your release schedule, backups and access rules."),
-    ("Reckon AI and integrations", "AI that works on your own records with approval, plus WhatsApp, SMS and email channels. Usage is billed separately."),
+    ("AuraAI and integrations", "AI that works on your own records with approval, plus WhatsApp, SMS and email channels. Usage is billed separately."),
     ("Implementation and training", "Requirement analysis, data migration, setup and team training, quoted for your business."),
     ("Support", "Help by email and WhatsApp, with faster or dedicated support available on request."),
 )
@@ -829,7 +849,7 @@ EXPERTISE = (
 HOME_FAQS = (
     (
         "What is Ask AI and how does it help me set up and use ReckonERP myself?",
-        "Ask AI is Reckon AI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+        "Ask AI is AuraAI's agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
     ),
     (
         "Does Ask AI answer in my language, and can I talk to it?",
@@ -837,7 +857,7 @@ HOME_FAQS = (
     ),
     (
         "What is ReckonERP?",
-        "ReckonERP is a cloud ERP for growing businesses, built on ERPNext, with Reckon AI "
+        "ReckonERP is a cloud ERP for growing businesses, built on ERPNext, with AuraAI "
         "built in. You pick the modules you need, such as Distribution, Accounts or the "
         "Sales AI Agent, and each company works in its own private workspace.",
     ),
@@ -919,7 +939,7 @@ HOME_FAQS = (
     ),
     (
         "Can you build custom AI agents and automation?",
-        "Yes. Besides the Reckon AI assistant and the Sales AI Agent, we build custom AI "
+        "Yes. Besides the AuraAI assistant and the Sales AI Agent, we build custom AI "
         "agents, LLM applications, RAG and MCP integrations and workflow automation around "
         "your ERP and CRM data, quoted after requirement analysis.",
     ),
@@ -933,7 +953,7 @@ HOME_FAQS = (
         "request, and real-time updates reach the browser over WebSockets. A REST API and "
         "webhooks connect the ERP to your other systems and to channels such as WhatsApp, "
         "email and SMS. Everything is served over HTTPS. "
-        "For AI, Reckon AI can use a hosted AI provider or any model server with an "
+        "For AI, AuraAI can use a hosted AI provider or any model server with an "
         "OpenAI-compatible or Anthropic Claude-compatible interface, including one you run "
         "yourself on a dedicated or on-premises installation. Each business can keep its own "
         "keys, and a monthly call limit caps usage. AI works inside each person's permissions "

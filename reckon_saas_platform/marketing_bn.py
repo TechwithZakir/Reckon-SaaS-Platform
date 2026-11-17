@@ -2,7 +2,7 @@
 
 English is the source. ``translate`` looks a string up here and returns it unchanged when there is no
 entry, so a page is never blank: whatever is not translated yet simply stays English. Product and brand
-names (ReckonERP, Reckon AI, module names) are kept in Latin script, as Bangladeshi business sites do.
+names (ReckonERP, AuraAI, module names) are kept in Latin script, as Bangladeshi business sites do.
 Long reading material (blog posts, FAQ answers, module detail lists) is intentionally left in English.
 """
 
@@ -121,9 +121,9 @@ BN = {
     "Start online, or deploy on a dedicated cloud or on-premises": "অনলাইনে শুরু করুন, কিংবা নিজস্ব Dedicated Cloud বা On-premises সার্ভারে চালান",
     "Explore modules": "মডিউল দেখুন",
     "ReckonERP accounts dashboard, campaign studio, integrations and AI assistant screens": "ReckonERP-এর Accounts ড্যাশবোর্ড, ক্যাম্পেইন স্টুডিও, Integration ও AI অ্যাসিস্ট্যান্টের স্ক্রিন",
-    "Reckon AI inside every module": "প্রতিটি মডিউলে Reckon AI",
+    "AuraAI inside every module": "প্রতিটি মডিউলে AuraAI",
     "AI that works on your own records, with a person in charge": "আপনার নিজের রেকর্ড নিয়ে কাজ করে AI, তবে নিয়ন্ত্রণ থাকে মানুষের হাতে",
-    "Meet Reckon AI": "Reckon AI-কে জানুন",
+    "Meet AuraAI": "AuraAI-কে জানুন",
     "AI assistant drafting a reply that waits for a person to approve": "AI অ্যাসিস্ট্যান্ট একটি উত্তরের খসড়া করছে, যা মানুষের অনুমোদনের অপেক্ষায় আছে",
     "ERP, CRM, automation and AI working together": "ERP, CRM, Automation আর AI—সব একসাথে",
     "One platform instead of four tools that never quite talk to each other.": "চারটি আলাদা টুলের বদলে একটি প্ল্যাটফর্ম, যেখানে সবকিছু একে অপরের সাথে মিলে কাজ করে।",
@@ -194,7 +194,7 @@ BN = {
     "Role-based access, verified owners and guarded sign-in.": "রোল অনুযায়ী অ্যাক্সেস, যাচাইকৃত মালিক এবং সুরক্ষিত সাইন-ইন।",
     "Integrations and channels": "Integration ও চ্যানেল",
     "WhatsApp, social, SMS, voice and email channels in one place.": "WhatsApp, সোশ্যাল মিডিয়া, SMS, ভয়েস ও ইমেইল—সব চ্যানেল এক জায়গায়।",
-    "Reckon AI assistant": "Reckon AI অ্যাসিস্ট্যান্ট",
+    "AuraAI assistant": "AuraAI অ্যাসিস্ট্যান্ট",
     "Ask questions about your own records and approve the actions it suggests.": "নিজের রেকর্ড নিয়ে প্রশ্ন করুন, আর AI-এর প্রস্তাব করা কাজগুলো আপনি অনুমোদন করুন।",
     "Field sales visits": "মাঠ পর্যায়ের সেলস ভিজিট",
     "Schedule customer visits, check in with GPS and keep a history of every visit.": "গ্রাহক ভিজিটের সময় ঠিক করুন, GPS দিয়ে চেক-ইন করুন এবং প্রতিটি ভিজিটের ইতিহাস রাখুন।",
@@ -212,13 +212,13 @@ BN = {
     "The enterprise package shapes fields, workflows, reports, print formats and integrations to how you work.": "Enterprise প্যাকেজে ফিল্ড, Workflow, রিপোর্ট, প্রিন্ট ফরম্যাট ও Integration আপনার কাজের ধরন অনুযায়ী সাজিয়ে দেওয়া হয়।",
     "Dedicated cloud or on-premises": "Dedicated Cloud বা On-premises",
     "Your own server or ours, with your release schedule, backups and access rules.": "আপনার নিজের বা আমাদের সার্ভারে, আপনার পছন্দমতো রিলিজ সময়সূচি, ব্যাকআপ ও অ্যাক্সেস নিয়মসহ।",
-    "Reckon AI and integrations": "Reckon AI ও Integration",
+    "AuraAI and integrations": "AuraAI ও Integration",
     "AI that works on your own records with approval, plus WhatsApp, SMS and email channels. Usage is billed separately.": "অনুমোদন নিয়ে আপনার নিজের রেকর্ডে কাজ করা AI, সাথে WhatsApp, SMS ও ইমেইল চ্যানেল। ব্যবহারের চার্জ আলাদা।",
     "Implementation and training": "Implementation ও প্রশিক্ষণ",
     "Requirement analysis, data migration, setup and team training, quoted for your business.": "প্রয়োজন বিশ্লেষণ, Data migration, সেটআপ ও দলের প্রশিক্ষণ—আপনার ব্যবসা অনুযায়ী কোটেশন।",
     "Support": "সাপোর্ট",
     "Help by email and WhatsApp, with faster or dedicated support available on request.": "ইমেইল ও WhatsApp-এ সহায়তা পাবেন; অনুরোধে আরও দ্রুত বা ডেডিকেটেড সাপোর্টও পাওয়া যায়।",
-    "Reckon AI reads and summarises invoices, orders, stock and customer records so people find answers faster": "Reckon AI ইনভয়েস, অর্ডার, স্টক ও গ্রাহকের রেকর্ড পড়ে সারসংক্ষেপ দেয়, ফলে দরকারি উত্তর দ্রুত পাওয়া যায়",
+    "AuraAI reads and summarises invoices, orders, stock and customer records so people find answers faster": "AuraAI ইনভয়েস, অর্ডার, স্টক ও গ্রাহকের রেকর্ড পড়ে সারসংক্ষেপ দেয়, ফলে দরকারি উত্তর দ্রুত পাওয়া যায়",
     "Researches leads from their own websites and keeps the evidence next to every claim": "লিডের নিজস্ব ওয়েবসাইট ঘেঁটে তথ্য সংগ্রহ করে এবং প্রতিটি দাবির পাশে প্রমাণ রাখে",
     "Drafts replies and follow-ups; a person approves before anything is sent": "উত্তর ও ফলো-আপের খসড়া তৈরি করে; কিছু পাঠানোর আগে একজন মানুষ অনুমোদন দেন",
     "Scores leads with fixed rules you can read, then syncs them to your CRM": "আপনি পড়ে বুঝতে পারেন এমন নির্দিষ্ট নিয়মে লিড স্কোর করে, তারপর CRM-এ সিঙ্ক করে",

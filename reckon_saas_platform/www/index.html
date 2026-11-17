@@ -23,13 +23,13 @@
 <section class="ai-band" aria-labelledby="ai-h">
   <div class="wrap cols">
     <div>
-      <p class="eyebrow">{{ tr("Reckon AI inside every module") }}</p>
+      <p class="eyebrow">{{ tr("AuraAI inside every module") }}</p>
       <h2 id="ai-h">{{ tr("AI that works on your own records, with a person in charge") }}</h2>
       <ul class="tick">
         {% for point in ai_points %}<li>{{ point|e }}</li>{% endfor %}
       </ul>
       <p class="note">{{ ai_note|e }}</p>
-      <div class="actions"><a class="btn solid lg" href="{{ u("/features/reckon-ai-assistant") }}">{{ tr("Meet Reckon AI") }}</a><a class="btn lg" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a></div>
+      <div class="actions"><a class="btn solid lg" href="{{ u("/features/reckon-ai-assistant") }}">{{ tr("Meet AuraAI") }}</a><a class="btn lg" href="{{ u("/reckonerp-signup") }}">{{ tr("Sign up") }}</a></div>
     </div>
     <img src="/assets/reckon_saas_platform/images/illus-ai.svg" width="480" height="320" alt="{{ tr("AI assistant drafting a reply that waits for a person to approve") }}" loading="lazy" decoding="async">
   </div>
