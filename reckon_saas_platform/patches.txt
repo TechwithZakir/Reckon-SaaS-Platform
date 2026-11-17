@@ -17,3 +17,4 @@ reckon_saas_platform.patches.merge_ai_pages_links
 reckon_saas_platform.patches.multi_language_wording
 reckon_saas_platform.patches.multi_language_plan_text
 reckon_saas_platform.patches.name_aura_ai_assistance
+reckon_saas_platform.patches.add_coupons_to_saas_sidebars

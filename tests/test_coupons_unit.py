@@ -192,3 +192,11 @@ class ErpBillingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SidebarPatchTests(unittest.TestCase):
+    def test_a_patch_adds_coupons_to_the_menus_desk_actually_shows(self):
+        source = (PKG / "patches" / "add_coupons_to_saas_sidebars.py").read_text(encoding="utf-8")
+        self.assertIn('frappe.get_doc("Sidebar", name)', source)  # the Sidebar record, not the old Workspace Sidebar file
+        self.assertIn("SaaS Coupon", source)
+        self.assertIn("add_coupons_to_saas_sidebars", (PKG / "patches.txt").read_text(encoding="utf-8"))
