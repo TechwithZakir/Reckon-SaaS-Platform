@@ -53,7 +53,7 @@ def execute():
         new = body or ""
         for pattern, repl in RULES:
             new = re.sub(pattern, repl, new)
-        new = re.sub(r"Bangla-first", _multi, new).replace("AuraAI", "Aura AI").replace("Reckon AI", "Aura AI")
+        new = re.sub(r"\bBangla-first\b", _multi, new).replace("AuraAI", "Aura AI").replace("Reckon AI", "Aura AI")
         new = new.replace("/features/reckon-ai-assistant", "/features/aura-ai-assistant").replace("/features/ask-ai", "/features/aura-ai-assistant")
         if new != body:
             frappe.db.set_value("SEO Article", name, "body", new, update_modified=False)

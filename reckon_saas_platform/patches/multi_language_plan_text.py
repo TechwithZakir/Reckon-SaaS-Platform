@@ -14,7 +14,7 @@ FIELDS = (
 def _reword(text):
     for pattern, repl in RULES:
         text = re.sub(pattern, repl, text)
-    return re.sub(r"Bangla-first", _multi, text)
+    return re.sub(r"\bBangla-first\b", _multi, text)
 
 
 def execute():
