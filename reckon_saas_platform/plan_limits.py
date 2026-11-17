@@ -34,13 +34,14 @@ def plan_limit(company: str, field: str) -> int | None:
 def ai_fill_policy(user: str | None = None) -> dict:
     """Whether Fill with AI is on for a person, and how many uses a day they get (``None`` is unlimited).
 
-    Vendor staff and people with no company are never held back. A company is held to its live plans: it is on if
+    Vendor staff and people with no company are never held back. ``create`` says whether it may offer to create
+    missing customers, suppliers and items (on if any live plan allows it). A company is held to its live plans: it is on if
     any plan has it on, and the best daily limit among those plans applies (blank or 0 is unlimited).
     """
     user = user or frappe.session.user
     companies = [] if not user or user_can_bypass_tenant(user) else get_user_companies(user)
     if not companies:
-        return {"enabled": True, "daily_limit": None}
+        return {"enabled": True, "daily_limit": None, "create": True}
     plans = []
     for company in companies:
         plans += frappe.get_all(
@@ -49,12 +50,16 @@ def ai_fill_policy(user: str | None = None) -> dict:
             pluck="plan",
             ignore_permissions=True,
         )
-    rows = [frappe.db.get_value("SaaS Plan", plan, ["ai_fill_enabled", "ai_fill_daily_limit"], as_dict=True) for plan in set(plans) if plan]
+    rows = [frappe.db.get_value("SaaS Plan", plan, ["ai_fill_enabled", "ai_fill_daily_limit", "ai_fill_create_enabled"], as_dict=True) for plan in set(plans) if plan]
     # A plan saved before the field existed counts as on, with the default limit.
     on = [r for r in rows if r and (r.get("ai_fill_enabled") is None or cint(r.get("ai_fill_enabled")))]
     if not on:
-        return {"enabled": False, "daily_limit": None}
-    return {"enabled": True, "daily_limit": effective_limit([r.get("ai_fill_daily_limit") for r in on])}
+        return {"enabled": False, "daily_limit": None, "create": False}
+    return {
+        "enabled": True,
+        "daily_limit": effective_limit([r.get("ai_fill_daily_limit") for r in on]),
+        "create": any(r.get("ai_fill_create_enabled") is None or cint(r.get("ai_fill_create_enabled")) for r in on),
+    }
 
 
 def storage_used_bytes(company: str) -> int:

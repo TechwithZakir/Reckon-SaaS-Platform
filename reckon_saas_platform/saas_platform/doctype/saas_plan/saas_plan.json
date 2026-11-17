@@ -17,7 +17,7 @@
   "trial_days",
   "grace_days",
   "max_users",
-  "max_storage_mb", "ai_fill_enabled", "ai_fill_daily_limit",
+  "max_storage_mb", "ai_fill_enabled", "ai_fill_daily_limit", "ai_fill_create_enabled",
   "features",
   "section_comparison",
   "comparison_features",
@@ -130,6 +130,14 @@
    "non_negative": 1,
    "depends_on": "ai_fill_enabled",
    "description": "How many times each person may use Fill with AI in a day. Leave blank or 0 for unlimited. When a company has several modules, the highest limit applies."
+  },
+  {
+   "fieldname": "ai_fill_create_enabled",
+   "fieldtype": "Check",
+   "label": "Fill with AI Can Create Missing Records",
+   "default": "1",
+   "depends_on": "ai_fill_enabled",
+   "description": "After reading a document, Fill with AI offers to create the customer, supplier or items it could not find. The person confirms each one first."
   },
   {
    "fieldname": "features",
