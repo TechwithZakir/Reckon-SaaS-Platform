@@ -89,6 +89,40 @@ class CaptureTests(unittest.TestCase):
         self.assertFalse(self.run_capture(enabled=False)[0]["saved"])
 
 
+class GeoIpTests(unittest.TestCase):
+    def test_a_lookup_finds_the_range_and_ignores_private_and_unknown_addresses(self):
+        import ipaddress
+        import tempfile
+        from pathlib import Path
+
+        with platform_modules("geoip") as (frappe, (geoip,)):
+            tables = geoip._parse([
+                ["150.228.0.0", "150.228.255.255", "BD"], ["8.8.8.0", "8.8.8.255", "US"],
+                ["2a00:1450::", "2a00:1450:ffff:ffff:ffff:ffff:ffff:ffff", "GB"], ["bad", "row", "XX"], ["1.1.1.1", "1.1.1.2", "ZZZ"],
+            ])
+            self.assertEqual(len(tables["v4"]), 2)
+            with tempfile.TemporaryDirectory() as folder:
+                frappe.get_site_path = lambda *parts: str(Path(folder, *parts))
+                geoip._write(tables)
+                geoip._cache.clear()
+                self.assertEqual(geoip.lookup("150.228.135.85"), "BD")
+                self.assertEqual(geoip.lookup("8.8.8.8"), "US")
+                self.assertEqual(geoip.lookup("2a00:1450::1"), "GB")
+                self.assertEqual(geoip.lookup("9.9.9.9"), "")  # not in any range
+                self.assertEqual(geoip.lookup("192.168.1.5"), "")  # private
+                self.assertEqual(geoip.lookup("not an ip"), "")
+                self.assertTrue(ipaddress.ip_address("150.228.135.85"))
+
+    def test_without_the_table_downloaded_the_lookup_is_quietly_empty(self):
+        import tempfile
+        from pathlib import Path
+
+        with platform_modules("geoip") as (frappe, (geoip,)), tempfile.TemporaryDirectory() as folder:
+            frappe.get_site_path = lambda *parts: str(Path(folder, *parts))
+            geoip._cache.clear()
+            self.assertEqual(geoip.lookup("150.228.135.85"), "")
+
+
 class WiringTests(unittest.TestCase):
     def test_settings_hook_page_and_policy_are_wired(self):
         meta = json.loads((PKG / "saas_platform" / "doctype" / "saas_platform_settings" / "saas_platform_settings.json").read_text(encoding="utf-8"))
@@ -106,7 +140,8 @@ class WiringTests(unittest.TestCase):
             self.assertIn(marker, chrome, marker)
         legal = (PKG / "legal_pages.py").read_text(encoding="utf-8")
         self.assertIn("do not submit it, we may keep what you entered", legal)
-        self.assertIn("We do not send your IP address to any other service", legal)
+        self.assertIn("your IP address is not sent to any other service", legal)
+        self.assertIn("geoip.refresh_if_needed", (PKG / "hooks.py").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

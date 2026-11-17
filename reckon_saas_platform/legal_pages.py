@@ -21,7 +21,7 @@ PAGES = {
             ("What we collect", [
                 "When you sign up we collect your business name, your name, your work email, your mobile number with its country code and the password you choose (stored only in a protected form).",
                 "When you use ReckonERP we keep the business records you and your team enter in your own company workspace, and the technical records needed to run the service: sign-in times, the pages you open, errors and security events.",
-                "If you start the signup form and give us your email address or mobile number but do not submit it, we may keep what you entered, with the time, your IP address, the country of your browser's time zone, your browser language, device type, the page you came from and any campaign tags in the link, so our team can contact you and help you finish. We do not send your IP address to any other service to find where you are. Ask us to delete it at any time.",
+                "If you start the signup form and give us your email address or mobile number but do not submit it, we may keep what you entered, with the time, your IP address, the country of your browser's time zone, your browser language, device type, the page you came from and any campaign tags in the link, so our team can contact you and help you finish. We work out the country of your IP address on our own server, with the free DB-IP Lite country table (db-ip.com, licensed CC BY 4.0), so your IP address is not sent to any other service to find where you are. Ask us to delete it at any time.",
                 "We do not store your card number. Card payments are handled by our payment provider Paddle, which shows you its own checkout.",
             ]),
             ("How we protect your data", [

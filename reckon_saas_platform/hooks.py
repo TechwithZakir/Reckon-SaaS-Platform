@@ -65,6 +65,7 @@ scheduler_events = {
         "reckon_saas_platform.invoices.create_renewal_invoices",
         "reckon_saas_platform.invoices.send_payment_reminders",
         "reckon_saas_platform.erp_billing.sync_pending",
+        "reckon_saas_platform.geoip.refresh_if_needed",
     ],
 }
 

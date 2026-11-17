@@ -146,6 +146,16 @@ def _device(agent: str) -> str:
     return ", ".join(x for x in (browser, os_name) if x)
 
 
+def _ip_country(ip: str) -> str:
+    """The country the visitor's IP address belongs to, from the table on our own server."""
+    from reckon_saas_platform import geoip
+
+    code = geoip.lookup(ip) if ip else ""
+    if not code:
+        return ""
+    return f"{frappe.db.get_value('Country', {'code': code.lower()}, 'name') or code} (IP address)"
+
+
 def visit_details(tz=None, language=None, referrer=None, page=None, screen=None) -> list[tuple[str, str]]:
     """What is known about this visit, for the lead. Empty when the setting is off."""
     from frappe.utils import now_datetime
@@ -153,10 +163,12 @@ def visit_details(tz=None, language=None, referrer=None, page=None, screen=None)
     if not cint(_settings().get("crm_capture_visit_details")):
         return []
     page = _clean(page, 300)
+    ip = _visitor_ip()
     tags = ", ".join(f"{k}={v}" for k, v in re.findall(r"[?&](utm_[a-z]+|gclid|fbclid)=([^&#]{1,60})", page))
     rows = [
         ("Time", str(now_datetime())),
-        ("IP address", _visitor_ip()),
+        ("IP address", ip),
+        ("IP country", _ip_country(ip)),
         ("Country", _country(tz)),
         ("Time zone", _clean(tz, 60)),
         ("Language", _clean(language, 40) or _clean((frappe.get_request_header("Accept-Language") or "").split(",")[0], 20)),
