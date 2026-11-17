@@ -15,47 +15,34 @@ UPDATED = "17 November 2026"
 PAGES = {
     "privacy-policy": {
         "title": "Privacy policy",
-        "description": "What ReckonERP collects, why, who it is shared with, how long it is kept and how to ask for your data to be corrected or deleted.",
-        "lead": f"How {COMPANY} handles personal information in ReckonERP.",
+        "description": "A short, plain summary of what ReckonERP collects, why, who it is shared with and how to ask for your data to be corrected or deleted.",
+        "lead": f"A short summary of how {COMPANY} handles your information.",
         "sections": [
             ("What we collect", [
-                "When you sign up we collect your business name, your name, your work email, your mobile number with its country code and the password you choose (stored only in a protected form).",
-                "When you use ReckonERP we keep the business records you and your team enter in your own company workspace, and the technical records needed to run the service: sign-in times, the pages you open, errors and security events.",
-                "If you start the signup form but do not finish it, we may keep the details you entered, with basic visit information such as the time, IP address and approximate location, so our team can help you complete it. You can ask us to delete it at any time. IP location data by DB-IP (db-ip.com).",
-                "We do not store your card number. Card payments are handled by our payment provider Paddle, which shows you its own checkout.",
-            ]),
-            ("How we protect your data", [
-                "We protect your data because we value your consent and your privacy. We never sell your data, and we never share it with anyone for their own purposes. It reaches only the services we need to run ReckonERP for you, listed under Who we share it with, and each receives only what its job needs.",
-                "The credentials and keys connected to your subscription, such as API keys, tokens and secrets for the services you connect, are kept encrypted. ReckonERP is built on the Frappe framework, whose password-field encryption stores them encrypted with a secret key of the installation. Your sign-in password is not stored at all in readable form; only a one-way hash of it is kept.",
+                "When you sign up: your business name, your name, your work email, your mobile number and a password, which is kept only as a one-way hash. When you use ReckonERP: the business records you and your team enter in your workspace, and basic technical records such as sign-in times, pages opened and errors.",
+                "If you start the signup form but do not finish it, we may keep the details you entered, with basic visit information such as the time, IP address and approximate location, so our team can help you complete it. You can ask us to delete it at any time.",
             ]),
             ("How we use it", [
-                ["To create and run your workspace and your subscription.",
-                 "To verify your email address and mobile number, and to send invoices, receipts and service messages.",
-                 "To keep the service secure, prevent abuse and fix problems.",
-                 "To understand how the website is used, where you have allowed it."],
-                "We do not sell personal information.",
+                ["To run your workspace and your subscription.",
+                 "To send invoices, receipts and service messages.",
+                 "To keep the service secure and fix problems.",
+                 "To understand how the website is used, where you allow it."],
+            ]),
+            ("How we protect it", [
+                "Each company's data stays in its own private workspace, and data travels over encrypted connections. The credentials and keys connected to your subscription are kept encrypted using the Frappe framework's built-in encryption.",
             ]),
             ("Who we share it with", [
-                "We do not sell personal data, and we do not disclose it to third parties for their own purposes.",
-                "To deliver the service we route data through infrastructure and communication providers that act on our behalf: hosting infrastructure, an AI model endpoint, SMS and email delivery, a WhatsApp messaging channel, Google reCAPTCHA for bot protection and Google Tag Manager for tag management. Each is used as a delivery channel for one specific function. It receives only the data that function needs for the request in hand (data minimisation), and the connection to it is encrypted in transit (HTTPS/TLS, and SMTP over SSL for email).",
-                "Card and payment details are entered by you directly in Paddle's checkout and are processed by Paddle as the merchant of record, under its own terms. They do not pass through our servers.",
-                "We may disclose information where the law requires it.",
+                "We do not sell personal data, and we do not disclose it to third parties for their own purposes. To run the service we use hosting, email, SMS, messaging, AI and bot-protection providers as channels that act on our behalf. Each receives only the data its function needs, over encrypted connections (HTTPS/TLS), and AI features send only the text you ask them to work on.",
+                "Card details are entered by you in Paddle's checkout and handled by Paddle under its own terms; they do not pass through our servers. We may disclose information where the law requires it.",
             ]),
-            ("Your workspace data", [
-                "Each company works in its own private workspace. Your records stay inside your company, and other customers cannot open them. You decide who in your team can see what.",
-                "AI features send the text you ask them to work on to the AI provider configured for your workspace. They are optional and billed separately.",
+            ("Cookies", [
+                "The website uses cookies for sign-in, language and theme and, with your consent where required, for analytics. You can refuse non-essential cookies in the banner or in your browser.",
             ]),
-            ("Cookies and analytics", [
-                "The website uses cookies and similar technology for sign-in, language and theme choices and, where you agree or where the law does not require consent, analytics and advertising measurement. You can refuse non-essential cookies in the banner and in your browser.",
-            ]),
-            ("How long we keep it", [
-                "We keep account and billing records while your subscription is active and for as long afterwards as the law or a dispute requires. Workspace data is deleted or returned to you on request after your subscription ends, unless the law says we must keep part of it.",
-            ]),
-            ("Your choices", [
-                f"You can ask to see, correct, export or delete your personal information, or object to how it is used, by writing to {CONTACT_EMAIL}. We reply within a reasonable time and may need to confirm who you are first.",
+            ("Keeping and deleting your data", [
+                f"We keep account and billing records while your subscription is active and for as long afterwards as the law requires. You can ask to see, correct, export or delete your information by writing to {CONTACT_EMAIL}; we reply within a reasonable time.",
             ]),
             ("Changes and contact", [
-                f"We will update this page when our practices change. Questions: {CONTACT_EMAIL}, {COMPANY}, {ADDRESS}.",
+                f"We update this page when our practices change. Questions: {CONTACT_EMAIL}, {COMPANY}, {ADDRESS}.",
             ]),
         ],
     },

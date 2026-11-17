@@ -140,7 +140,7 @@ class WiringTests(unittest.TestCase):
             self.assertIn(marker, chrome, marker)
         legal = (PKG / "legal_pages.py").read_text(encoding="utf-8")
         self.assertIn("do not finish it, we may keep the details you entered", legal)
-        self.assertIn("IP location data by DB-IP", legal)
+        self.assertNotIn("DB-IP", legal)  # the policy stays short and general
         self.assertIn("geoip.refresh_if_needed", (PKG / "hooks.py").read_text(encoding="utf-8"))
 
 
