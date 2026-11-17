@@ -99,7 +99,7 @@ class WiringTests(unittest.TestCase):
         self.assertEqual(enabled["default"], "0")  # off until the owner turns it on
         self.assertIn("signup_leads.mark_signup_submitted", (PKG / "hooks.py").read_text(encoding="utf-8"))
         page = (PKG / "www" / "reckonerp_signup.html").read_text(encoding="utf-8")
-        for marker in ("signup_leads.capture", "data-lead-note", "reckonTrail", "doNotTrack", 'name="website"'):
+        for marker in ("signup_leads.capture", "data-lead-note", "reckonTrail", "doNotTrack", 'name="website"', 'append("csrf_token", csrfToken())', "X-Frappe-CSRF-Token"):
             self.assertIn(marker, page, marker)
         chrome = (PKG / "templates" / "marketing" / "chrome_js.html").read_text(encoding="utf-8")
         for marker in ("reckon_trail", "data-cur-set", "data-cycle-set", "doNotTrack"):

@@ -928,10 +928,16 @@
         const key = [...data.entries()].filter((e) => !["page", "referrer"].includes(e[0])).map((e) => e[1]).join("|");
         if (key === last) return;
         last = key;
-        if (window.reckonTrail) window.reckonTrail.markSent();
+        let sent = 0;
+        try { sent = JSON.parse(data.get("trail") || "[]").length; } catch (e) { /* none */ }
+        const done = function () { if (window.reckonTrail) window.reckonTrail.markSent(sent); };  // only what really went
         const url = "/api/method/reckon_saas_platform.signup_leads.capture";
-        if (useBeacon && navigator.sendBeacon) navigator.sendBeacon(url, data);
-        else fetch(url, { method: "POST", body: data, credentials: "same-origin", keepalive: true }).catch(function () { /* quiet */ });
+        // The browser has a session, so Frappe wants its request token (as a field for a beacon, which has no headers).
+        data.append("csrf_token", csrfToken());
+        if (useBeacon && navigator.sendBeacon) { if (navigator.sendBeacon(url, data)) done(); else last = ""; }
+        else fetch(url, { method: "POST", body: data, credentials: "same-origin", keepalive: true, headers: { "X-Frappe-CSRF-Token": csrfToken(), Accept: "application/json" } })
+          .then(function (response) { if (response.ok) done(); else last = ""; })  // else try again with the next change
+          .catch(function () { last = ""; });
       }
       function later() { clearTimeout(timer); timer = setTimeout(function () { send(false); }, 2000); }
       form.addEventListener("change", function (e) {

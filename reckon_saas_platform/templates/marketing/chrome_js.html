@@ -25,7 +25,7 @@
     window.reckonTrail={
       add:add,
       pending:function(){return s.ev.slice(s.sent||0)},
-      markSent:function(){s.sent=s.ev.length;save()},
+      markSent:function(n){s.sent=(n==null)?s.ev.length:Math.min(s.ev.length,(s.sent||0)+n);save()},
       first:s.first,ref:s.ref,land:s.land
     };
   }catch(e){}
