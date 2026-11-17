@@ -36,10 +36,10 @@ PAGES = {
                 "We do not sell personal information.",
             ]),
             ("Who we share it with", [
-                "We never share your data with others, and we never sell it.",
-                "Hosting, the AI model, SMS, email, Google reCAPTCHA, Google Tag Manager and WhatsApp are only channels we use to run ReckonERP. We do not hand your data to them as recipients: it travels through them over encrypted connections (HTTPS or TLS) so the service can work.",
-                "Card and payment details are entered by you at Paddle's checkout, so you share them with Paddle yourself, and Paddle handles them under its own terms.",
-                "We may disclose information when the law requires it.",
+                "We do not sell personal data, and we do not disclose it to third parties for their own purposes.",
+                "To deliver the service we route data through infrastructure and communication providers that act on our behalf: hosting infrastructure, an AI model endpoint, SMS and email delivery, a WhatsApp messaging channel, Google reCAPTCHA for bot protection and Google Tag Manager for tag management. Each is used as a delivery channel for one specific function. It receives only the data that function needs for the request in hand (data minimisation), and the connection to it is encrypted in transit (HTTPS/TLS, and SMTP over SSL for email).",
+                "Card and payment details are entered by you directly in Paddle's checkout and are processed by Paddle as the merchant of record, under its own terms. They do not pass through our servers.",
+                "We may disclose information where the law requires it.",
             ]),
             ("Your workspace data", [
                 "Each company works in its own private workspace. Your records stay inside your company, and other customers cannot open them. You decide who in your team can see what.",
