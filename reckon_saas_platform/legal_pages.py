@@ -9,7 +9,7 @@ from __future__ import annotations
 COMPANY = "Reckon Technologies Ltd."
 CONTACT_EMAIL = "info@reckon.tech"
 ADDRESS = "Saleh Tower, 5th Floor, Garib-E-Nawaz Avenue, Plot 1, Road 13, Sector 13, Uttara, Dhaka 1230, Bangladesh"
-UPDATED = "16 November 2026"
+UPDATED = "17 November 2026"
 
 # slug -> page. A section is (heading, [paragraph or [bullet, ...]]).
 PAGES = {
@@ -23,6 +23,10 @@ PAGES = {
                 "When you use ReckonERP we keep the business records you and your team enter in your own company workspace, and the technical records needed to run the service: sign-in times, the pages you open, errors and security events.",
                 "If you start the signup form and give us your email address or mobile number but do not submit it, we may keep what you entered, with the time, your IP address, the country of your browser's time zone, your browser language, device type, the page you came from and any campaign tags in the link, so our team can contact you and help you finish. We do not send your IP address to any other service to find where you are. Ask us to delete it at any time.",
                 "We do not store your card number. Card payments are handled by our payment provider Paddle, which shows you its own checkout.",
+            ]),
+            ("How we protect your data", [
+                "We protect your data because we value your consent and your privacy. We never sell your data, and we never share it with anyone for their own purposes. It reaches only the services we need to run ReckonERP for you, listed under Who we share it with, and each receives only what its job needs.",
+                "The credentials and keys connected to your subscription, such as API keys, tokens and secrets for the services you connect, are kept encrypted. ReckonERP is built on the Frappe framework, whose password-field encryption stores them encrypted with a secret key of the installation. Your sign-in password is not stored at all in readable form; only a one-way hash of it is kept.",
             ]),
             ("How we use it", [
                 ["To create and run your workspace and your subscription.",
@@ -114,7 +118,7 @@ PAGES = {
             ]),
             ("Protected connections and secrets", [
                 ["All traffic to the website and the app uses HTTPS.",
-                 "Passwords are stored only in a protected form, and API keys and tokens are stored encrypted.",
+                 "Passwords are stored only in a protected form (a one-way hash), and the credentials, API keys and tokens of your subscription are stored encrypted using the Frappe framework's built-in encryption with a secret key of the installation.",
                  "Signup is protected by email and mobile verification, rate limits and bot checks."],
             ]),
             ("Payments", [
@@ -134,7 +138,8 @@ PAGES = {
 GLANCE = {
     "privacy-policy": [
         ("We collect", "Business, name, email, mobile, usage logs"),
-        ("We never", "Sell your data or store your card number"),
+        ("We never", "Sell or share your data with others, or store your card number"),
+        ("Credentials", "Kept encrypted (Frappe encryption)"),
         ("Your data", "Export, correct or delete it on request"),
         ("Ask us at", CONTACT_EMAIL),
     ],
