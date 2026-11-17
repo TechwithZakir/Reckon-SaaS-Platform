@@ -200,3 +200,12 @@ class SidebarPatchTests(unittest.TestCase):
         self.assertIn('frappe.get_doc("Sidebar", name)', source)  # the Sidebar record, not the old Workspace Sidebar file
         self.assertIn("SaaS Coupon", source)
         self.assertIn("add_coupons_to_saas_sidebars", (PKG / "patches.txt").read_text(encoding="utf-8"))
+
+
+class CompanyFormScriptTests(unittest.TestCase):
+    def test_the_company_form_offers_save_to_the_company_admin_and_stays_read_only_for_others(self):
+        js = (PKG / "public" / "js" / "tenant_company_default.js").read_text(encoding="utf-8")
+        self.assertIn("frappe.boot.reckon_company_editable", js)
+        self.assertIn("You can update your contact and registration details", js)
+        self.assertIn("Your company details are managed by Reckon. Contact support to change them.", js)  # everyone else
+        self.assertLess(js.index("reckon_company_editable"), js.index("frm.disable_save()"))
