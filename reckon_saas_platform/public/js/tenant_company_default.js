@@ -26,7 +26,7 @@ $(document).on("startup", () => {
 				frappe.set_route("List", "Company");
 				return;
 			}
-			if (frappe.boot.reckon_company_editable) {
+			if (frappe.boot.reckon_company_admin) {
 				// The company admin updates contact and registration details; the books' settings stay with Reckon support.
 				const editable = ["email", "phone_no", "fax", "website", "company_description", "registration_details", "tax_id",
 					"date_of_incorporation", "date_of_commencement", "company_logo", "default_letter_head"];

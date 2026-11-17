@@ -91,6 +91,7 @@ doc_events = {
     "SaaS Coupon": {
         "on_update": "reckon_saas_platform.paddle.queue_coupon_sync",
     },
+    "Company": {"validate": "reckon_saas_platform.company_edit.validate_company_edit"},
     "SaaS Registration": {
         "after_insert": "reckon_saas_platform.signup_leads.mark_signup_submitted",
     },

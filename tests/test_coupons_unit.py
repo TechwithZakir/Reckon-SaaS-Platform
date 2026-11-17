@@ -205,7 +205,28 @@ class SidebarPatchTests(unittest.TestCase):
 class CompanyFormScriptTests(unittest.TestCase):
     def test_the_company_form_offers_save_to_the_company_admin_and_stays_read_only_for_others(self):
         js = (PKG / "public" / "js" / "tenant_company_default.js").read_text(encoding="utf-8")
-        self.assertIn("frappe.boot.reckon_company_editable", js)
+        self.assertIn("frappe.boot.reckon_company_admin", js)
         self.assertIn("You can update your contact and registration details", js)
         self.assertIn("Your company details are managed by Reckon. Contact support to change them.", js)  # everyone else
-        self.assertLess(js.index("reckon_company_editable"), js.index("frm.disable_save()"))
+        self.assertLess(js.index("reckon_company_admin"), js.index("frm.disable_save()"))
+        self.assertIn("company_edit.validate_company_edit", (PKG / "hooks.py").read_text(encoding="utf-8"))
+
+
+class CompanyEditRuleTests(unittest.TestCase):
+    def company(self, **values):
+        from types import SimpleNamespace
+
+        fields = [SimpleNamespace(fieldname=n, fieldtype="Data", label=n) for n in ("email", "website", "default_currency", "abbr")]
+        before = dict(email="a@x.test", website="", default_currency="BDT", abbr="AC")
+        data = {**before, **values}
+        return SimpleNamespace(meta=SimpleNamespace(fields=fields), is_new=lambda: False, get_doc_before_save=lambda: SimpleNamespace(get=before.get), get=data.get)
+
+    def test_a_tenant_admin_changes_contact_details_but_not_the_books_settings(self):
+        with platform_modules("company_edit") as (_f, (edit,)):
+            with patch.object(edit, "tenant_company_or_none", return_value="Acme"):
+                edit.validate_company_edit(self.company(email="new@x.test", website="https://acme.test"))  # allowed
+                with self.assertRaises(Exception) as caught:
+                    edit.validate_company_edit(self.company(default_currency="USD"))
+                self.assertIn("default_currency", str(caught.exception))
+            with patch.object(edit, "tenant_company_or_none", return_value=None):  # vendor staff
+                edit.validate_company_edit(self.company(default_currency="USD", abbr="ZZ"))
