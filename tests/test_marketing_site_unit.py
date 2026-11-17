@@ -95,7 +95,7 @@ class MarketingDataTests(unittest.TestCase):
             llms = marketing.llms_txt(BASE, modules)
             slugs = {f["slug"] for f in marketing.FEATURE_LIST}
         names = [a["name"] for a in page["family"]]
-        for expected in ("Aura AI Assistant", "Reckon CRM", "Reckon Constructions", "Reckon Real Estate", "Reckon HRMS"):
+        for expected in ("Aura AI Assistance", "Reckon CRM", "Reckon Constructions", "Reckon Real Estate", "Reckon HRMS"):
             self.assertIn(expected, names)
             self.assertIn(expected, llms)
         for app in page["family"]:
@@ -438,7 +438,7 @@ class MarketingDataTests(unittest.TestCase):
         self.assertEqual(distribution["url"], "/modules/distribution")
         self.assertEqual(
             distribution["features"],
-            ["DSR route planning and delivery tracking", "Multi-language mobile app", "Unknown future feature", "Aura AI Assistant: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"],
+            ["DSR route planning and delivery tracking", "Multi-language mobile app", "Unknown future feature", "Aura AI Assistance: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"],
         )
         self.assertTrue(distribution["benefits"])
 
@@ -459,7 +459,7 @@ class MarketingDataTests(unittest.TestCase):
         accounts = modules[1]
         self.assertEqual(accounts["name"], "Reckon Books")
         self.assertEqual(accounts["description"], "Edited by the vendor.")
-        self.assertEqual(accounts["features"], ["Stock and warehouses", "Custom thing", "Aura AI Assistant: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
+        self.assertEqual(accounts["features"], ["Stock and warehouses", "Custom thing", "Aura AI Assistance: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
 
     def test_apps_can_publish_integrations(self):
         published = [

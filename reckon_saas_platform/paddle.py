@@ -332,7 +332,7 @@ ASK_AI_FEATURE = "ask_ai"
 
 
 def ensure_ask_ai_feature(doc, method=None) -> None:
-    """Every plan of every module includes Aura AI Assistant (Aura AI agentic support); add the line when a plan lacks it."""
+    """Every plan of every module includes Aura AI Assistance (Aura AI agentic support); add the line when a plan lacks it."""
     lines = [line for line in str(doc.get("features") or "").splitlines() if line.strip()]
     if ASK_AI_FEATURE not in (line.strip() for line in lines):
         doc.features = chr(10).join([*lines, ASK_AI_FEATURE])

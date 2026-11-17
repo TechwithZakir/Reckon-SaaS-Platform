@@ -7,7 +7,7 @@ def execute():
         return
     for name, body in frappe.get_all("SEO Article", fields=["name", "body"], as_list=True):
         new = (body or "").replace("/features/reckon-ai-assistant", "/features/aura-ai-assistant").replace("/features/ask-ai", "/features/aura-ai-assistant")
-        new = new.replace("Aura AI assistant", "Aura AI Assistant")
+        new = new.replace("Aura AI assistant", "Aura AI Assistance")
         if new != body:
             frappe.db.set_value("SEO Article", name, "body", new, update_modified=False)
     frappe.clear_cache()

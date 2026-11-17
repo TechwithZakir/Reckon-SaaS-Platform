@@ -404,12 +404,12 @@ FEATURE_LIST = (
     },
     {
         "slug": "aura-ai-assistant",
-        "title": "Aura AI Assistant",
+        "title": "Aura AI Assistance",
         "icon": "spark",
         "summary": "Self-service help in every plan: setup, how-to answers, your language, even by voice.",
-        "description": "Aura AI Assistant is the agentic support, included in every plan: self-service setup and "
+        "description": "Aura AI Assistance is the agentic support, included in every plan: self-service setup and "
         "usage help, answers in your language, and voice questions.",
-        "intro": "Aura AI Assistant is the help desk built into ReckonERP. Instead of waiting for support, you ask a "
+        "intro": "Aura AI Assistance is the help desk built into ReckonERP. Instead of waiting for support, you ask a "
         "question in your own words and get the steps, from first setup to everyday use.",
         "points": [
             "Self-service implementation: it walks you through setting up your company, users, items and opening data",
@@ -426,8 +426,8 @@ FEATURE_LIST = (
         ],
         "faqs": [
             (
-                "What is Aura AI Assistant and how does it help me set up and use ReckonERP myself?",
-                "Aura AI Assistant is the agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+                "What is Aura AI Assistance and how does it help me set up and use ReckonERP myself?",
+                "Aura AI Assistance is the agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
             ),
             (
                 "What is Fill with AI and which forms does it work on?",
@@ -448,8 +448,8 @@ FEATURE_LIST = (
                 "applies to the plan you choose.",
             ),
             (
-                "Does Aura AI Assistant answer in my language, and can I talk to it?",
-                "Yes. Ask in your language and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+                "Does Aura AI Assistance answer in my language, and can I talk to it?",
+                "Yes. Ask in your language and Aura AI Assistance replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
             ),
             (
                 "Can Aura AI change my data on its own?",
@@ -463,7 +463,7 @@ FEATURE_LIST = (
             ),
             (
                 "Is Aura AI included in the subscription?",
-                "Aura AI Assistant help is included in every plan. AI model and messaging channel usage, "
+                "Aura AI Assistance help is included in every plan. AI model and messaging channel usage, "
                 "and custom integrations, are additional; ask us for pricing for your usage.",
             ),
         ],
@@ -498,7 +498,7 @@ FEATURE_LIST = (
         "summary": "Custom AI agents, assistants and workflow automation, built around your ERP and CRM data.",
         "description": "Custom AI agents for business: LLM assistants, RAG on your own "
         "documents, MCP, multi-agent workflows and integrations, with human approval.",
-        "intro": "Beyond the ready-made Aura AI Assistant and Sales AI Agent, we design and "
+        "intro": "Beyond the ready-made Aura AI Assistance and Sales AI Agent, we design and "
         "build AI agents for your own processes. Each one is scoped after a requirement "
         "analysis, works inside your permissions, and shows its work before anything changes.",
         "points": [
@@ -693,7 +693,7 @@ MODULE_COPY.update(
 )
 
 # Plain-language labels for the registry's ``subscription_features`` keys.
-ASK_AI_LABEL = "Aura AI Assistant: agentic support"  # every plan of every module includes it
+ASK_AI_LABEL = "Aura AI Assistance: agentic support"  # every plan of every module includes it
 
 
 # Every plan of every module also includes these; shown on plans, comparisons and service pages.
@@ -747,7 +747,7 @@ AI_POINTS = (
 )
 FAMILY_APPS = (
     {
-        "name": "Aura AI Assistant",
+        "name": "Aura AI Assistance",
         "text": "Ask questions about your own records, get insights and alerts, and approve "
         "suggested actions.",
         "url": "/features/aura-ai-assistant",
@@ -832,12 +832,12 @@ EXPERTISE = (
 
 HOME_FAQS = (
     (
-        "What is Aura AI Assistant and how does it help me set up and use ReckonERP myself?",
-        "Aura AI Assistant is the agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
+        "What is Aura AI Assistance and how does it help me set up and use ReckonERP myself?",
+        "Aura AI Assistance is the agentic support, included in every plan of every module. Ask it how to set up your company, import your data, create an invoice or run a report, and it answers from the product's own guides and shows the steps, so you can get live and keep going without waiting for a person. It works inside your own permissions, and nothing changes in your records until you review and approve it.",
     ),
     (
-        "Does Aura AI Assistant answer in my language, and can I talk to it?",
-        "Yes. Ask in your language and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+        "Does Aura AI Assistance answer in my language, and can I talk to it?",
+        "Yes. Ask in your language and Aura AI Assistance replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
     ),
     (
         "What is ReckonERP?",
@@ -923,7 +923,7 @@ HOME_FAQS = (
     ),
     (
         "Can you build custom AI agents and automation?",
-        "Yes. Besides the Aura AI Assistant and the Sales AI Agent, we build custom AI "
+        "Yes. Besides the Aura AI Assistance and the Sales AI Agent, we build custom AI "
         "agents, LLM applications, RAG and MCP integrations and workflow automation around "
         "your ERP and CRM data, quoted after requirement analysis.",
     ),

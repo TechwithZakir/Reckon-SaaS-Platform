@@ -194,7 +194,7 @@ BN = {
     "Role-based access, verified owners and guarded sign-in.": "রোল অনুযায়ী অ্যাক্সেস, যাচাইকৃত মালিক এবং সুরক্ষিত সাইন-ইন।",
     "Integrations and channels": "Integration ও চ্যানেল",
     "WhatsApp, social, SMS, voice and email channels in one place.": "WhatsApp, সোশ্যাল মিডিয়া, SMS, ভয়েস ও ইমেইল—সব চ্যানেল এক জায়গায়।",
-    "Aura AI Assistant": "Aura AI অ্যাসিস্ট্যান্ট",
+    "Aura AI Assistance": "Aura AI অ্যাসিস্ট্যান্ট",
     "Ask questions about your own records and approve the actions it suggests.": "নিজের রেকর্ড নিয়ে প্রশ্ন করুন, আর AI-এর প্রস্তাব করা কাজগুলো আপনি অনুমোদন করুন।",
     "Field sales visits": "মাঠ পর্যায়ের সেলস ভিজিট",
     "Schedule customer visits, check in with GPS and keep a history of every visit.": "গ্রাহক ভিজিটের সময় ঠিক করুন, GPS দিয়ে চেক-ইন করুন এবং প্রতিটি ভিজিটের ইতিহাস রাখুন।",
