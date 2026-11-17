@@ -208,13 +208,20 @@ def _reconcile(user: str) -> None:
 
 
 def _sync_landing_app(user: str) -> None:
-    """A user whose companies subscribe to exactly one guarded module lands on that module's app."""
-    from reckon_saas_platform.desk_module_guard import guarded_module_for_user
+    """Desk opens on an app the user's companies subscribe to.
 
-    module = guarded_module_for_user(user)
-    target = module.get("app") if module else None
-    if target and frappe.db.get_value("User", user, "default_app") != target:
-        frappe.db.set_value("User", user, "default_app", target, update_modified=False)
+    A user with no default app lands on Frappe's first app (Reckon Accounts), whatever they subscribed to.
+    So the default app is set to the module's app, for every module, guarded or not. A user whose companies
+    hold several modules keeps their own choice while it is one of those apps.
+    """
+    from reckon_saas_platform.desk_module_guard import subscribed_modules_for_user
+
+    apps = [module.get("app") for module in subscribed_modules_for_user(user) if module.get("app")]
+    if not apps:
+        return
+    current = frappe.db.get_value("User", user, "default_app")
+    if current not in apps:
+        frappe.db.set_value("User", user, "default_app", apps[0], update_modified=False)
 
 
 def sync_tenant_user_access(doc, method=None) -> None:

@@ -96,6 +96,29 @@ class DeskGuardTests(unittest.TestCase):
         self.assertIsNone(self.guarded(set()))
 
 
+class LandingAppTests(unittest.TestCase):
+    def landing(self, subscribed, current):
+        modules = [_Dict(key=k, app=a) for k, a in subscribed]
+        with platform_modules("team", "desk_module_guard") as (frappe, (team, guard)):
+            frappe.db.get_value = Mock(return_value=current)
+            frappe.db.set_value = Mock()
+            with patch.object(guard, "subscribed_modules_for_user", return_value=modules):
+                team._sync_landing_app("u@x.test")
+            return frappe.db.set_value
+
+    def test_a_distribution_only_company_lands_on_the_distribution_app_not_accounts(self):
+        set_value = self.landing([("distribution", "reckon_distribution")], None)
+        set_value.assert_called_once_with("User", "u@x.test", "default_app", "reckon_distribution", update_modified=False)
+
+    def test_a_default_app_that_is_still_subscribed_is_kept(self):
+        set_value = self.landing([("accounts", "reckon_accounts_saas"), ("hrms", "reckon_hrms")], "reckon_hrms")
+        set_value.assert_not_called()
+
+    def test_a_stale_default_app_is_replaced_by_a_subscribed_one(self):
+        set_value = self.landing([("distribution", "reckon_distribution")], "reckon_accounts")
+        set_value.assert_called_once()
+
+
 class SignupStartModeTests(unittest.TestCase):
     def subscription(self, start_mode, trial_days=15):
         with platform_modules("saas") as (frappe, (saas,)):

@@ -18,21 +18,26 @@ from reckon_saas_platform.module_registry import get_saas_modules
 from reckon_saas_platform.tenant_security import get_user_companies, user_can_bypass_tenant
 
 
-def guarded_module_for_user(user: str | None) -> dict | None:
+def subscribed_modules_for_user(user: str | None) -> list:
+    """The modules the user's companies hold an active subscription for, in the registry's order."""
     if not user or user == "Guest" or user_can_bypass_tenant(user):
-        return None
+        return []
     companies = get_user_companies(user)
     if not companies:
-        return None
+        return []
     from reckon_saas_platform.saas import is_subscription_active
 
-    # Every module the user's companies subscribe to counts, guarded or not: a company with
-    # Accounts and HRMS has two modules, and must not be shut inside HRMS because only HRMS is guarded.
-    subscribed = [
+    return [
         module
         for module in get_saas_modules()
         if any(is_subscription_active(company, module.get("key")) for company in companies)
     ]
+
+
+def guarded_module_for_user(user: str | None) -> dict | None:
+    # Every module the user's companies subscribe to counts, guarded or not: a company with
+    # Accounts and HRMS has two modules, and must not be shut inside HRMS because only HRMS is guarded.
+    subscribed = subscribed_modules_for_user(user)
     if len(subscribed) != 1 or not subscribed[0].get("desk_guard"):
         return None
     return subscribed[0]
