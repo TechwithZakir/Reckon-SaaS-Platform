@@ -150,6 +150,35 @@ class ErpBillingTests(unittest.TestCase):
             frappe.db.set_value.assert_called()
             self.assertIn("no income account", frappe.db.set_value.call_args[0][3])
 
+    def test_a_usd_invoice_stays_in_usd_with_its_own_accounts(self):
+        with platform_modules("erp_billing") as (frappe, (erp,)):
+            settings = _Dict(erp_invoicing_enabled=1, erp_company="Mine", erp_fallback_rates="USD=120", erp_item_code="Sub",
+                             erp_income_account=None, erp_customer_group=None)
+            frappe.get_cached_doc = Mock(return_value=settings)
+            frappe.db.exists = Mock(return_value=True)
+            frappe.db.get_value = Mock(side_effect=lambda doctype, *a, **k: "BDT" if (doctype, a[1:] if len(a) > 1 else a) and a and a[-1] == "default_currency" else None)
+            self.assertEqual(erp.company_currency("Mine"), "BDT")
+            self.assertEqual(erp.fallback_rate("USD"), 120.0)
+            self.assertEqual(erp.fallback_rate("EUR"), 0.0)
+            self.assertEqual(erp.exchange_rate("BDT", "Mine", "2026-11-17"), 1.0)
+            self.assertEqual(erp.exchange_rate("USD", "Mine", "2026-11-17"), 120.0)  # no ERPNext rate: the fallback
+            self.assertIsNone(erp.ensure_currency_account("Mine", "BDT", "Receivable"))  # own currency: default accounts
+
+    def test_a_missing_rate_is_noted_not_raised(self):
+        with platform_modules("erp_billing") as (frappe, (erp,)):
+            settings = _Dict(erp_invoicing_enabled=1, erp_company="Mine", erp_fallback_rates="", erp_item_code="Sub")
+            frappe.get_cached_doc = Mock(return_value=settings)
+            frappe.db.exists = Mock(return_value=True)
+            frappe.db.get_value = Mock(side_effect=lambda doctype, *a, **k: "BDT" if a and a[-1] == "default_currency" else "Acme")
+            invoice = _Dict(name="INV-2", status="Unpaid", amount=49, discount_amount=0, currency="USD", company="Acme", customer_name="Acme",
+                            erp_sales_invoice=None, issue_date="2026-11-17", due_date="2026-11-20", period_start="2026-11-17",
+                            period_end="2026-12-16", saas_module="crm", coupon=None)
+            frappe.get_doc = Mock(return_value=invoice)
+            frappe.get_traceback = Mock(return_value="Traceback\nValueError: No exchange rate for USD")
+            with patch.object(erp, "ensure_item", return_value="Sub"):
+                self.assertIsNone(erp.create_sales_invoice("INV-2"))
+            self.assertIn("exchange rate", frappe.db.set_value.call_args[0][3])
+
     def test_settings_and_the_daily_retry_are_wired(self):
         settings = json.loads((DOCTYPES / "saas_platform_settings" / "saas_platform_settings.json").read_text(encoding="utf-8"))
         names = {f["fieldname"] for f in settings["fields"]}
