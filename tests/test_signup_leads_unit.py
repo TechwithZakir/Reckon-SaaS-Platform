@@ -139,8 +139,8 @@ class WiringTests(unittest.TestCase):
         for marker in ("reckon_trail", "data-cur-set", "data-cycle-set", "doNotTrack"):
             self.assertIn(marker, chrome, marker)
         legal = (PKG / "legal_pages.py").read_text(encoding="utf-8")
-        self.assertIn("do not submit it, we may keep what you entered", legal)
-        self.assertIn("your IP address is not sent to any other service", legal)
+        self.assertIn("do not finish it, we may keep the details you entered", legal)
+        self.assertIn("IP location data by DB-IP", legal)
         self.assertIn("geoip.refresh_if_needed", (PKG / "hooks.py").read_text(encoding="utf-8"))
 
 
