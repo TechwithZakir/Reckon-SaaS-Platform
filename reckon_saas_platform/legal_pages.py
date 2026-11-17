@@ -36,7 +36,9 @@ PAGES = {
                 "We do not sell personal information.",
             ]),
             ("Who we share it with", [
-                "Only with the services we need to run ReckonERP: hosting, email and SMS delivery, our payment provider (Paddle for card payments), website analytics and, if you switch on AI or messaging features, the providers you connect. Each receives only what its job needs.",
+                "We never sell your data, and we never share it with anyone for their own purposes.",
+                "We use hosting, email, SMS, messaging and AI services only as channels to run ReckonERP. Data reaches them over encrypted connections (HTTPS or TLS), they process it for us and not for their own purposes, and each receives only what its job needs. AI and messaging features send data only when someone uses them.",
+                "Three things work differently, and we say so openly. Paddle, our payment provider, is the seller of record for card payments and handles payment and tax details under its own terms. Google reCAPTCHA protects the signup form from bots. Website analytics (Google Tag Manager and Analytics, and the Meta pixel) run only if you accept cookies.",
                 "We may disclose information when the law requires it.",
             ]),
             ("Your workspace data", [
