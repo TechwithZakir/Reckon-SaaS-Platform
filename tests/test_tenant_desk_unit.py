@@ -54,6 +54,18 @@ class TenantAppsTests(unittest.TestCase):
                 desk_apps.filter_bootinfo(untouched)
             self.assertTrue(untouched["app_data"][0]["on_apps_screen"])
 
+    def test_frappe_crm_and_hr_are_hidden_for_everyone_once_the_reckon_apps_replace_them(self):
+        with platform_modules("desk_apps") as (frappe, (desk_apps,)):
+            frappe.get_installed_apps = lambda: ["frappe", "crm", "hrms", "reckon_crm", "reckon_hrms"]
+            boot = _Dict(app_data=[{"app_name": n, "on_apps_screen": True} for n in ("crm", "hrms", "reckon_crm", "reckon_hrms", "erpnext")])
+            with patch.object(desk_apps, "allowed_apps_for_user", return_value=None), patch.object(desk_apps, "is_company_admin", return_value=False):
+                desk_apps.filter_bootinfo(boot)  # vendor staff are not restricted, yet the superseded tiles are still hidden
+            self.assertEqual({a["app_name"]: a["on_apps_screen"] for a in boot["app_data"]},
+                             {"crm": False, "hrms": False, "reckon_crm": True, "reckon_hrms": True, "erpnext": True})
+            # Without Reckon CRM installed, Frappe CRM is the only CRM tile and stays.
+            frappe.get_installed_apps = lambda: ["frappe", "crm", "hrms", "reckon_hrms"]
+            self.assertEqual(desk_apps.superseded_apps(), {"hrms"})
+
     def test_a_broken_filter_never_breaks_the_desk(self):
         with platform_modules("desk_apps") as (frappe, (desk_apps,)):
             frappe.log_error = Mock()

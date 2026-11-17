@@ -15,6 +15,18 @@ import frappe
 from reckon_saas_platform.module_registry import get_saas_modules
 from reckon_saas_platform.tenant_security import get_user_companies, user_can_bypass_tenant
 
+# Frappe's own CRM and HR are replaced by Reckon CRM and Reckon HRMS, which cover the same ground. Their tiles are
+# hidden from the Apps screen once the Reckon app is installed; the apps themselves stay (Reckon CRM is built on CRM).
+SUPERSEDED_APPS = {"crm": "reckon_crm", "hrms": "reckon_hrms"}
+
+
+def superseded_apps() -> set[str]:
+    try:
+        installed = set(frappe.get_installed_apps())
+    except Exception:
+        return set()  # never let a menu detail stop the other app filtering
+    return {app for app, replacement in SUPERSEDED_APPS.items() if replacement in installed}
+
 
 def allowed_apps_for_user(user: str | None = None) -> set[str] | None:
     """Apps of the modules the user's companies hold; ``None`` when the user is not restricted."""
@@ -56,6 +68,10 @@ def filter_bootinfo(bootinfo) -> None:
     try:
         bootinfo["reckon_company_admin"] = is_company_admin()
         _default_company_to_tenant(bootinfo)
+        hidden = superseded_apps()
+        for app in bootinfo.get("app_data") or []:
+            if app.get("app_name") in hidden:
+                app["on_apps_screen"] = False
         allowed = allowed_apps_for_user()
         if allowed is None:
             return
@@ -71,6 +87,7 @@ def get_apps():
     """``frappe.apps.get_apps`` for the apps screen, limited the same way."""
     from frappe.apps import get_apps as all_apps
 
-    apps = all_apps()
+    hidden = superseded_apps()
+    apps = [app for app in all_apps() if app.get("name") not in hidden]
     allowed = allowed_apps_for_user()
     return apps if allowed is None else [app for app in apps if app.get("name") in allowed]
