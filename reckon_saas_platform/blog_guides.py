@@ -42,7 +42,7 @@ GUIDES = [
             ["Can you show my process with my data?", "Demos hide gaps that real data exposes.", "They load a sample of your records and run it."],
             ["How is my data kept separate?", "Your records must not mix with other companies'.", "Each company has its own workspace and permission rules."],
             ["Can I export everything?", "It decides how locked in you are.", "A clear export of all your records at any time."],
-            ["Who supports me, and in what language?", "Problems arrive at awkward hours.", "Support in Bangla and English, with a named channel."],
+            ["Who supports me, and in what language?", "Problems arrive at awkward hours.", "Support in multiple languages, with a named channel."],
             ["What is not included in the price?", "Training, migration and customisation add up.", "A written list of what is quoted separately."],
             ["Can I start with one module?", "Paying for everything on day one wastes money.", "Modules you add and pay for one at a time."],
         ]),
@@ -65,7 +65,7 @@ GUIDES = [
             "Score each option from one to five on fit, support, exit and cost, using the same questions.",
             "Weight fit and exit above price; a cheap system you must leave is expensive.",
             "Ask a current user of each option, not only the vendor's reference.",
-            "Check how each handles Bangla screens, local SMS and your reporting needs.",
+            "Check how each handles multi-language screens, local SMS and your reporting needs.",
             "Prefer the option that lets you start small and add modules later.",
         ],
         "steps_intro": "A practical path from first search to first week of use.",
@@ -77,7 +77,7 @@ GUIDES = [
             "Go live with one module, then add others once the first is running smoothly.",
         ],
         "fits": [
-            "ReckonERP is a cloud ERP you can try online: <a href=\"/reckonerp-signup\">sign up</a>, pick a module and a plan, and test with your own data. Each company works in its own private workspace, screens are in English and Bangla, and plans are priced in BDT, USD, EUR or INR.",
+            "ReckonERP is a cloud ERP you can try online: <a href=\"/reckonerp-signup\">sign up</a>, pick a module and a plan, and test with your own data. Each company works in its own private workspace, screens are multi-language, and plans are priced in BDT, USD, EUR or INR.",
             "Modules are bought one at a time, from <a href=\"/modules/accounts\">Accounts</a> to <a href=\"/modules/distribution\">Distribution</a>, <a href=\"/modules/hrms\">HRMS</a> and <a href=\"/modules/crm\">CRM</a>. Implementation, training and customisation are quoted separately; see <a href=\"/pricing\">pricing</a> and the <a href=\"/faq\">FAQ</a>, and <a href=\"/industries\">industry pages</a> for your sector.",
         ],
         "conclusion": [
@@ -143,7 +143,7 @@ GUIDES = [
             "Did they ask about your business before quoting?",
             "Can they name who will implement and who will support you?",
             "Is every cost listed, including the extras?",
-            "Do they support Bangla and English, and on which channels?",
+            "Do they support multiple languages, and on which channels?",
             "Can they explain how your data is separated and exported?",
         ],
         "steps_intro": "You can learn most of this in a week.",
@@ -156,7 +156,7 @@ GUIDES = [
         ],
         "fits": [
             "ReckonERP lists what is quoted separately: implementation, data migration, training, customisation, on-site support, and AI and integration usage. Subscription plans, billing periods and trial days are shown at <a href=\"/reckonerp-signup\">signup</a> and on the <a href=\"/pricing\">pricing page</a>.",
-            "Support is available by email and WhatsApp, in English and Bangla, and dedicated cloud or on-premises installations are available on request. The <a href=\"/faq\">FAQ</a> answers the usual questions on licences, deployment and support.",
+            "Support is available by email and WhatsApp, in multiple languages, and dedicated cloud or on-premises installations are available on request. The <a href=\"/faq\">FAQ</a> answers the usual questions on licences, deployment and support.",
         ],
         "conclusion": [
             "The software gets you started; the provider keeps you going. Ask how implementation runs, test support during the trial and get costs and exit terms in writing.",
@@ -511,7 +511,7 @@ GUIDES = [
             ["Retailer dues", "Credit must be controlled.", "A running balance updated at each visit."],
             ["Cash custody", "Money moves through the rep's hands.", "Collected and handed-in amounts per DSR."],
             ["Principal goods", "You may hold stock that is not yours.", "Supplier-provided goods tracked separately."],
-            ["Field app", "Reps work on phones, often in Bangla.", "A phone-browser screen, Bangla-first."],
+            ["Field app", "Reps work on phones, often in their own language.", "A phone-browser screen, multi-language."],
             ["Accounts", "The books must agree with the field.", "Invoices, stock and payments post to your books."],
         ]),
         "options": [
@@ -533,7 +533,7 @@ GUIDES = [
             "Does it track cash from collection to handover, per rep?",
             "Does a retailer's balance update at the visit?",
             "Can it separate principal-supplied goods from your stock?",
-            "Will your reps use it on their own phones, in Bangla?",
+            "Will your reps use it on their own phones, in their own language?",
             "Does it post to accounts without re-typing?",
         ],
         "steps_intro": "Roll out one route at a time.",
@@ -545,7 +545,7 @@ GUIDES = [
             "Connect accounting so the books and the field agree.",
         ],
         "fits": [
-            "The <a href=\"/modules/distribution\">Distribution module</a> covers route planning and delivery tracking, retailer dues and collections, DSR cash custody, supplier-provided goods and a Bangla-first mobile app that runs in the phone's browser. It posts to your Company's books.",
+            "The <a href=\"/modules/distribution\">Distribution module</a> covers route planning and delivery tracking, retailer dues and collections, DSR cash custody, supplier-provided goods and a multi-language mobile app that runs in the phone's browser. It posts to your Company's books.",
             "See <a href=\"/industries/fmcg-distribution\">FMCG distribution</a> for the sector overview, <a href=\"/blog/fmcg-route-sales-spreadsheets-vs-distribution-erp\">FMCG Route Sales: Spreadsheets vs a Distribution ERP</a> for the comparison and <a href=\"/pricing\">pricing</a> for plans.",
         ],
         "conclusion": [

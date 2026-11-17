@@ -331,24 +331,24 @@ FEATURE_LIST = (
     },
     {
         "slug": "bangla-and-english",
-        "title": "Bangla and English",
+        "title": "Multi-language support",
         "icon": "globe",
-        "summary": "Signup in Bangla or English, with Bangla-first workflows for field teams.",
-        "description": "ReckonERP signup works in Bangla and English, and the Distribution "
-        "module is designed Bangla-first for field sales and delivery staff.",
-        "intro": "Many users in Bangladesh work faster in Bangla. The signup flow offers both "
-        "languages, and field-facing modules such as Distribution are written with Bangla "
-        "labels in mind.",
+        "summary": "Signup in your language, with multi-language workflows for field teams.",
+        "description": "ReckonERP signup works in multiple languages, and the Distribution "
+        "module is designed multi-language for field sales and delivery staff.",
+        "intro": "Many users work faster in their own language. The signup flow offers several "
+        "languages, and field-facing modules such as Distribution are written with labels "
+        "in your language in mind.",
         "points": [
-            "Switch the signup page between Bangla and English",
-            "Bangla-first mobile screens for field staff in the Distribution module",
+            "Switch the signup page between languages",
+            "Multi-language mobile screens for field staff in the Distribution module",
             "Bangladeshi SMS gateways for one-time codes and notifications",
             "Currency and plans shown in BDT where the plan is priced in BDT",
         ],
         "faqs": [
             (
-                "Is the whole ERP in Bangla?",
-                "Signup and the Distribution field workflows are Bangla-ready. Other desk "
+                "Is the whole ERP multi-language?",
+                "Signup and the Distribution field workflows are multi-language ready. Other desk "
                 "screens follow ERPNext's translations.",
             ),
         ],
@@ -414,7 +414,7 @@ FEATURE_LIST = (
         "points": [
             "Self-service implementation: it walks you through setting up your company, users, items and opening data",
             "Self-service usability: ask how to create, find or report on anything and get the steps for the screen you are on",
-            "Multi-language answers: ask in Bangla or English and it replies in the language you used",
+            "Multi-language answers: ask in your language and it replies in the language you used",
             "Voice support: speak your question, which suits mobile and staff in the field",
             "Fill with AI: paste a purchase order or email, speak it, or upload a photo or PDF, and it fills the sales or purchase form for you to review",
             "It can offer to create the customer, supplier or items it does not find, only after you confirm",
@@ -432,8 +432,8 @@ FEATURE_LIST = (
             (
                 "What is Fill with AI and which forms does it work on?",
                 "Fill with AI reads a purchase order, bill, email or your own notes and fills a new Sales Invoice, Sales Order, "
-                "Delivery Note, Quotation, Purchase Order, Purchase Invoice or Purchase Receipt. Paste the text, speak it in English "
-                "or Bangla, or upload a photo or PDF. It finds the customer or supplier, the items, quantities and rates, matches them "
+                "Delivery Note, Quotation, Purchase Order, Purchase Invoice or Purchase Receipt. Paste the text, speak it in your language, "
+                "or upload a photo or PDF. It finds the customer or supplier, the items, quantities and rates, matches them "
                 "to your own records, and fills the form. Nothing is saved until you click Save.",
             ),
             (
@@ -449,7 +449,7 @@ FEATURE_LIST = (
             ),
             (
                 "Does Aura AI Assistant answer in my language, and can I talk to it?",
-                "Yes. Ask in Bangla or English and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+                "Yes. Ask in your language and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
             ),
             (
                 "Can Aura AI change my data on its own?",
@@ -540,7 +540,7 @@ FEATURE_LIST = (
             ),
             (
                 "Do you build AI agents for companies in Bangladesh?",
-                "Yes, for companies in Bangladesh and worldwide. Bangla and English are both "
+                "Yes, for companies in Bangladesh and worldwide. Multi-language support is "
                 "supported, and we can work on site on request.",
             ),
         ],
@@ -606,7 +606,7 @@ MODULE_COPY = {
         "faqs": [
             (
                 "Can my field team use it on a phone?",
-                "Yes. The Distribution module includes a Bangla-first mobile app that works "
+                "Yes. The Distribution module includes a multi-language mobile app that works "
                 "in the browser.",
             ),
             (
@@ -625,7 +625,7 @@ MODULE_COPY = {
             "Raise sales invoices and quotations, and record purchase bills and orders",
             "Keep stock and warehouses in step with what you buy and sell",
             "Record cash, bank and payments in one place",
-            "Read the books in a Tally-style view, in Bangla or English",
+            "Read the books in a Tally-style view, in your language",
         ],
         "faqs": [
             (
@@ -714,7 +714,7 @@ FEATURE_LABELS = {
     "retailer_receivable": "Retailer dues and collections",
     "dsr_cash_custody": "DSR cash custody",
     "supplier_provided_goods": "Supplier-provided goods",
-    "bangla_pwa": "Bangla-first mobile app",
+    "bangla_pwa": "Multi-language mobile app",
     "sales_invoices_and_quotations": "Sales invoices and quotations",
     "purchase_bills_and_orders": "Purchase bills and orders",
     "stock_and_warehouses": "Stock and warehouses",
@@ -812,7 +812,7 @@ DEPLOYMENTS = (
 SERVICES = (
     ("Cloud ERP modules", "Distribution, Accounts, HRMS, CRM and Sales AI, each in a private company workspace."),
     ("Multi-currency", "Quote, invoice and keep books in more than one currency, with plans priced in BDT, USD, EUR or INR."),
-    ("Multi-language", "Screens in English and Bangla today, and more languages through translation on request."),
+    ("Multi-language", "Multi-language screens today, and more languages through translation on request."),
     ("Easy to customise", "The enterprise package shapes fields, workflows, reports, print formats and integrations to how you work."),
     ("Dedicated cloud or on-premises", "Your own server or ours, with your release schedule, backups and access rules."),
     ("Aura AI and integrations", "AI that works on your own records with approval, plus WhatsApp, SMS and email channels. Usage is billed separately."),
@@ -837,7 +837,7 @@ HOME_FAQS = (
     ),
     (
         "Does Aura AI Assistant answer in my language, and can I talk to it?",
-        "Yes. Ask in Bangla or English and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
+        "Yes. Ask in your language and Aura AI Assistant replies in the language you used, and it also understands other languages. Voice support lets you speak your question instead of typing it, which suits staff on the move and on mobile.",
     ),
     (
         "What is ReckonERP?",
@@ -910,14 +910,14 @@ HOME_FAQS = (
     (
         "Can I use ReckonERP outside Bangladesh?",
         "Yes. Workspaces run in the cloud and open from any country in English. Plans can be "
-        "priced in BDT, USD, EUR or INR. Bangla screens and Bangladeshi SMS gateways are extra "
+        "priced in BDT, USD, EUR or INR. multi-language screens and Bangladeshi SMS gateways are extra "
         "strengths for Bangladesh. Dedicated cloud and on-premises installations are available "
         "for companies anywhere on request.",
     ),
     (
         "Is ReckonERP available for companies in Bangladesh?",
         "Yes. ReckonERP is made in Bangladesh by Reckon Technologies. It offers cloud ERP, "
-        "CRM, HR and payroll, accounting and distribution management, with Bangla screens, "
+        "CRM, HR and payroll, accounting and distribution management, with multi-language screens, "
         "plans priced in BDT and Bangladeshi SMS gateways. Implementation, training and "
         "on-site support are available as paid services.",
     ),
@@ -954,9 +954,9 @@ HOME_FAQS = (
         "Bangladesh and worldwide.",
     ),
     (
-        "Can I use it in Bangla?",
-        "Signup is available in Bangla and English, and the Distribution module is "
-        "designed Bangla-first for field teams.",
+        "Can I use it in my language?",
+        "Signup is available in multiple languages, and the Distribution module is "
+        "designed multi-language for field teams.",
     ),
 )
 
@@ -1598,7 +1598,7 @@ def features_page(base: str) -> dict:
         path=FEATURES,
         title="ERP, CRM and AI features for Bangladesh | ReckonERP",
         description="Every ReckonERP feature: cloud ERP signup, separate company workspaces, "
-        "plans and billing, Bangla support, AI assistant, CRM and integrations.",
+        "plans and billing, multi-language support, AI assistant, CRM and integrations.",
         h1="Everything the ReckonERP platform does",
         trail=[("Home", HOME), ("Features", FEATURES)],
         features=FEATURE_LIST,
@@ -1929,7 +1929,7 @@ def llms_txt(base: str, modules: list[dict], integrations=None) -> str:
         "",
         "> ReckonERP is a multi-tenant cloud ERP for growing businesses worldwide, with deep support for Bangladesh, built on "
         "ERPNext. Companies sign up online, subscribe to the modules they need and work in "
-        "their own private workspace, in Bangla or English.",
+        "their own private workspace, with multi-language support.",
         "",
         "## Modules",
         "",
@@ -1987,7 +1987,7 @@ def llms_full_txt(base: str, modules: list[dict], integrations=None) -> str:
         "",
         "> ReckonERP is a multi-tenant cloud ERP with built-in AI for growing businesses worldwide, with deep support for Bangladesh, "
         "built on ERPNext. Companies sign up online, subscribe to the modules they need and work "
-        "in their own private workspace, in Bangla or English.",
+        "in their own private workspace, with multi-language support.",
         "",
         f"Website: {base}/",
         f"Contact: {SUPPORT_EMAIL}, WhatsApp {WHATSAPP_DISPLAY}, {COMPANY_SITE}",

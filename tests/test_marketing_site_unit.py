@@ -23,7 +23,7 @@ DEFINITIONS = [
     {
         "key": "distribution",
         "label": "Distribution SaaS",
-        "description": "Bangla-first SR/DSR distribution for FMCG businesses.",
+        "description": "Multi-language SR/DSR distribution for FMCG businesses.",
         "subscription_features": ["dsr_routes", "bangla_pwa", "unknown_future_feature"],
     },
     {
@@ -438,7 +438,7 @@ class MarketingDataTests(unittest.TestCase):
         self.assertEqual(distribution["url"], "/modules/distribution")
         self.assertEqual(
             distribution["features"],
-            ["DSR route planning and delivery tracking", "Bangla-first mobile app", "Unknown future feature", "Aura AI Assistant: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"],
+            ["DSR route planning and delivery tracking", "Multi-language mobile app", "Unknown future feature", "Aura AI Assistant: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"],
         )
         self.assertTrue(distribution["benefits"])
 

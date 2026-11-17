@@ -106,7 +106,7 @@ class ContentTests(unittest.TestCase):
 
     def test_enterprise_post_states_multi_currency_multi_language_and_customisation(self):
         post = next(p for p in self.posts if p["slug"] == "standard-vs-customised-erp-for-enterprises")
-        for needle in ("Multi-currency", "Multi-language", "easy to customise", "BDT, USD, EUR or INR", "English and Bangla"):
+        for needle in ("Multi-currency", "Multi-language", "easy to customise", "BDT, USD, EUR or INR", "multi-language"):
             self.assertIn(needle, post["body"])
 
 

@@ -212,9 +212,9 @@ class DescriptionTests(unittest.TestCase):
     def test_the_more_informative_of_two_overlapping_sentences_wins(self):
         text = self.m.join_description(
             "Routes, deliveries, collections and stock for FMCG distributors.",
-            "Bangla-first SR/DSR distribution for FMCG businesses: routes, deliveries, collections and stock in one place.",
+            "Multi-language SR/DSR distribution for FMCG businesses: routes, deliveries, collections and stock in one place.",
         )
-        self.assertEqual(text, "Bangla-first SR/DSR distribution for FMCG businesses: routes, deliveries, collections and stock in one place.")
+        self.assertEqual(text, "Multi-language SR/DSR distribution for FMCG businesses: routes, deliveries, collections and stock in one place.")
 
     def test_different_sentences_are_both_kept_and_long_text_is_cut_at_a_word(self):
         self.assertEqual(self.m.join_description("Find leads.", "Approve every message."), "Find leads. Approve every message.")

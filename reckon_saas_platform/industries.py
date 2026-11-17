@@ -163,14 +163,14 @@ INDUSTRIES = (
         "name": "FMCG distribution",
         "title": "FMCG distribution software in Bangladesh",
         "description": "Distribution management software for FMCG distributors in Bangladesh: routes, retailer dues, DSR cash custody, stock and accounts. Start online.",
-        "intro": "FMCG distributors run routes, collect cash daily and carry goods for principals. The Distribution module is built for exactly that, with a Bangla-first mobile screen for the field team.",
+        "intro": "FMCG distributors run routes, collect cash daily and carry goods for principals. The Distribution module is built for exactly that, with a multi-language mobile screen for the field team.",
         "modules": ["distribution", "accounts"],
         "standard": [
             "Route planning and delivery tracking per SR and DSR",
             "Retailer dues, collections and running balances",
             "DSR cash custody: collected and handed in",
             "Supplier-provided goods tracked alongside your own stock",
-            "A mobile app in the phone's browser, designed Bangla-first",
+            "A mobile app in the phone's browser, designed multi-language",
         ],
         "custom": [
             "Principal-specific reports",

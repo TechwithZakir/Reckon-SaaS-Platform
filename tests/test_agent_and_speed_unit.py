@@ -115,7 +115,7 @@ class PageTests(unittest.TestCase):
         html, _ = self._compare_page("/pricing")
         self.assertIn("The plan price is for the software only.", html)
         block = html[html.index('id="cover-h"'):]
-        for needle in ("Bangla and English user manuals", "Training videos to learn at your own pace", "Optional services, quoted separately", "Implementation and setup"):
+        for needle in ("Multi-language user manuals", "Training videos to learn at your own pace", "Optional services, quoted separately", "Implementation and setup"):
             self.assertIn(needle, block)
         bn, _ = self._compare_page("/bn/pricing")
         self.assertIn("Plan-এর মূল্য শুধু সফটওয়্যারের জন্য", bn)

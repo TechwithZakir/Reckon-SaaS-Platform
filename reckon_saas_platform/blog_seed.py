@@ -235,7 +235,7 @@ POSTS = [
             ["Retailer dues", "A balance column someone must update.", "A running balance per retailer, updated by invoices and collections."],
             ["Cash carried by a DSR", "Counted at the end, then argued about.", "Recorded as collected and handed in, per DSR."],
             ["Goods from principals", "Mixed into your own stock sheet.", "Tracked as supplier-provided goods."],
-            ["Field staff on phones", "Photos and messages.", "A mobile screen with Bangla labels."],
+            ["Field staff on phones", "Photos and messages.", "A mobile screen with labels in your language."],
             ["Accounting", "Re-typed later.", "Invoices, stock and payments post to the books."],
         ]),
         "options": [
@@ -253,7 +253,7 @@ POSTS = [
             "How many retailers and routes do you have today, and how many in a year?",
             "How much cash do your reps carry, and how quickly can you tell if it is short?",
             "Do you hold goods for principals who may ask for reports?",
-            "Do your reps use smartphones, and would a Bangla screen help them?",
+            "Do your reps use smartphones, and would a screen in their own language help them?",
             "Does someone currently re-type field data into accounts?",
         ],
         "steps_intro": "Rolling out route software works best one route at a time.",
@@ -265,7 +265,7 @@ POSTS = [
             "Move accounting to post from the same records so the books and the field agree.",
         ],
         "fits": [
-            "The <a href=\"/modules/distribution\">Distribution module</a> covers route planning and delivery tracking, retailer dues and collections, DSR cash custody, supplier-provided goods and a Bangla-first mobile app that works in the phone's browser.",
+            "The <a href=\"/modules/distribution\">Distribution module</a> covers route planning and delivery tracking, retailer dues and collections, DSR cash custody, supplier-provided goods and a multi-language mobile app that works in the phone's browser.",
             "It posts to your Company's books, and each company works in its own private workspace. Plans and prices are on the <a href=\"/pricing\">pricing page</a>; if your accounts need tidying too, see the <a href=\"/modules/accounts\">Accounts module</a>.",
         ],
         "conclusion": [
@@ -277,7 +277,7 @@ POSTS = [
             ("Can it track cash carried by each DSR?", "Yes. DSR cash custody records what each DSR collected and what was handed in."),
             ("Does it replace my accounting?", "It posts invoices, stock and payments to your Company's books, so you do not keep two sets of numbers."),
             ("Can it handle goods that belong to a principal?", "Yes. Supplier-provided goods are tracked alongside your own stock."),
-            ("Is it available in Bangla?", "The field screens are designed Bangla-first, so reps can work in their own language."),
+            ("Is it available in my language?", "The field screens are designed multi-language, so reps can work in their own language."),
         ],
     },
     {
@@ -566,7 +566,7 @@ POSTS = [
             "Start with one module on the option that fits and expand once it proves itself.",
         ],
         "fits": [
-            "ReckonERP is built on open-source ERP technology and adds what most companies end up needing: separate company workspaces, modules you subscribe to one at a time, Bangla and English screens, and an AI assistant that works inside your own permissions.",
+            "ReckonERP is built on open-source ERP technology and adds what most companies end up needing: separate company workspaces, modules you subscribe to one at a time, multi-language screens, and an AI assistant that works inside your own permissions.",
             "You get a managed service without being tied to a closed product, and customisation for enterprise packages is quoted separately. See the <a href=\"/features/modular-erp\">modular ERP</a> page for how modules fit together, and <a href=\"/pricing\">pricing</a> for plans.",
         ],
         "conclusion": [
@@ -740,7 +740,7 @@ POSTS = [
         "short": "start with the standard modules and customise only where your process truly differs. Enterprises usually need more than defaults, such as several currencies, several languages and their own workflows, so plan customisation as a managed project with analysis first, not as a pile of one-off changes.",
         "story_title": "Four offices, three currencies, two languages",
         "story": [
-            "A regional group has offices in four cities. Sales are invoiced in dollars and euros, the books are kept in the local currency, and half the staff work in Bangla while the other half work in English. Approvals need two signatures above a set amount and three above another.",
+            "A regional group has offices in four cities. Sales are invoiced in dollars and euros, the books are kept in the local currency, and half the staff work in one language while the other half work in another. Approvals need two signatures above a set amount and three above another.",
             "The standard ERP covers eighty per cent of this on day one. The remaining twenty per cent is what the group's finance team talks about every week, because it is exactly where their business differs from everyone else's.",
         ],
         "problem": [
@@ -792,7 +792,7 @@ POSTS = [
         ],
         "fits": [
             "ReckonERP is built to be easy to customise for enterprise packages: extra fields, workflows, reports, print formats and integrations are shaped to your business after a requirement analysis.",
-            "It supports several currencies (plans are priced in BDT, USD, EUR or INR) and English and Bangla screens today, with more languages through translation on request. Choose the shared cloud, a dedicated cloud or an on-premises installation. Training, data migration and on-site support are available as paid services. Read the <a href=\"/faq\">FAQ</a> or <a href=\"/pricing\">pricing</a> to start.",
+            "It supports several currencies (plans are priced in BDT, USD, EUR or INR) and multi-language screens today, with more languages through translation on request. Choose the shared cloud, a dedicated cloud or an on-premises installation. Training, data migration and on-site support are available as paid services. Read the <a href=\"/faq\">FAQ</a> or <a href=\"/pricing\">pricing</a> to start.",
         ],
         "conclusion": [
             "Standard and customised ERP are not opposites. The sound path is standard first, configuration second and customisation last, each justified by a real difference in how your business works.",
@@ -800,7 +800,7 @@ POSTS = [
         ],
         "faqs": [
             ("Does ERP support more than one currency?", "Yes. You can quote, invoice and keep books in more than one currency, and ReckonERP plans are priced in BDT, USD, EUR or INR."),
-            ("Which languages are supported?", "English and Bangla screens today. Other languages can be added through translation on request."),
+            ("Which languages are supported?", "multi-language screens today. Other languages can be added through translation on request."),
             ("Will customisation make upgrades hard?", "Not if it is done within the platform's rules and kept in one place. We plan it that way after requirement analysis."),
             ("Who does the customisation?", "We do, after a requirement analysis, quoted separately from your subscription."),
             ("Can we try the standard modules first?", "Yes. Most enterprises start on the standard modules and add customisation where the real gaps appear."),

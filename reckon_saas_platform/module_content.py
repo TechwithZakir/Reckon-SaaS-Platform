@@ -16,12 +16,12 @@ COMMON_EXCLUSIONS = (
     "Third-party charges such as SMS, WhatsApp, email or AI provider usage",
     "Hardware and devices such as printers, scanners and phones",
 )
-LEARNING_INCLUSION = "Bangla and English user manuals and training videos, so your team can learn the module on its own"
-LEARNING_SOON = "Bangla and English user manuals and training videos (coming soon)"
+LEARNING_INCLUSION = "Multi-language user manuals and training videos, so your team can learn the module on its own"
+LEARNING_SOON = "Multi-language user manuals and training videos (coming soon)"
 
 COMMON_INCLUSIONS = (
     "Your own private company workspace, separate from every other customer",
-    "Use in English or Bangla where the screens are translated",
+    "Use in your language where the screens are translated",
     "Roles so each team member sees only what they need",
     "Hosted, backed-up cloud service with software updates",
     "Basic help by email and WhatsApp on how to use the module",
@@ -31,7 +31,7 @@ MODULE_DETAILS = {
     "distribution": {
         "overview": [
             "ReckonERP Distribution runs the daily work of an FMCG distributor: planning SR and DSR routes, delivering to retailers, collecting what they owe, and keeping stock and cash straight at the end of the day.",
-            "It is built for teams that work from vans and phones. Field staff use a Bangla-first mobile app in the browser, while the office sees routes, dues and cash in real time and the books update underneath.",
+            "It is built for teams that work from vans and phones. Field staff use a multi-language mobile app in the browser, while the office sees routes, dues and cash in real time and the books update underneath.",
             "Every company works in its own private workspace on ERPNext, so invoices, stock and payments post to real accounting records rather than a separate spreadsheet.",
         ],
         "highlights": [
@@ -39,7 +39,7 @@ MODULE_DETAILS = {
             ("Retailer dues", "Keep a running balance per retailer and collect against open invoices in the field."),
             ("DSR cash custody", "Know how much cash each DSR carries and record what is handed in."),
             ("Supplier-provided goods", "Handle goods supplied by principals alongside your own stock."),
-            ("Bangla-first mobile app", "Field screens work in the phone browser with Bangla labels."),
+            ("Multi-language mobile app", "Field screens work in the phone browser with labels in your language."),
             ("Accounting underneath", "Invoices, stock and payments post to your company's books."),
         ],
         "use_cases": [
@@ -47,10 +47,10 @@ MODULE_DETAILS = {
             "Wholesalers who deliver by van and collect dues from retailers",
             "Companies that hold goods for principals as well as their own stock",
         ],
-        "inclusions": ["Route planning and delivery tracking", "Retailer dues and collections", "DSR cash custody", "Supplier-provided goods", "Bangla-first mobile app", "Admin, Manager, User and Master Data Manager roles"],
+        "inclusions": ["Route planning and delivery tracking", "Retailer dues and collections", "DSR cash custody", "Supplier-provided goods", "Multi-language mobile app", "Admin, Manager, User and Master Data Manager roles"],
         "exclusions": ["Handheld devices and printers", "Route optimisation by map or GPS tracking hardware", "Integration with your principals' own systems"],
         "faqs": [
-            ("Can my field team use it on a phone?", "Yes. The Distribution module includes a Bangla-first mobile app that works in the phone's browser, so there is nothing to install."),
+            ("Can my field team use it on a phone?", "Yes. The Distribution module includes a multi-language mobile app that works in the phone's browser, so there is nothing to install."),
             ("Does it handle accounting and stock?", "It runs on ERPNext, so invoices, payments and stock post to your Company's books."),
             ("Does it track cash carried by each DSR?", "Yes. DSR cash custody records what each DSR collected and what was handed in."),
         ],
@@ -58,7 +58,7 @@ MODULE_DETAILS = {
     "accounts": {
         "overview": [
             "ReckonERP Accounts gives a small business clean books without the complexity of a full ERP rollout: sales invoices and quotations, purchase bills and orders, stock, cash and bank, and reports in a Tally-style layout.",
-            "It is a simpler set of screens over ERPNext's accounting, so the numbers are real double-entry records. Owners and accountants can read the books in the familiar Tally-style views, in English or Bangla.",
+            "It is a simpler set of screens over ERPNext's accounting, so the numbers are real double-entry records. Owners and accountants can read the books in the familiar Tally-style views, in your language.",
             "Roles separate sales, purchase and stock work, so staff only open what their job needs.",
         ],
         "highlights": [
@@ -186,9 +186,9 @@ def service_faqs(name: str, plans: list[dict], inclusions: list[str], exclusions
         (f"What is not included in {name}?", "Not included: " + "; ".join(exclusions) + ". Ask us for a quote for any of these."),
         (f"What support do I get with {name}?", "Basic help by email and WhatsApp on how to use the module is included with your subscription. Faster response, a named contact or regular check-ins are available as paid support on request."),
         (f"Do you provide training for {name}?", (
-                "You can learn it on your own: the subscription includes Bangla and English user manuals and training videos. If you would like us to train your team online or in person, in English or Bangla, that is a paid service, quoted separately."
+                "You can learn it on your own: the subscription includes Multi-language user manuals and training videos. If you would like us to train your team online or in person, in your language, that is a paid service, quoted separately."
                 if learning_ready
-                else "Bangla and English user manuals and training videos are being prepared and will be part of the subscription. Until then, and for hands-on help, we can train your team online or in person, in English or Bangla. Training is a paid service, quoted separately."
+                else "Multi-language user manuals and training videos are being prepared and will be part of the subscription. Until then, and for hands-on help, we can train your team online or in person, in your language. Training is a paid service, quoted separately."
             )),
         ("Can you support us on-site?", "On-site support is available on request and quoted separately, including travel. Most customers start online and ask for a visit only when they need one."),
         ("Do you do requirement analysis before we start?", "Self-service signup needs none. If your process is complex, we offer a paid requirement analysis: we study how you work, map it to the module and tell you what is covered, what needs configuration and what would need customisation."),
