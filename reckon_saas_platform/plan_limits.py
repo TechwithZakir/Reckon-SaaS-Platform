@@ -31,6 +31,32 @@ def plan_limit(company: str, field: str) -> int | None:
     return effective_limit([frappe.db.get_value("SaaS Plan", plan, field) for plan in plans if plan])
 
 
+def ai_fill_policy(user: str | None = None) -> dict:
+    """Whether Fill with AI is on for a person, and how many uses a day they get (``None`` is unlimited).
+
+    Vendor staff and people with no company are never held back. A company is held to its live plans: it is on if
+    any plan has it on, and the best daily limit among those plans applies (blank or 0 is unlimited).
+    """
+    user = user or frappe.session.user
+    companies = [] if not user or user_can_bypass_tenant(user) else get_user_companies(user)
+    if not companies:
+        return {"enabled": True, "daily_limit": None}
+    plans = []
+    for company in companies:
+        plans += frappe.get_all(
+            "SaaS Subscription",
+            filters={"company": company, "status": ["in", LIVE_SUBSCRIPTION_STATUSES]},
+            pluck="plan",
+            ignore_permissions=True,
+        )
+    rows = [frappe.db.get_value("SaaS Plan", plan, ["ai_fill_enabled", "ai_fill_daily_limit"], as_dict=True) for plan in set(plans) if plan]
+    # A plan saved before the field existed counts as on, with the default limit.
+    on = [r for r in rows if r and (r.get("ai_fill_enabled") is None or cint(r.get("ai_fill_enabled")))]
+    if not on:
+        return {"enabled": False, "daily_limit": None}
+    return {"enabled": True, "daily_limit": effective_limit([r.get("ai_fill_daily_limit") for r in on])}
+
+
 def storage_used_bytes(company: str) -> int:
     row = frappe.db.sql("select coalesce(sum(file_size), 0) from `tabFile` where reckon_company = %s", company)
     return cint(row[0][0]) if row else 0

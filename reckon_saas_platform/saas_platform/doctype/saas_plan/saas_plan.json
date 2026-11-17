@@ -17,7 +17,7 @@
   "trial_days",
   "grace_days",
   "max_users",
-  "max_storage_mb",
+  "max_storage_mb", "ai_fill_enabled", "ai_fill_daily_limit",
   "features",
   "section_comparison",
   "comparison_features",
@@ -114,6 +114,22 @@
    "label": "File Storage (MB)",
    "non_negative": 1,
    "description": "Total size of the files a company can upload on this plan, in MB (1024 MB is 1 GB). Leave blank or 0 for unlimited. When a company has several modules, the highest limit applies. Files already uploaded are never deleted; only new uploads are refused."
+  },
+  {
+   "fieldname": "ai_fill_enabled",
+   "fieldtype": "Check",
+   "label": "Fill with AI",
+   "default": "1",
+   "description": "Lets people on this plan fill sales and purchase forms from pasted text, a photo, a PDF or their voice. When a company has several modules, it is on if any of them has it on."
+  },
+  {
+   "fieldname": "ai_fill_daily_limit",
+   "fieldtype": "Int",
+   "label": "Fill with AI Uses per User per Day",
+   "default": "20",
+   "non_negative": 1,
+   "depends_on": "ai_fill_enabled",
+   "description": "How many times each person may use Fill with AI in a day. Leave blank or 0 for unlimited. When a company has several modules, the highest limit applies."
   },
   {
    "fieldname": "features",
