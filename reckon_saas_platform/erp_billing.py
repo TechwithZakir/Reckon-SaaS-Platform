@@ -176,11 +176,13 @@ def record_payment(invoice: str) -> str | None:
 
 
 def sync_pending() -> int:
-    """Daily: post invoices that have no Sales Invoice yet, and settle paid ones that have no Payment Entry."""
+    """Daily: retry invoices whose posting failed, and settle paid ones that have no Payment Entry.
+
+    Invoices made before posting was switched on are not back-filled; only ones that tried and failed are retried."""
     if not enabled():
         return 0
     done = 0
-    for name in frappe.get_all(DOCTYPE, filters={"status": ["!=", "Cancelled"], "erp_sales_invoice": ["in", ["", None]]}, pluck="name", limit=200):
+    for name in frappe.get_all(DOCTYPE, filters={"status": ["!=", "Cancelled"], "erp_sales_invoice": ["in", ["", None]], "erp_error": ["not in", ["", None]]}, pluck="name", limit=200):
         done += bool(create_sales_invoice(name))
     for name in frappe.get_all(
         DOCTYPE, filters={"status": "Paid", "erp_sales_invoice": ["not in", ["", None]], "erp_payment_entry": ["in", ["", None]]}, pluck="name", limit=200
