@@ -195,3 +195,11 @@ fixtures = [
         "filters": [["name", "=", "Reckon SaaS Admin"]],
     },
 ]
+
+# The Ask AI and Aura AI assistant pages are one page now.
+website_redirects = [
+    {"source": "/features/ask-ai", "target": "/features/aura-ai-assistant", "redirect_http_status": 301},
+    {"source": "/features/reckon-ai-assistant", "target": "/features/aura-ai-assistant", "redirect_http_status": 301},
+    {"source": "/bn/features/ask-ai", "target": "/bn/features/aura-ai-assistant", "redirect_http_status": 301},
+    {"source": "/bn/features/reckon-ai-assistant", "target": "/bn/features/aura-ai-assistant", "redirect_http_status": 301},
+]

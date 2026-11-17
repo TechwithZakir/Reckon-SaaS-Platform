@@ -67,7 +67,7 @@ class ModuleContentTests(unittest.TestCase):
         self.assertIn("HR", hrms["h1"])
         self.assertIn("payroll", hrms["description"].lower())
         self.assertIn("Leads", [h[0] for h in modules["crm"]["highlights"]])
-        self.assertEqual(modules["hrms"]["features"], ["Employees", "Attendance shifts", "Leave", "Payroll", "Ask AI: AuraAI agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
+        self.assertEqual(modules["hrms"]["features"], ["Employees", "Attendance shifts", "Leave", "Payroll", "Aura AI Assistant: agentic support", "Multi currency", "Multi language", "Multi branch", "Multi warehouse"])
         self.assertTrue(crm["title"].endswith("| ReckonERP") and len(crm["title"]) <= 70)
         self.assertEqual(late["h1"], "Payroll Plus")  # a module with no written copy still gets a full page
 

@@ -642,7 +642,7 @@ POSTS = [
             "Review results monthly and retire anything that is not earning its place.",
         ],
         "fits": [
-            "The <a href=\"/features/reckon-ai-assistant\">AuraAI assistant</a> works inside the permissions of the person asking, and changes are applied only after you review and approve them.",
+            "The <a href=\"/features/aura-ai-assistant\">Aura AI Assistant</a> works inside the permissions of the person asking, and changes are applied only after you review and approve them.",
             "The <a href=\"/modules/sales_agent\">Sales AI Agent</a> scores leads with fixed rules you can read, uses AI for research and drafts, and waits for a person to approve any message. AI and integration usage is billed separately. See <a href=\"/features/ai-assisted-selling\">AI-assisted selling</a>.",
         ],
         "conclusion": [

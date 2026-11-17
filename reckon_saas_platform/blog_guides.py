@@ -311,7 +311,7 @@ GUIDES = [
             "Add a second task only when the first is steady.",
         ],
         "fits": [
-            "The <a href=\"/modules/sales_agent\">Sales AI Agent</a> finds and researches businesses, scores leads with rules you can read, drafts follow-ups and syncs to CRM, and nothing goes out without a person's approval. The <a href=\"/features/reckon-ai-assistant\">AuraAI assistant</a> answers questions from your own records inside each user's permissions.",
+            "The <a href=\"/modules/sales_agent\">Sales AI Agent</a> finds and researches businesses, scores leads with rules you can read, drafts follow-ups and syncs to CRM, and nothing goes out without a person's approval. The <a href=\"/features/aura-ai-assistant\">Aura AI Assistant</a> answers questions from your own records inside each user's permissions.",
             "For your own processes, we build custom agents after a requirement analysis; see <a href=\"/features/ai-agent-development\">AI agent development and automation</a>. AI and integration usage is billed separately.",
         ],
         "conclusion": [
@@ -389,7 +389,7 @@ GUIDES = [
             "Review results monthly and trim anything that does not help.",
         ],
         "fits": [
-            "The <a href=\"/features/reckon-ai-assistant\">AuraAI assistant</a> is an agent-style assistant inside the ERP: it answers from the records the signed-in person may see, suggests actions and applies them only after approval. The <a href=\"/modules/sales_agent\">Sales AI Agent</a> researches and drafts, and waits for a person before sending.",
+            "The <a href=\"/features/aura-ai-assistant\">Aura AI Assistant</a> is an agent-style assistant inside the ERP: it answers from the records the signed-in person may see, suggests actions and applies them only after approval. The <a href=\"/modules/sales_agent\">Sales AI Agent</a> researches and drafts, and waits for a person before sending.",
             "If you need a chatbot or agent built around your own processes, see <a href=\"/features/ai-agent-development\">AI agent development and automation</a>. AI and integration usage is billed separately; see <a href=\"/pricing\">pricing</a>.",
         ],
         "conclusion": [
@@ -701,7 +701,7 @@ GUIDES = [
             "Measure time saved and errors, then decide whether to add a second task.",
         ],
         "fits": [
-            "The <a href=\"/features/reckon-ai-assistant\">AuraAI assistant</a> is built this way: it answers from the records the signed-in person may see, proposes actions with a preview and applies them only after approval, with every confirmed action logged.",
+            "The <a href=\"/features/aura-ai-assistant\">Aura AI Assistant</a> is built this way: it answers from the records the signed-in person may see, proposes actions with a preview and applies them only after approval, with every confirmed action logged.",
             "For processes particular to your business, we design custom agents after analysis; see <a href=\"/features/ai-agent-development\">AI agent development and automation</a>. AI and integration usage is billed separately; see <a href=\"/pricing\">pricing</a> and read <a href=\"/blog/rules-vs-machine-learning-vs-llm-assistants-in-erp\">Rules, Machine Learning or LLMs: AI Options in ERP</a> for choosing a technique.",
         ],
         "conclusion": [

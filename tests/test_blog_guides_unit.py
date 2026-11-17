@@ -61,7 +61,7 @@ class GuideContentTests(unittest.TestCase):
         slugs = {p["slug"] for p in self.posts} | {p["slug"] for p in self.by["blog_seed"].POSTS}
         known = {
             "/pricing", "/faq", "/integrations", "/industries", "/reckonerp-signup", "/features/modular-erp",
-            "/features/reckon-ai-assistant", "/features/ai-assisted-selling", "/features/ai-agent-development",
+            "/features/aura-ai-assistant", "/features/ai-assisted-selling", "/features/ai-agent-development",
             "/industries/fmcg-distribution", "/modules/distribution", "/modules/accounts", "/modules/hrms",
             "/modules/crm", "/modules/sales_agent",
         } | {f"/blog/{s}" for s in slugs}

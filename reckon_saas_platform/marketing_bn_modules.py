@@ -86,7 +86,7 @@ MODULES = {
     "Email sequences with approval": "অনুমোদনসহ ইমেইল সিকোয়েন্স",
     "Follow-ups are drafted for you and wait for a person to approve.": "ফলো-আপের খসড়া আপনার জন্য তৈরি হয় এবং মানুষের অনুমোদনের অপেক্ষায় থাকে।",
     "AI research and drafting": "AI রিসার্চ ও খসড়া",
-    "Ask AI: AuraAI agentic support": "Ask AI: AuraAI এজেন্টিক সাপোর্ট",
+    "Aura AI Assistant: agentic support": "Aura AI Assistant: এজেন্টিক সাপোর্ট",
     "AI helps with research and first drafts, never with sending.": "AI রিসার্চ ও প্রথম খসড়ায় সাহায্য করে, বার্তা পাঠানোর কাজ কখনো করে না।",
     "B2B sales teams that need a steady flow of qualified leads": "যেসব B2B সেলস টিমের নিয়মিত যাচাইকৃত লিড দরকার",
     "Agencies and suppliers prospecting businesses in a region": "কোনো অঞ্চলের ব্যবসায় সম্ভাব্য গ্রাহক খোঁজা এজেন্সি ও সরবরাহকারী",

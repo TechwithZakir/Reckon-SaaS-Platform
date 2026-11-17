@@ -89,7 +89,7 @@ class ContentTests(unittest.TestCase):
     def test_internal_links_all_resolve_and_posts_link_to_each_other_correctly(self):
         slugs = {p["slug"] for p in self.posts}
         known = {
-            "/pricing", "/faq", "/integrations", "/reckonerp-signup", "/features/modular-erp", "/features/reckon-ai-assistant",
+            "/pricing", "/faq", "/integrations", "/reckonerp-signup", "/features/modular-erp", "/features/aura-ai-assistant",
             "/features/ai-assisted-selling", "/modules/distribution", "/modules/accounts", "/modules/hrms", "/modules/crm", "/modules/sales_agent",
         } | {f"/blog/{s}" for s in slugs}
         for post in self.posts:
