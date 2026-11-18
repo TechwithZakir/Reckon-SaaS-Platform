@@ -80,7 +80,7 @@ SITE = {
     "Local methods by country": "দেশভেদে স্থানীয় মাধ্যম",
     "See all Paddle payment methods": "Paddle-এর সব পেমেন্ট মাধ্যম দেখুন",
     "Paying by card from another country? Checkout shows the price in your local currency, and you can change your country there to pick another.": "অন্য দেশ থেকে কার্ডে পেমেন্ট করছেন? চেকআউটে আপনার স্থানীয় মুদ্রায় মূল্য দেখানো হয়, আর সেখানে দেশ বদলে অন্য মুদ্রাও বেছে নিতে পারবেন।",
-    "Reckon Accounts": "Reckon Accounts",
+    "ReckonBooks": "ReckonBooks",
     "Reckon HRMS (employees, attendance, leave, payroll)": "Reckon HRMS (কর্মী, উপস্থিতি, ছুটি, পেরোল)",
     "Biometric attendance (ZKTeco devices)": "বায়োমেট্রিক উপস্থিতি (ZKTeco ডিভাইস)",
     "Mobile app (PWA) for staff": "কর্মীদের জন্য মোবাইল অ্যাপ (PWA)",

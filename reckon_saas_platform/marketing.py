@@ -576,10 +576,10 @@ MODULE_COPY = {
     "reckonerp": {
         "seo_title": "ReckonERP: accounts, HR and payroll in one plan",
         "headline": "Accounts, HR and payroll in one ReckonERP subscription",
-        "tagline": "Reckon Accounts and Reckon HRMS together, with biometric attendance, a mobile app and geo tracking.",
+        "tagline": "ReckonBooks and Reckon HRMS together, with biometric attendance, a mobile app and geo tracking.",
         "audience": "Growing businesses that want their books and their people in one place",
         "benefits": [
-            "Reckon Accounts and Reckon HRMS in one subscription and one invoice",
+            "ReckonBooks and Reckon HRMS in one subscription and one invoice",
             "Biometric attendance from your ZKTeco devices, and a mobile app for staff",
             "App-based geo check-in so you know where field staff clock in from",
             "The top plan adds Sales AI Agent to find and follow up customers",
@@ -587,7 +587,7 @@ MODULE_COPY = {
         "faqs": [
             (
                 "What is in a ReckonERP plan?",
-                "Every plan includes Reckon Accounts and Reckon HRMS, with biometric attendance, the mobile app and geo check-in. "
+                "Every plan includes ReckonBooks and Reckon HRMS, with biometric attendance, the mobile app and geo check-in. "
                 "The Enterprise plan also includes Reckon Sales AI Agent. AI and channel usage is billed separately.",
             ),
         ],
@@ -617,9 +617,9 @@ MODULE_COPY = {
         ],
     },
     "accounts": {
-        "seo_title": "Accounting and inventory software in Bangladesh",
-        "headline": "Accounting and inventory software for growing small businesses",
-        "tagline": "Invoices, bills, stock and Tally-style books for a small business.",
+        "seo_title": "ReckonBooks: accounting, sales and inventory software",
+        "headline": "ReckonBooks: complete accounting, sales, purchase, inventory and stock software for your business",
+        "tagline": "Complete Accounting, Sales, Purchase, Inventory & Stock management software for your business.",
         "audience": "Shops, traders and small companies that need clean books",
         "benefits": [
             "Raise sales invoices and quotations, and record purchase bills and orders",
@@ -705,7 +705,7 @@ def with_ask_ai(features: list[str]) -> list[str]:
 
 
 FEATURE_LABELS = {
-    "reckon_accounts": "Reckon Accounts: invoices, bills, stock and books",
+    "reckon_accounts": "ReckonBooks: accounting, sales, purchase, inventory and stock",
     "reckon_hrms": "Reckon HRMS: employees, attendance, leave and payroll",
     "biometric_attendance": "Biometric attendance from ZKTeco devices",
     "mobile_app": "Mobile app for staff attendance and leave",

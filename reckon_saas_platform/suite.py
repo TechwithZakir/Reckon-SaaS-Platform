@@ -15,7 +15,7 @@ def get_module_definition() -> dict:
         "key": MODULE_KEY,
         "label": "ReckonERP",
         "bundle": True,
-        "description": "Reckon Accounts and Reckon HRMS in one subscription, with biometric attendance, the mobile app and "
+        "description": "ReckonBooks and Reckon HRMS in one subscription, with biometric attendance, the mobile app and "
         "app-based geo tracking, and Sales AI Agent on the top plan.",
         # A suite has no workspace of its own: the company lands in Accounts, as an Accounts tenant would.
         "workspace": "app/accounts-home",
