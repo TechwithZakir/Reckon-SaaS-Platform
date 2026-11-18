@@ -583,8 +583,8 @@ MODULE_COPY = {
             "Biometric attendance from your ZKTeco devices, and a mobile app for staff",
             "App-based geo check-in so you know where field staff clock in from",
             "The top plan adds Sales AI Agent to find and follow up customers",
-            "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so selling and booking stay in one place",
-            "Asset and project management are coming soon to ReckonBooks",
+            "Reckon CRM is included and runs on the same company as ReckonBooks, so selling and booking stay in one place",
+            "Asset and project management for ReckonBooks are available on request",
         ],
         "faqs": [
             (
@@ -593,9 +593,9 @@ MODULE_COPY = {
                 "The Enterprise plan also includes Reckon Sales AI Agent. AI and channel usage is billed separately.",
             ),
             (
-                "Do Reckon CRM, Sales AI Agent, assets and projects work with ReckonBooks?",
-                "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so you add them as modules and keep selling and booking in one place. "
-                "Asset and project management are coming soon and will join the same subscription.",
+                "Are CRM, Sales AI Agent, assets and projects part of ReckonERP?",
+                "Reckon CRM is included in every ReckonERP plan and runs on the same company as ReckonBooks, so selling and booking stay in one place. "
+                "Sales AI Agent comes with the top plan. Asset and project management are available on request.",
             ),
         ],
     },
@@ -634,7 +634,7 @@ MODULE_COPY = {
             "Record cash, bank and payments in one place",
             "Read the books in a Tally-style view, in your language",
             "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so selling and booking stay in one place",
-            "Asset and project management are coming soon to ReckonBooks",
+            "Asset and project management for ReckonBooks are available on request",
         ],
         "faqs": [
             (

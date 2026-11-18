@@ -84,7 +84,7 @@ SITE = {
     "ReckonBooks (accounting, sales, purchase, inventory and stock)": "ReckonBooks (অ্যাকাউন্টিং, বিক্রয়, ক্রয়, ইনভেন্টরি ও স্টক)",
     "Reckon CRM": "Reckon CRM",
     "Asset and project management": "অ্যাসেট ও প্রজেক্ট ম্যানেজমেন্ট",
-    "Add as a module": "মডিউল হিসেবে যোগ করুন",
+    "On request": "অনুরোধে",
     "Reckon HRMS (employees, attendance, leave, payroll)": "Reckon HRMS (কর্মী, উপস্থিতি, ছুটি, পেরোল)",
     "Biometric attendance (ZKTeco devices)": "বায়োমেট্রিক উপস্থিতি (ZKTeco ডিভাইস)",
     "Mobile app (PWA) for staff": "কর্মীদের জন্য মোবাইল অ্যাপ (PWA)",
