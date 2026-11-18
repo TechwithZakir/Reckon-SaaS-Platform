@@ -575,20 +575,27 @@ FEATURE_LIST = (
 MODULE_COPY = {
     "reckonerp": {
         "seo_title": "ReckonERP: accounts, HR and payroll in one plan",
-        "headline": "Accounts, HR and payroll in one ReckonERP subscription",
-        "tagline": "ReckonBooks and Reckon HRMS together, with biometric attendance, a mobile app and geo tracking.",
+        "headline": "ReckonBooks, HR and payroll in one ReckonERP subscription",
+        "tagline": "ReckonBooks: complete accounting, sales, purchase, inventory and stock software for your business, with Reckon HRMS, biometric attendance and a mobile app.",
         "audience": "Growing businesses that want their books and their people in one place",
         "benefits": [
             "ReckonBooks and Reckon HRMS in one subscription and one invoice",
             "Biometric attendance from your ZKTeco devices, and a mobile app for staff",
             "App-based geo check-in so you know where field staff clock in from",
             "The top plan adds Sales AI Agent to find and follow up customers",
+            "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so selling and booking stay in one place",
+            "Asset and project management are coming soon to ReckonBooks",
         ],
         "faqs": [
             (
                 "What is in a ReckonERP plan?",
                 "Every plan includes ReckonBooks and Reckon HRMS, with biometric attendance, the mobile app and geo check-in. "
                 "The Enterprise plan also includes Reckon Sales AI Agent. AI and channel usage is billed separately.",
+            ),
+            (
+                "Do Reckon CRM, Sales AI Agent, assets and projects work with ReckonBooks?",
+                "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so you add them as modules and keep selling and booking in one place. "
+                "Asset and project management are coming soon and will join the same subscription.",
             ),
         ],
     },
@@ -626,6 +633,8 @@ MODULE_COPY = {
             "Keep stock and warehouses in step with what you buy and sell",
             "Record cash, bank and payments in one place",
             "Read the books in a Tally-style view, in your language",
+            "Reckon CRM and Sales AI Agent run on the same company as ReckonBooks, so selling and booking stay in one place",
+            "Asset and project management are coming soon to ReckonBooks",
         ],
         "faqs": [
             (
