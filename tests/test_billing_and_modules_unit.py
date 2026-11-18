@@ -434,3 +434,12 @@ class SignupCsrfTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DashboardTablesTests(unittest.TestCase):
+    def test_every_dashboard_table_has_search_sorting_and_pages_inside_a_container(self):
+        desk = (APP / "saas_platform/page/saas_dashboard/saas_dashboard.js").read_text(encoding="utf-8")
+        for needle in ("rs-container", "data-q", "rs-sort", "data-size", "rs-pager", "aria-sort", "function paint("):
+            self.assertIn(needle, desk)
+        # All seven tables go through the one table builder, so none is left without the controls.
+        self.assertEqual(desk.count("defineTable("), 8)  # the definition plus the seven tables
