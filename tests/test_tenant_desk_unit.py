@@ -66,6 +66,13 @@ class TenantAppsTests(unittest.TestCase):
             frappe.get_installed_apps = lambda: ["frappe", "crm", "hrms", "reckon_hrms"]
             self.assertEqual(desk_apps.superseded_apps(), {"hrms"})
 
+    def test_the_accounts_engine_tile_is_hidden_once_reckonbooks_is_installed(self):
+        with platform_modules("desk_apps") as (frappe, (desk_apps,)):
+            frappe.get_installed_apps = lambda: ["frappe", "reckon_accounts", "reckon_accounts_saas"]
+            self.assertEqual(desk_apps.superseded_apps(), {"reckon_accounts"})
+            frappe.get_installed_apps = lambda: ["frappe", "reckon_accounts"]
+            self.assertEqual(desk_apps.superseded_apps(), set())
+
     def test_a_broken_filter_never_breaks_the_desk(self):
         with platform_modules("desk_apps") as (frappe, (desk_apps,)):
             frappe.log_error = Mock()
