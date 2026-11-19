@@ -96,3 +96,12 @@
 </ol></nav>
 {% endif %}
 {% endmacro %}
+
+{% macro custom_quote(name) %}
+<aside class="quote-band" aria-label="{{ tr("Custom and on-premises development") }}">
+  <div><strong>{{ tr("Custom and on-premises development and implementation") }}</strong>
+  <span>{{ tr("Need {name} built around your processes, or installed on your own servers? Our team develops, customises and implements it for you.")|replace("{name}", name|e) }}</span></div>
+  <div class="quote-actions"><a class="btn solid" href="https://wa.me/{{ whatsapp_number|e }}?text={{ ("Quote request: custom or on-premises " ~ name)|urlencode }}" rel="noopener">{{ tr("Contact us for a quote") }}</a>
+  <a class="btn" href="mailto:{{ support_email|e }}?subject={{ ("Quote request: custom or on-premises " ~ name)|urlencode }}">{{ tr("Email us") }}</a></div>
+</aside>
+{% endmacro %}

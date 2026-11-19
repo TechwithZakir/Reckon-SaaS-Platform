@@ -19,6 +19,7 @@
       <h2><a href="{{ u(mod.url)|e }}">{{ mod.name|e }}</a></h2>
     </div>
     {{ m.plan_compare(mod) }}
+    {{ m.custom_quote(mod.name) }}
     {% endfor %}
     {% else %}
     <p>{{ tr("Plans are shown when you sign up.") }} <a href="{{ u("/reckonerp-signup") }}">{{ tr("Start here") }}</a>.</p>

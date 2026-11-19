@@ -189,4 +189,9 @@ SITE = {
     "SMS one-time codes": "SMS ওয়ান-টাইম কোড",
     "DSR route planning and delivery tracking": "DSR রুট পরিকল্পনা ও ডেলিভারি ট্র্যাকিং",
     "Attendance shifts": "উপস্থিতি ও শিফট",
+    "Custom and on-premises development": "কাস্টম ও অন-প্রেমিস ডেভেলপমেন্ট",
+    "Custom and on-premises development and implementation": "কাস্টম ও অন-প্রেমিস ডেভেলপমেন্ট এবং বাস্তবায়ন",
+    "Need {name} built around your processes, or installed on your own servers? Our team develops, customises and implements it for you.": "{name} আপনার নিজস্ব প্রক্রিয়া অনুযায়ী বানাতে চান, বা নিজের সার্ভারে বসাতে চান? আমাদের টিম ডেভেলপ, কাস্টমাইজ ও বাস্তবায়ন করে দেবে।",
+    "Contact us for a quote": "কোটেশনের জন্য যোগাযোগ করুন",
+    "Email us": "ইমেইল করুন",
 }

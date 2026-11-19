@@ -139,3 +139,6 @@ ul.plain{list-style:disc;padding-left:22px;margin:0 0 20px;display:grid;gap:10px
 .vid-poster{position:absolute;inset:0;display:block;background-size:cover;background-position:center;color:#fff;text-decoration:none}.vid-poster:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.6))}
 .vid-play{position:absolute;left:50%;top:48%;width:68px;height:68px;margin:-34px 0 0 -34px;border-radius:50%;background:var(--accent,#38bdf8);color:#04202e;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(0,0,0,.45)}
 .vid-cap{position:absolute;left:14px;right:14px;bottom:10px;font-weight:700}
+.quote-band{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;margin:14px 0 6px;padding:16px 20px;border:1px dashed var(--brand,#0b5fff);border-radius:12px;background:rgba(11,95,255,.05)}
+.quote-band strong{display:block;margin-bottom:2px}.quote-band span{color:var(--mut);font-size:.9rem}
+.quote-actions{display:flex;flex-wrap:wrap;gap:8px}
