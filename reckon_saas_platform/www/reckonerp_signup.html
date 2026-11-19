@@ -166,6 +166,10 @@
   .rk-paymore { margin-top: 16px; }
   .rk-paymore > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
   .rk-plan-trial { display: block; margin: -2px 0 6px; font-size: 12px; font-weight: 700; color: var(--rk-green-dark); }
+  .rk-quote { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; margin: 4px 0 14px; padding: 14px 16px; border: 1.5px dashed var(--rk-blue); border-radius: 14px; background: var(--rk-card); }
+  .rk-quote strong { display: block; font-size: 14px; color: var(--rk-ink); }
+  .rk-quote span { font-size: 13px; color: var(--rk-muted); }
+  .rk-quote-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 13px; }
   .rk-plan-detail { margin-top: 10px; padding: 18px 20px; border: 1.5px solid var(--rk-line); border-radius: 14px; background: var(--rk-card); }
   .rk-plan-detail h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--rk-muted); margin: 0 0 10px; }
   .rk-plan-detail .rk-pd-name { font-size: 20px; font-weight: 800; color: var(--rk-ink); }
@@ -410,6 +414,13 @@
               {% endif %}
             </div>
 
+            <aside class="rk-quote" data-quote data-template="{{ t.quote_text|e }}" data-fallback="{{ t.quote_this|e }}">
+              <div><strong>{{ t.quote_title }}</strong>
+                <span data-quote-text>{{ t.quote_text.replace("{module}", module.name if module else t.quote_this) }}</span></div>
+              <div class="rk-quote-actions"><a class="rk-btn is-whatsapp" href="{{ whatsapp_url }}" target="_blank" rel="noopener">{{ t.quote_cta }}</a>
+                <a href="mailto:{{ company.email }}?subject={{ t.quote_subject|urlencode }}">{{ t.quote_email }}</a></div>
+            </aside>
+
             <div class="rk-field" data-start-group hidden>
               <span class="rk-label" id="rk-start-label">{{ t.start_label }}</span>
               <div class="rk-start" role="radiogroup" aria-labelledby="rk-start-label">
@@ -649,6 +660,11 @@
       document.querySelector('[data-plan-note="choose"]').hidden = Boolean(chosen);
       document.querySelector('[data-plan-note="empty"]').hidden = !chosen || visible > 0;
       state.module = chosen;
+      const quote = document.querySelector("[data-quote]");
+      if (quote) {
+        const name = chosen && moduleSelect.selectedOptions[0] ? moduleSelect.selectedOptions[0].text : quote.getAttribute("data-fallback");
+        quote.querySelector("[data-quote-text]").textContent = quote.getAttribute("data-template").replace("{module}", name);
+      }
     }
     if (moduleSelect) {
       moduleSelect.addEventListener("change", filterPlans);
