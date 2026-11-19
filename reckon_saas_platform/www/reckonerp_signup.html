@@ -357,6 +357,37 @@
 
           {% if plan_cards %}
           <form id="rk-signup-form" novalidate>
+            <div class="rk-field">
+              <label for="business_name">{{ t.business_name }}</label>
+              <input id="business_name" name="business_name" autocomplete="organization" maxlength="140" placeholder="{{ t.business_placeholder }}" required>
+            </div>
+            <div class="rk-row">
+              <div class="rk-field">
+                <label for="owner_name">{{ t.owner_name }}</label>
+                <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="{{ t.owner_placeholder }}" required>
+              </div>
+              <div class="rk-field">
+                <label for="owner_phone">{{ t.mobile }}</label>
+                <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="22" placeholder="+8801XXXXXXXXX" pattern="(\+|00)[0-9 ()\-]{8,22}" title="{{ t.mobile_hint|e }}" required>
+                <small class="rk-hint">{{ t.mobile_hint }}</small>
+              </div>
+            </div>
+            <div class="rk-field">
+              <label for="owner_email">{{ t.email }}</label>
+              <input id="owner_email" name="owner_email" type="email" autocomplete="email" maxlength="140" placeholder="you@company.com" required>
+            </div>
+            {% if not email_required %}
+            <div class="rk-field">
+              <label for="owner_password">{{ t.password }}</label>
+              <input id="owner_password" name="owner_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+              <small class="rk-hint">{{ t.password_hint }}</small>
+            </div>
+            <div class="rk-field">
+              <label for="owner_password_confirm">{{ t.confirm_password }}</label>
+              <input id="owner_password_confirm" name="owner_password_confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+            </div>
+            {% endif %}
+
             {% if show_module_picker %}
             <div class="rk-field">
               <label for="rk-module">{{ t.module }}</label>
@@ -430,37 +461,6 @@
                   <span class="rk-plan-body"><span class="rk-plan-name">{{ t.start_pay }}</span><small class="rk-start-hint">{{ t.start_pay_hint }}</small></span></label>
               </div>
             </div>
-
-            <div class="rk-field">
-              <label for="business_name">{{ t.business_name }}</label>
-              <input id="business_name" name="business_name" autocomplete="organization" maxlength="140" placeholder="{{ t.business_placeholder }}" required>
-            </div>
-            <div class="rk-row">
-              <div class="rk-field">
-                <label for="owner_name">{{ t.owner_name }}</label>
-                <input id="owner_name" name="owner_name" autocomplete="name" maxlength="140" placeholder="{{ t.owner_placeholder }}" required>
-              </div>
-              <div class="rk-field">
-                <label for="owner_phone">{{ t.mobile }}</label>
-                <input id="owner_phone" name="owner_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="22" placeholder="+8801XXXXXXXXX" pattern="(\+|00)[0-9 ()\-]{8,22}" title="{{ t.mobile_hint|e }}" required>
-                <small class="rk-hint">{{ t.mobile_hint }}</small>
-              </div>
-            </div>
-            <div class="rk-field">
-              <label for="owner_email">{{ t.email }}</label>
-              <input id="owner_email" name="owner_email" type="email" autocomplete="email" maxlength="140" placeholder="you@company.com" required>
-            </div>
-            {% if not email_required %}
-            <div class="rk-field">
-              <label for="owner_password">{{ t.password }}</label>
-              <input id="owner_password" name="owner_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
-              <small class="rk-hint">{{ t.password_hint }}</small>
-            </div>
-            <div class="rk-field">
-              <label for="owner_password_confirm">{{ t.confirm_password }}</label>
-              <input id="owner_password_confirm" name="owner_password_confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
-            </div>
-            {% endif %}
 
             <div class="rk-field">
               <label for="coupon_code">{{ t.coupon_label }}</label>
