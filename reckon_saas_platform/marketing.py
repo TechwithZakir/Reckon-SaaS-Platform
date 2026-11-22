@@ -1133,8 +1133,8 @@ def paddle_public() -> dict | None:
         settings = frappe.get_cached_doc("SaaS Platform Settings")
     except Exception:
         return None
-    token = str(settings.get("paddle_client_token") or "").strip()
     environment = str(settings.get("paddle_environment") or "").strip().lower()
+    token = str(settings.get("paddle_live_client_token" if environment == "production" else "paddle_client_token") or "").strip()
     if not settings.get("paddle_enabled") or environment not in ("sandbox", "production"):
         return None
     if not re.fullmatch(r"(test|live)_[A-Za-z0-9]{20,60}", token) or token.startswith("test_") != (environment == "sandbox"):

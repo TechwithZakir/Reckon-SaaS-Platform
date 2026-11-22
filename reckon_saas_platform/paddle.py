@@ -97,6 +97,12 @@ def _password(settings, fieldname: str) -> str:
         return ""
 
 
+def credential_name(field: str, env: str | None = None) -> str:
+    """The settings field holding a Paddle credential for an environment: ``paddle_api_key`` is the Sandbox one,
+    ``paddle_live_api_key`` the Production one. Both sets stay saved, so switching environment never retypes a key."""
+    return field.replace("paddle_", "paddle_live_", 1) if (env or environment()) == "production" else field
+
+
 def environment() -> str:
     """``sandbox`` or ``production``; anything unset counts as sandbox."""
     value = (_settings().get("paddle_environment") or "Sandbox").strip().lower()
@@ -105,7 +111,7 @@ def environment() -> str:
 
 def is_enabled() -> bool:
     settings = _settings()
-    return bool(cint(settings.get("paddle_enabled"))) and bool(_password(settings, "paddle_api_key"))
+    return bool(cint(settings.get("paddle_enabled"))) and bool(_password(settings, credential_name("paddle_api_key")))
 
 
 def supports_currency(currency: str | None) -> bool:
@@ -150,9 +156,9 @@ def _client():
     settings = _settings()
     if not cint(settings.get("paddle_enabled")):
         frappe.throw(_("Paddle is switched off in SaaS Platform Settings."), PaddleNotConfigured)
-    api_key = _password(settings, "paddle_api_key")
+    api_key = _password(settings, credential_name("paddle_api_key"))
     if not api_key:
-        frappe.throw(_("Add the Paddle API key in SaaS Platform Settings."), PaddleNotConfigured)
+        frappe.throw(_("Add the Paddle API key for the {0} environment in SaaS Platform Settings.").format(environment()), PaddleNotConfigured)
     from paddle_billing import Client, Environment, Options
 
     return Client(api_key, options=Options(Environment(environment())))
@@ -526,7 +532,7 @@ def create_checkout(subscription: str) -> dict:
     if not plan or not card_payment_available(plan):
         frappe.throw(_("Card payment is not available for this plan."))
     settings = _settings()
-    client_token = (settings.get("paddle_client_token") or "").strip()
+    client_token = (settings.get(credential_name("paddle_client_token")) or "").strip()
     if not client_token:
         frappe.throw(_("Card payment is not set up yet. Please contact support."), PaddleNotConfigured)
     email = frappe.db.get_value("User", row.company_admin, "email") if row.get("company_admin") else None
@@ -586,7 +592,7 @@ def webhook():
     """Paddle notification endpoint. Verifies, records once, queues, and answers fast."""
     request = getattr(frappe, "request", None)
     body = request.get_data(cache=True) if request is not None else b""
-    secret = _password(_settings(), "paddle_webhook_secret")
+    secret = _password(_settings(), credential_name("paddle_webhook_secret"))
     if not verify_signature(request.headers if request is not None else {}, body, secret):
         frappe.local.response["http_status_code"] = 401
         return {"ok": False}

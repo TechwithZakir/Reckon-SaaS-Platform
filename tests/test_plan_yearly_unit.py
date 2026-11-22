@@ -98,3 +98,20 @@ class Billing(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PaddleKeys(unittest.TestCase):
+    def test_credentials_follow_the_environment(self):
+        from frappe_stub import platform_modules
+
+        with platform_modules("paddle") as (frappe, (paddle,)):
+            self.assertEqual(paddle.credential_name("paddle_api_key", "sandbox"), "paddle_api_key")
+            self.assertEqual(paddle.credential_name("paddle_api_key", "production"), "paddle_live_api_key")
+            self.assertEqual(paddle.credential_name("paddle_client_token", "production"), "paddle_live_client_token")
+            self.assertEqual(paddle.credential_name("paddle_webhook_secret", "production"), "paddle_live_webhook_secret")
+
+    def test_settings_hold_both_sets(self):
+        d = json.loads((PKG / "saas_platform/doctype/saas_platform_settings/saas_platform_settings.json").read_text(encoding="utf-8"))
+        names = {f["fieldname"] for f in d["fields"]}
+        self.assertTrue({"paddle_live_api_key", "paddle_live_client_token", "paddle_live_webhook_secret"} <= names)
+        self.assertEqual(set(d["field_order"]), names)

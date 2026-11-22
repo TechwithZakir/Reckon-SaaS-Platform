@@ -23,3 +23,20 @@ class SaaSPlatformSettings(Document):
         score = self.get("recaptcha_min_score")
         if score is not None and not 0 <= score <= 1:
             frappe.throw(f"{self.meta.get_label('recaptcha_min_score')} must be between 0 and 1.")
+        self._check_paddle_keys()
+
+    def _check_paddle_keys(self) -> None:
+        """A Sandbox key in a Live field (or the reverse) would talk to the wrong Paddle account: refuse it."""
+        for fieldname, prefix in (
+            ("paddle_client_token", "test_"),
+            ("paddle_live_client_token", "live_"),
+        ):
+            value = (self.get(fieldname) or "").strip()
+            self.set(fieldname, value)
+            if value and not value.startswith(prefix):
+                frappe.throw(f"{self.meta.get_label(fieldname)} must start with {prefix}.")
+        for fieldname, prefix in (("paddle_api_key", "pdl_sdbx_"), ("paddle_live_api_key", "pdl_live_")):
+            value = (self.get(fieldname) or "").strip()
+            # An unchanged password comes back masked; only a newly typed key is checked.
+            if value and not set(value) <= {"*"} and not value.startswith(prefix):
+                frappe.throw(f"{self.meta.get_label(fieldname)} must start with {prefix}.")
