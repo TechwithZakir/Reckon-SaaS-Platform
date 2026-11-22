@@ -108,6 +108,7 @@ body:has(.rs-portal) .page_content, body:has(.rs-portal) .page-content-wrapper, 
 .rs-plan__tier { font-weight: 800; font-size: 16px; }
 .rs-plan__price { font-size: 26px; font-weight: 800; }
 .rs-plan__price small { font-size: 14px; font-weight: 600; color: var(--rs-muted); }
+.rs-plan__offer { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--rs-success); color: #fff; font-size: 12px; font-weight: 800; }
 .rs-plan__trial { color: var(--rs-success); font-size: 13px; font-weight: 700; }
 .rs-plan__facts { list-style: none; margin: 6px 0 10px; padding: 0; display: grid; gap: 4px; color: var(--rs-muted); font-size: 14px; flex: 1; }
 .rs-plan .rs-portal__button { width: 100%; }

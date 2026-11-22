@@ -116,6 +116,7 @@
               <form class="rs-plan" data-add-module="{{ (p.id or p.name)|e }}" data-cycle="{{ c.cycle|e }}">
                 <div class="rs-plan__tier">{{ p.tier|e }}</div>
                 <div class="rs-plan__price">{{ p.amount_text|e }}<small> / {{ "year" if c.cycle == "Yearly" else ("quarter" if c.cycle == "Quarterly" else "month") }}</small></div>
+                {% if p.yearly_months %}<div><span class="rs-plan__offer">Pay {{ p.yearly_months }} months, get 12</span></div>{% endif %}
                 {% if p.trial_days %}<div class="rs-plan__trial">{{ p.trial_days }}-day free trial</div>{% endif %}
                 <ul class="rs-plan__facts">
                   <li>{% if p.max_users %}Up to {{ p.max_users }} users{% else %}Unlimited users{% endif %}</li>

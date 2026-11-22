@@ -120,6 +120,8 @@ details.faq p{margin:10px 0 0;color:var(--mut)}
 .cmp-table thead th{padding:20px 16px;text-align:center;vertical-align:bottom;border-bottom:1px solid var(--line);font-weight:400}
 .cmp-plan{display:block;font-size:1.05rem;font-weight:800}
 .cmp-price{display:block;margin-top:6px;font-size:1.35rem;font-weight:800}
+.offer{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--green);color:#fff;font-size:.8rem;font-weight:800;letter-spacing:.01em;box-shadow:0 2px 8px color-mix(in srgb,var(--green) 40%,transparent)}
+.cmp-offer{margin-top:6px}
 .cmp-trial{display:block;margin-top:4px;font-size:.85rem;color:var(--mut)}
 .cmp-table tbody th{text-align:left;font-weight:600;padding:12px 16px;width:34%}
 .cmp-table tbody td{text-align:center;padding:12px 16px}
