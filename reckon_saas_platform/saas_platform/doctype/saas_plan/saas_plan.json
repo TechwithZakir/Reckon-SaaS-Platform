@@ -17,8 +17,15 @@
   "trial_days",
   "grace_days",
   "max_users",
-  "max_storage_mb", "ai_fill_enabled", "ai_fill_daily_limit", "ai_fill_create_enabled",
+  "max_storage_mb",
+  "ai_fill_enabled",
+  "ai_fill_daily_limit",
+  "ai_fill_create_enabled",
   "features",
+  "section_yearly",
+  "allow_yearly_payment",
+  "yearly_months_charged",
+  "yearly_plan",
   "section_comparison",
   "comparison_features",
   "section_paddle",
@@ -145,6 +152,35 @@
    "label": "Features"
   },
   {
+   "fieldname": "section_yearly",
+   "fieldtype": "Section Break",
+   "label": "Pay a year at once",
+   "depends_on": "eval:doc.billing_cycle=='Monthly'",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "allow_yearly_payment",
+   "fieldtype": "Check",
+   "label": "Allow paying a year at once",
+   "description": "A matching Yearly price is created and kept in step with this Monthly price, in this plan's currency."
+  },
+  {
+   "fieldname": "yearly_months_charged",
+   "fieldtype": "Int",
+   "label": "Months charged for the year",
+   "depends_on": "eval:doc.allow_yearly_payment",
+   "mandatory_depends_on": "eval:doc.allow_yearly_payment",
+   "description": "How many months one yearly payment covers (1 to 12). Set it per currency: each currency has its own row."
+  },
+  {
+   "fieldname": "yearly_plan",
+   "fieldtype": "Link",
+   "label": "Yearly price row",
+   "options": "SaaS Plan",
+   "read_only": 1,
+   "depends_on": "eval:doc.allow_yearly_payment"
+  },
+  {
    "fieldname": "section_comparison",
    "fieldtype": "Section Break",
    "label": "Pricing Page Comparison"
@@ -187,7 +223,7 @@
   }
  ],
  "index_web_pages_for_search": 0,
- "modified": "2026-11-11 12:00:00.000000",
+ "modified": "2026-11-22 12:00:00.000000",
  "module": "SaaS Platform",
  "name": "SaaS Plan",
  "naming_rule": "By fieldname",

@@ -748,6 +748,29 @@ def get_vendor_saas_summary():
     }
 
 
+@frappe.whitelist(methods=["POST"])
+def set_plans_enabled(plans, enabled=1) -> dict:
+    """Switch plans on or off (vendor only). Switching off hides a plan from pricing and signup; subscriptions already running keep going."""
+    _require_vendor()
+    if isinstance(plans, str):
+        try:
+            plans = frappe.parse_json(plans)
+        except Exception:
+            plans = [plans]
+    names = [str(n) for n in (plans or [])][:100]
+    value = 1 if int(enabled or 0) else 0
+    changed = 0
+    for name in names:
+        if not frappe.db.exists("SaaS Plan", name):
+            continue
+        doc = frappe.get_doc("SaaS Plan", name)
+        if int(doc.enabled or 0) != value:
+            doc.enabled = value
+            doc.save(ignore_permissions=True)
+            changed += 1
+    return {"changed": changed, "enabled": value}
+
+
 @frappe.whitelist()
 def get_vendor_dashboard() -> dict:
     """Everything the vendor dashboards show: Desk page and /reckon-saas-admin.
@@ -802,6 +825,8 @@ def _vendor_dashboard_rows() -> dict:
                 "billing_cycle",
                 "trial_days",
                 "grace_days",
+                "allow_yearly_payment",
+                "yearly_months_charged",
             ],
             ignore_permissions=True,
             order_by="saas_module asc, price asc",

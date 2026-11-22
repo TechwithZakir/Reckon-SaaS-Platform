@@ -177,6 +177,11 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
   function render(data) {
     const s = data.summary || {};
     const failed = (data.registrations || []).filter((r) => r.status === "Failed");
+    // A plan is one tier of one module in every currency and cycle: "Standard - Accounts (USD, Yearly)" belongs with "Standard - Accounts".
+    const tierOf = (name) => { const m = /\b(Basic|Starter|Standard|Pro|Professional|Advanced|Enterprise)\b/i.exec(name || ""); return m ? m[1].toLowerCase() : String(name || "").replace(/\s*\([^)]*\)\s*$/, "").trim().toLowerCase(); };
+    const groups = {};
+    (data.plans || []).forEach((p) => { const k = `${p.saas_module}|${tierOf(p.plan_name)}`; (groups[k] = groups[k] || []).push(p); });
+    const planGroup = (p) => { const rows = groups[`${p.saas_module}|${tierOf(p.plan_name)}`] || [p]; return { key: `${p.saas_module}|${tierOf(p.plan_name)}`, names: rows.map((r) => r.name), anyOn: rows.some((r) => r.enabled) }; };
     const priceOf = (p) => `${p.currency || ""} ${p.price == null ? "" : p.price} / ${__(p.billing_cycle || "Monthly")}`.trim();
     $body.html(`
       <div class="rs-container">
@@ -210,7 +215,9 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
           { label: __("Price"), sort: (p) => num(p.price), text: priceOf, html: (p) => esc(priceOf(p)) },
           { label: __("Trial days"), sort: (p) => num(p.trial_days), text: (p) => p.trial_days || 0, html: (p) => esc(p.trial_days || 0) },
           { label: __("Grace days"), sort: (p) => num(p.grace_days), text: (p) => p.grace_days || 0, html: (p) => esc(p.grace_days || 0) },
-          { label: __("Enabled"), sort: (p) => (p.enabled ? 1 : 0), text: (p) => (p.enabled ? __("Yes") : __("No")), html: (p) => (p.enabled ? esc(__("Yes")) : esc(__("No"))) },
+          { label: __("Pay a year at once"), sort: (p) => num(p.yearly_months_charged), text: (p) => (p.allow_yearly_payment ? __("{0} months", [p.yearly_months_charged]) : ""), html: (p) => (p.allow_yearly_payment ? esc(__("{0} months for the year", [p.yearly_months_charged])) : "") },
+          { label: __("Enabled"), sort: (p) => (p.enabled ? 1 : 0), text: (p) => (p.enabled ? __("Yes") : __("No")), html: (p) => `<label class="rs-switch" title="${esc(__("Switch this price on or off"))}"><input type="checkbox" data-plan-toggle="${esc(p.name)}" ${p.enabled ? "checked" : ""}> ${esc(p.enabled ? __("On") : __("Off"))}</label>` },
+          { label: __("Whole plan"), sort: (p) => planGroup(p).key, text: (p) => planGroup(p).key, html: (p) => { const g = planGroup(p); return `<button type="button" class="btn btn-xs btn-default" data-plan-group='${esc(JSON.stringify(g.names))}' data-enable="${g.anyOn ? 0 : 1}">${esc(g.anyOn ? __("Disable all currencies and cycles") : __("Enable all currencies and cycles"))}</button>`; } },
         ],
         data.plans || [],
         __("No plans yet.")
@@ -304,6 +311,14 @@ frappe.pages["saas-dashboard"].on_page_load = function (wrapper) {
     });
   }
 
+  $body.on("change", "[data-plan-toggle]", function () {
+    const on = this.checked ? 1 : 0;
+    act("reckon_saas_platform.saas.set_plans_enabled", { plans: JSON.stringify([$(this).attr("data-plan-toggle")]), enabled: on }, on ? __("Plan switched on") : __("Plan switched off"));
+  });
+  $body.on("click", "[data-plan-group]", function () {
+    const on = Number($(this).attr("data-enable"));
+    act("reckon_saas_platform.saas.set_plans_enabled", { plans: $(this).attr("data-plan-group"), enabled: on }, on ? __("Whole plan switched on") : __("Whole plan switched off"));
+  });
   $body.on("click", "[data-verify]", function () {
     const payment = $(this).attr("data-verify");
     const reference = $body.find(`[data-reference="${CSS.escape(payment)}"]`).val();
