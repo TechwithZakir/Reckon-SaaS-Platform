@@ -415,10 +415,11 @@
                 <div class="rk-plans" role="radiogroup" aria-labelledby="rk-plan-label">
                   {% for plan in set.cards %}
                   <label class="rk-plan" data-plan-module="{{ plan.module }}" data-trial-days="{{ plan.trial_days }}" data-comparison='{{ plan.comparison|tojson }}'>
-                    <input type="radio" name="plan" value="{{ plan.name|e }}"{% if loop.first and first_set %} checked{% endif %} data-tier="{{ plan.tier|e }}" data-pd-name="{{ plan.plan_name|e }}" data-pd-price="{{ plan.symbol|e }}{{ plan.amount }} / {{ plan.period }}" data-pd-trial="{{ plan.trial|e }}">
+                    <input type="radio" name="plan" value="{{ plan.name|e }}"{% if loop.first and first_set %} checked{% endif %} data-tier="{{ plan.tier|e }}" data-cycle="{{ plan.cycle|e }}" data-pd-name="{{ plan.plan_name|e }}" data-pd-price="{{ plan.symbol|e }}{{ plan.amount }} / {{ plan.period }}" data-pd-trial="{{ plan.trial|e }}">
                     <span class="rk-plan-body">
                       <span class="rk-plan-name">{{ plan.tier|e }}</span>
                       <span class="rk-plan-price">{{ plan.symbol|e }}{{ plan.amount }} <small>/ {{ plan.period }}</small></span>
+                      {% if plan.get("deal") %}<small class="rk-plan-trial">{{ plan.deal|e }}</small>{% endif %}
                       {% if plan.trial %}<small class="rk-plan-trial">{{ plan.trial|e }}</small>{% endif %}
                     </span>
                   </label>
@@ -685,7 +686,14 @@
       const pay = startGroup.querySelector('input[value="pay"]').checked;
       submitButton.textContent = submitButton.getAttribute(pay ? "data-label-pay" : "data-label-trial") + " \u2192";
     }
-    document.querySelectorAll('input[name="plan"]').forEach(function (input) { input.addEventListener("change", syncStart); });
+    // The same plan can be paid monthly or a year at once: the card chosen says which cycle the form posts.
+    const cycleField = document.querySelector('input[name="billing_cycle"]');
+    function syncCycle() {
+      const chosen = document.querySelector('input[name="plan"]:checked');
+      if (cycleField && chosen) cycleField.value = chosen.getAttribute("data-cycle") || "Monthly";
+    }
+    document.querySelectorAll('input[name="plan"]').forEach(function (input) { input.addEventListener("change", function () { syncCycle(); syncStart(); }); });
+    syncCycle();
     if (startGroup) startGroup.addEventListener("change", function () { startGroup.dataset.touched = "1"; syncStart(); });
 
     // The left-side "What this plan includes" panel follows whichever plan is checked.
@@ -975,7 +983,7 @@
         if (!input.value.trim()) { note.textContent = T.coupon_hint; return; }
         if (!plan) { note.textContent = T.coupon_pick_plan; return; }
         try {
-          const data = await call("reckon_saas_platform.coupons.check_coupon", { plan: plan.value, code: input.value.trim() }, "GET");
+          const data = await call("reckon_saas_platform.coupons.check_coupon", { plan: plan.value, code: input.value.trim(), billing_cycle: plan.getAttribute("data-cycle") || "Monthly" }, "GET");
           note.textContent = data.valid ? data.message + " " + T.coupon_total + " " + data.final_text : data.message;
           note.style.color = data.valid ? "var(--rk-green, #16a34a)" : "var(--rk-red, #dc2626)";
         } catch (error) { note.textContent = error.message; }

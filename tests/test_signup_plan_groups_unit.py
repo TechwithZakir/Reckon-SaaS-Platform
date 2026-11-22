@@ -92,7 +92,7 @@ class TemplateWiringTests(unittest.TestCase):
         end = html.index('<div class="rk-plans" role="radiogroup"', html.index("</div>\n              {% else %}", start))
         block = html[start:html.rindex("{% else %}", start, end)]
         card = {"name": "P", "plan_name": "P", "tier": "Basic", "module": "accounts", "trial_days": 15, "comparison": [{"feature": "Users", "included": True, "value": "5"}],
-                "symbol": "$", "amount": "10", "period": "month", "trial": "15-day free trial"}
+                "symbol": "$", "amount": "10", "period": "month", "trial": "15-day free trial", "cycle": "Monthly", "deal": ""}
         sets = [{"cur": "BDT", "cycle": "Monthly", "cards": [card, dict(card, name="Q")]}, {"cur": "USD", "cycle": "Monthly", "cards": [dict(card, name="R")]}]
         env = jinja2.Environment(undefined=jinja2.StrictUndefined)
         out = env.from_string(block).render(plan_sets=sets, plan_currencies=["BDT", "USD"], plan_cycles=["Monthly"], t={"currency": "Currency", "billing_period": "Billing period"})

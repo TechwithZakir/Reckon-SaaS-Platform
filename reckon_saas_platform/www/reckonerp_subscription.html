@@ -113,7 +113,7 @@
             {% for c in mod.cycles %}
             <div class="rs-mod__plans" data-cycle-set="{{ c.cycle|e }}"{% if not loop.first %} hidden{% endif %}>
               {% for p in c.plans %}
-              <form class="rs-plan" data-add-module="{{ (p.id or p.name)|e }}">
+              <form class="rs-plan" data-add-module="{{ (p.id or p.name)|e }}" data-cycle="{{ c.cycle|e }}">
                 <div class="rs-plan__tier">{{ p.tier|e }}</div>
                 <div class="rs-plan__price">{{ p.amount_text|e }}<small> / {{ "year" if c.cycle == "Yearly" else ("quarter" if c.cycle == "Quarterly" else "month") }}</small></div>
                 {% if p.trial_days %}<div class="rs-plan__trial">{{ p.trial_days }}-day free trial</div>{% endif %}
@@ -183,7 +183,7 @@
         const note = form.querySelector("[data-coupon-note]"), code = form.querySelector("[data-coupon-input]").value.trim();
         if (!code) { note.textContent = "Enter a coupon code first."; return; }
         try {
-          const response = await fetch("/api/method/reckon_saas_platform.coupons.check_coupon?" + new URLSearchParams({ plan: form.getAttribute("data-add-module"), code: code }), { credentials: "same-origin", headers: { Accept: "application/json" } });
+          const response = await fetch("/api/method/reckon_saas_platform.coupons.check_coupon?" + new URLSearchParams({ plan: form.getAttribute("data-add-module"), code: code, billing_cycle: form.getAttribute("data-cycle") || "Monthly" }), { credentials: "same-origin", headers: { Accept: "application/json" } });
           const data = ((await response.json()).message) || {};
           note.textContent = data.valid ? data.message + " First payment: " + data.final_text : (data.message || "This coupon code is not valid.");
           note.className = "rs-portal__message " + (data.valid ? "is-success" : "is-error");
@@ -195,6 +195,7 @@
         const button = form.querySelector("button[type=submit]");
         const body = new URLSearchParams();
         body.append("plan", form.getAttribute("data-add-module"));
+        body.append("billing_cycle", form.getAttribute("data-cycle") || "Monthly");
         const couponInput = form.querySelector("[data-coupon-input]");
         if (couponInput && couponInput.value.trim()) body.append("coupon_code", couponInput.value.trim());
         button.disabled = true;

@@ -1164,7 +1164,7 @@ def get_plans() -> dict[str, list[dict]]:
         fields = ["name", "plan_name", "saas_module", "currency", "price", "billing_cycle", "trial_days", "max_users", "max_storage_mb", "features", "modified", "covered_modules"]
         try:
             rows = frappe.get_all(
-                "SaaS Plan", filters={"enabled": 1}, fields=[*fields, "paddle_price_id", "paddle_environment"], order_by="price asc", ignore_permissions=True
+                "SaaS Plan", filters={"enabled": 1}, fields=[*fields, "paddle_price_id", "paddle_environment", "allow_yearly_payment", "yearly_months_charged", "yearly_price", "paddle_yearly_price_id"], order_by="price asc", ignore_permissions=True
             )
         except Exception:  # a site not yet migrated to the Paddle fields
             rows = frappe.get_all("SaaS Plan", filters={"enabled": 1}, fields=fields, order_by="price asc", ignore_permissions=True)
@@ -1172,6 +1172,10 @@ def get_plans() -> dict[str, list[dict]]:
         return plans
     paddle = paddle_public()
     comparison = _plan_rows([r.get("name") for r in rows if r.get("name")])
+    # A Monthly plan that allows paying a year at once also lists its yearly option: the same plan, priced for the year.
+    for row in list(rows):
+        if (row.get("billing_cycle") or "Monthly") == "Monthly" and row.get("allow_yearly_payment") and int(row.get("yearly_months_charged") or 0) > 0:
+            rows.append({**row, "billing_cycle": "Yearly", "price": row.get("yearly_price"), "paddle_price_id": row.get("paddle_yearly_price_id")})
     for row in rows:
         key = row.get("saas_module")
         try:

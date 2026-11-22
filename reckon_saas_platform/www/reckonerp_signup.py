@@ -140,6 +140,7 @@ def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
         "tier": plan_tier(plan.get("plan_name") or plan.get("name") or ""),
         "cur": currency,
         "cycle": plan.get("billing_cycle") or "Monthly",
+        "deal": t["yearly_deal"].format(months=cint(plan.get("yearly_months"))) if plan.get("yearly_months") and cint(plan.get("yearly_months")) < 12 else "",
         "comparison": plan.get("comparison") or [],
         "module": plan.get("saas_module") or "",
         "trial_days": cint(plan.get("trial_days")),
@@ -149,9 +150,17 @@ def _plan_card(plan, t: dict, module_names: dict | None = None) -> dict:
         else "",
         "symbol": CURRENCY_SYMBOLS.get(currency, currency),
         "amount": amount,
+        "price": price,
         "period": t.get(plan.get("billing_cycle") or "Monthly", ""),
         "features": [line.strip() for line in (plan.get("features") or "").splitlines() if line.strip()],
     }
+
+
+def _yearly_option(plan) -> dict:
+    """The yearly way to pay a Monthly plan: the same plan, priced for the year."""
+    option = frappe._dict(plan)
+    option.update(billing_cycle="Yearly", price=plan.get("yearly_price"), yearly_months=cint(plan.get("yearly_months_charged")))
+    return option
 
 
 def _comparison_rows(plan_names: list[str]) -> dict[str, list[dict]]:
@@ -252,12 +261,19 @@ def get_signup_plans(module_key: str | None = None, currency: str | None = None)
                 "billing_cycle",
                 "trial_days",
                 "features",
+                "allow_yearly_payment",
+                "yearly_months_charged",
+                "yearly_price",
             ],
             order_by="price asc",
             ignore_permissions=True,
         )
         if not plan.saas_module or plan.saas_module in modules
     ]
+    # A Monthly plan that lets people pay a year at once also appears as its yearly option (same plan, yearly price).
+    from reckon_saas_platform.plan_billing import yearly_offered
+
+    plans += [_yearly_option(plan) for plan in plans if yearly_offered(plan)]
     comparison = _comparison_rows([p.name for p in plans])
     for plan in plans:
         plan["comparison"] = comparison.get(plan.name, [])

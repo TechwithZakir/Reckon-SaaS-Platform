@@ -39,7 +39,7 @@ def discount_for(coupon, price, currency: str | None) -> float:
     return float(min(off, price).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
-def get_valid(code, plan):
+def get_valid(code, plan, cycle=None):
     """The coupon for ``code`` if it can be used on ``plan`` (a SaaS Plan name) now; otherwise raises CouponError."""
     code = normalize(code)
     row = frappe.db.get_value(DOCTYPE, code, ["*"], as_dict=True) if code else None
@@ -52,7 +52,9 @@ def get_valid(code, plan):
         frappe.throw(_("This coupon has expired."), CouponError)
     if int(row.get("max_redemptions") or 0) and int(row.get("times_redeemed") or 0) >= int(row.max_redemptions):
         frappe.throw(_("This coupon has been fully used."), CouponError)
-    plan_row = frappe.db.get_value("SaaS Plan", plan, ["name", "saas_module", "price", "currency"], as_dict=True) if plan else None
+    from reckon_saas_platform.plan_billing import plan_variant
+
+    plan_row = plan_variant(plan, cycle) if plan else None
     if not plan_row:
         frappe.throw(_("Please select a plan first."), CouponError)
     if row.get("plan") and row.plan != plan_row.name:
@@ -90,10 +92,10 @@ def money(amount, currency) -> str:
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 @rate_limit(limit=60, seconds=60 * 60)
-def check_coupon(plan: str, code: str) -> dict:
+def check_coupon(plan: str, code: str, billing_cycle: str | None = None) -> dict:
     """What a coupon would take off a plan, for the signup and add-module pages."""
     try:
-        row = get_valid(code, plan)
+        row = get_valid(code, plan, billing_cycle)
     except CouponError as exc:
         return {"valid": False, "message": str(exc)}
     final = max(float(row.plan_price or 0) - row.discount, 0)

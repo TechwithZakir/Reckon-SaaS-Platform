@@ -671,12 +671,17 @@ def add_module_subscription(plan: str, billing_cycle: str | None = None, coupon_
     included = plan_covered_modules(frappe.db.get_value("SaaS Plan", plan_row.name, ["saas_module", "covered_modules"], as_dict=True))
     if open_keys & set(included):
         frappe.throw(_("Your company already has a module this plan includes."), SignupValidationError)
-    cycle = next((c for c in (billing_cycle, plan_row.billing_cycle) if c in BILLING_CYCLES), "Monthly")
+    from reckon_saas_platform.plan_billing import cycle_for
+
+    cycle = cycle_for(
+        frappe.db.get_value("SaaS Plan", plan_row.name, ["billing_cycle", "allow_yearly_payment", "yearly_months_charged"], as_dict=True),
+        billing_cycle,
+    )
     coupon = None
     if coupon_code and str(coupon_code).strip():
         from reckon_saas_platform import coupons
 
-        coupon = coupons.get_valid(coupon_code, plan_row.name).name
+        coupon = coupons.get_valid(coupon_code, plan_row.name, cycle).name
 
     savepoint = "reckon_saas_add_module"
     frappe.db.savepoint(savepoint)
@@ -1046,9 +1051,16 @@ def create_registration(
 
     if billing_cycle not in BILLING_CYCLES:
         frappe.throw(_("Please select a valid billing cycle."), SignupValidationError)
-    plan_row = frappe.db.get_value("SaaS Plan", plan, ["enabled", "saas_module", "billing_cycle"], as_dict=True) if plan else None
+    plan_row = (
+        frappe.db.get_value("SaaS Plan", plan, ["enabled", "saas_module", "billing_cycle", "allow_yearly_payment", "yearly_months_charged"], as_dict=True)
+        if plan
+        else None
+    )
     if not plan_row or not plan_row.enabled:
         frappe.throw(_("Please select a valid SaaS plan."), SignupValidationError)
+    from reckon_saas_platform.plan_billing import cycle_for
+
+    billing_cycle = cycle_for(plan_row, billing_cycle)
     if plan_row.saas_module and not frappe.db.get_value("SaaS Module", plan_row.saas_module, "enabled"):
         frappe.throw(_("This module is not available for signup."), SignupValidationError)
     # A module-specific signup page (?module=<key>) may only sell that module's plans.
@@ -1060,7 +1072,7 @@ def create_registration(
     if coupon_code and str(coupon_code).strip():
         from reckon_saas_platform import coupons
 
-        coupon = coupons.get_valid(coupon_code, plan).name
+        coupon = coupons.get_valid(coupon_code, plan, billing_cycle).name
 
     _assert_signup_identity_available(business_name, owner_email, owner_phone=phone)
 
@@ -1079,8 +1091,8 @@ def create_registration(
         "owner_phone": phone,
         "plan": plan,
         "saas_module": plan_row.saas_module,
-        # A plan bills in its own cycle (a Yearly plan is not a Monthly one), whatever the form posted.
-        "billing_cycle": (plan_row.billing_cycle or billing_cycle) if plan_row else billing_cycle,
+        # A plan bills monthly, or yearly when it offers paying a year at once and the buyer chose that.
+        "billing_cycle": billing_cycle,
         "start_mode": "Pay Now" if str(start_mode or "").strip().lower() in ("pay", "pay now", "pay_now") else "Free Trial",
         "status": "Pending Verification",
         "coupon": coupon,
@@ -1303,15 +1315,10 @@ def submit_registration_payment(registration: str, provider: str, reference: str
 def signup_payment_info(registration: str) -> dict:
     """What the signup page needs to take the first payment: the amount, and how to pay."""
     from reckon_saas_platform import invoices, marketing, paddle
+    from reckon_saas_platform.plan_billing import plan_variant
 
-    row = frappe.db.get_value("SaaS Registration", registration, ["plan"], as_dict=True)
-    plan = (
-        frappe.db.get_value(
-            "SaaS Plan", row.plan, ["name", "plan_name", "price", "currency", "billing_cycle", "paddle_price_id", "paddle_environment"], as_dict=True
-        )
-        if row
-        else None
-    )
+    row = frappe.db.get_value("SaaS Registration", registration, ["plan", "billing_cycle"], as_dict=True)
+    plan = plan_variant(row.plan, row.billing_cycle) if row else None
     if not plan:
         return {}
     from reckon_saas_platform import coupons
@@ -1490,7 +1497,7 @@ def _forget_registration_password(doc) -> None:
     remove_encrypted_password(doc.doctype, doc.name, "owner_password")
 
 
-def _coupon_terms(coupon_code, plan_doc) -> dict:
+def _coupon_terms(coupon_code, plan_doc, cycle=None) -> dict:
     """The coupon and the amount it takes off the first payment, for a subscription row."""
     if not coupon_code:
         return {}
@@ -1499,10 +1506,15 @@ def _coupon_terms(coupon_code, plan_doc) -> dict:
     row = frappe.db.get_value(coupons.DOCTYPE, coupon_code, ["*"], as_dict=True)
     if not row:
         return {}
-    return {"coupon": row.name, "discount_amount": coupons.discount_for(row, plan_doc.price, plan_doc.currency)}
+    from reckon_saas_platform.plan_billing import variant_of
+
+    plan = variant_of(plan_doc, cycle)
+    return {"coupon": row.name, "discount_amount": coupons.discount_for(row, plan.price, plan.currency)}
 
 
 def _create_registration_subscription(doc, plan_doc, company: str, admin_user: str):
+    from reckon_saas_platform.plan_billing import variant_of
+
     start = nowdate()
     trial_days = max(cint(plan_doc.get("trial_days")), 0)
     if doc.get("start_mode") == "Pay Now":
@@ -1523,10 +1535,10 @@ def _create_registration_subscription(doc, plan_doc, company: str, admin_user: s
             "status": "Trial" if trial_days else "Pending",
             "trial_end_date": add_days(start, trial_days - 1) if trial_days else None,
             "grace_days": max(cint(plan_doc.get("grace_days")), 0),
-            "price": plan_doc.price,
+            "price": variant_of(plan_doc, doc.billing_cycle).price,
             "currency": plan_doc.currency,
             "start_date": start,
-            **_coupon_terms(doc.get("coupon"), plan_doc),
+            **_coupon_terms(doc.get("coupon"), plan_doc, doc.billing_cycle),
         }
     ).insert(ignore_permissions=True)
 

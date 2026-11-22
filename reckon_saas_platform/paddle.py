@@ -309,11 +309,19 @@ def plan_needs_sync(doc) -> bool:
     """A card-currency plan whose Paddle price is missing or was made from different values."""
     if not (supports_currency(doc.get("currency")) and doc.get("saas_module") and doc.get("billing_cycle") in CYCLE_TO_PADDLE):
         return False
-    return not (
+    from reckon_saas_platform.plan_billing import variant_of, yearly_offered
+
+    current = bool(
         doc.get("paddle_price_id")
         and doc.get("paddle_environment") == environment()
         and doc.get("paddle_price_signature") == price_signature(doc)
     )
+    if yearly_offered(doc):
+        yearly = variant_of(doc, "Yearly")
+        current = current and bool(
+            yearly.paddle_price_id and yearly.paddle_price_signature == price_signature(yearly)
+        )
+    return not current
 
 
 def queue_plan_sync(doc, method=None) -> None:
@@ -356,8 +364,10 @@ def sync_all_plans() -> None:
 def archive_deleted_plan_price(doc, method=None) -> None:
     """A deleted plan must not leave a live Paddle price that checkout could still use."""
     try:
-        if is_enabled() and doc.get("paddle_price_id") and doc.get("paddle_environment") == environment():
-            _api_archive_price(doc.paddle_price_id)
+        if is_enabled() and doc.get("paddle_environment") == environment():
+            for price_id in (doc.get("paddle_price_id"), doc.get("paddle_yearly_price_id")):
+                if price_id:
+                    _api_archive_price(price_id)
     except Exception:
         frappe.log_error(frappe.get_traceback(), f"Archive Paddle price for deleted plan {doc.name}")
 
@@ -388,6 +398,7 @@ def _sync_plan_doc(doc) -> dict:
     env = environment()
     signature = price_signature(doc)
     if doc.get("paddle_price_id") and doc.get("paddle_environment") == env and doc.get("paddle_price_signature") == signature:
+        _sync_yearly_price(doc, env, currency)
         return {"price_id": doc.paddle_price_id, "product_id": _module_product(doc.saas_module, env), "created": False}
 
     product_id = _module_product(doc.saas_module, env)
@@ -412,7 +423,44 @@ def _sync_plan_doc(doc) -> dict:
         except Exception:
             # The new price is saved; an old price left active only shows up in the Paddle catalog.
             frappe.log_error(frappe.get_traceback(), f"Archive Paddle price {old_price}")
+    _sync_yearly_price(doc, env, currency)
     return {"price_id": price_id, "product_id": product_id, "created": True}
+
+
+def _sync_yearly_price(doc, env: str, currency: str) -> None:
+    """The yearly option of a Monthly plan has its own Paddle price (a yearly billing cycle), made from the same product."""
+    from reckon_saas_platform.plan_billing import variant_of, yearly_offered
+
+    stored_env = doc.get("paddle_environment")
+    old_id = doc.get("paddle_yearly_price_id") if stored_env == env else None
+    if not yearly_offered(doc):
+        # The option was switched off: retire its Paddle price so checkout cannot use it.
+        if old_id:
+            frappe.db.set_value("SaaS Plan", doc.name, {"paddle_yearly_price_id": None, "paddle_yearly_price_signature": None})
+            try:
+                _api_archive_price(old_id)
+            except Exception:
+                frappe.log_error(frappe.get_traceback(), f"Archive Paddle price {old_id}")
+        return
+    yearly = variant_of(doc, "Yearly")
+    signature = price_signature(yearly)
+    if old_id and doc.get("paddle_yearly_price_signature") == signature:
+        return
+    price_id = _api_create_price(
+        _module_product(doc.saas_module, env),
+        name=f"{doc.get('plan_name') or doc.name} (Yearly)",
+        description=f"{doc.get('plan_name') or doc.name} (Yearly, {currency})",
+        amount=to_lowest_unit(yearly.price, currency),
+        currency=currency,
+        cycle="Yearly",
+        plan=doc.name,
+    )
+    frappe.db.set_value("SaaS Plan", doc.name, {"paddle_yearly_price_id": price_id, "paddle_yearly_price_signature": signature})
+    if old_id and old_id != price_id:
+        try:
+            _api_archive_price(old_id)
+        except Exception:
+            frappe.log_error(frappe.get_traceback(), f"Archive Paddle price {old_id}")
 
 
 def _module_product(saas_module: str, env: str) -> str:
@@ -472,9 +520,9 @@ def create_checkout(subscription: str) -> dict:
         frappe.throw(_("This subscription is closed. Please contact support."))
     if row.get("paddle_subscription_id") and (row.get("paddle_status") or "") in LIVE_PADDLE_STATUSES:
         frappe.throw(_("This subscription is already paid by card. Use Manage card to change or cancel it."))
-    plan = frappe.db.get_value(
-        "SaaS Plan", row.plan, ["name", "currency", "paddle_price_id", "paddle_environment"], as_dict=True
-    )
+    from reckon_saas_platform.plan_billing import plan_variant
+
+    plan = plan_variant(row.plan, row.get("billing_cycle"))
     if not plan or not card_payment_available(plan):
         frappe.throw(_("Card payment is not available for this plan."))
     settings = _settings()
@@ -628,7 +676,7 @@ def _registration_paid(registration: str, data: dict, event_id: str | None) -> b
     """The first payment of a Pay Now signup: it unlocks creating the workspace, once it is for the plan chosen."""
     from reckon_saas_platform import saas
 
-    row = frappe.db.get_value("SaaS Registration", registration, ["status", "plan", "subscription"], as_dict=True)
+    row = frappe.db.get_value("SaaS Registration", registration, ["status", "plan", "subscription", "billing_cycle"], as_dict=True)
     if not row:
         raise PaddleEventError(f"No signup {registration}; review and refund in Paddle.")
     if row.subscription or row.status in {"Provisioning", "Pending Payment", "Active"}:
@@ -637,7 +685,9 @@ def _registration_paid(registration: str, data: dict, event_id: str | None) -> b
         raise PaddleEventError(f"Signup {registration} is {row.status}, not waiting for a payment; review and refund in Paddle.")
     paid = {((item.get("price") or {}).get("id")) for item in data.get("items") or []}
     paid.discard(None)
-    plan = frappe.db.get_value("SaaS Plan", row.plan, ["paddle_price_id", "paddle_environment"], as_dict=True)
+    from reckon_saas_platform.plan_billing import plan_variant
+
+    plan = plan_variant(row.plan, row.billing_cycle)
     if not paid or paid != {plan_price_id(plan)}:
         raise PaddleEventError(f"Paddle price(s) {sorted(paid)} are not the price of {row.plan}; review and refund in Paddle.")
     saas.mark_registration_paid(registration, PROVIDER, data.get("id"), event_id)
@@ -702,13 +752,14 @@ def _find_saas_subscription(custom_data: dict | None, paddle_subscription_id: st
 def _module_price_ids(saas_module: str | None) -> set[str]:
     if not saas_module:
         return set()
-    return {
-        price
-        for price in frappe.get_all(
-            "SaaS Plan", filters={"saas_module": saas_module}, pluck="paddle_price_id", ignore_permissions=True
+    prices: set[str] = set()
+    for column in ("paddle_price_id", "paddle_yearly_price_id"):
+        prices.update(
+            price
+            for price in frappe.get_all("SaaS Plan", filters={"saas_module": saas_module}, pluck=column, ignore_permissions=True)
+            if price
         )
-        if price
-    }
+    return prices
 
 
 def _apply_transaction(data: dict, event_id: str | None = None) -> bool:
@@ -856,15 +907,20 @@ def _plan_for_items(row, items):
     price_ids.discard(None)
     if len(price_ids) != 1 or not row.get("saas_module"):
         return None
-    plan = frappe.db.get_value(
-        "SaaS Plan",
-        {"paddle_price_id": price_ids.pop(), "saas_module": row.saas_module, "paddle_environment": environment()},
-        ["name", "price", "currency", "billing_cycle", "plan_version"],
-        as_dict=True,
-    )
-    if not plan or plan.name == row.get("plan"):
-        return None
-    return plan
+    from reckon_saas_platform.plan_billing import variant_of
+
+    price_id = price_ids.pop()
+    fields = ["name", "price", "currency", "billing_cycle", "plan_version", "yearly_price", "allow_yearly_payment", "yearly_months_charged"]
+    for column, cycle in (("paddle_price_id", None), ("paddle_yearly_price_id", "Yearly")):
+        plan = frappe.db.get_value(
+            "SaaS Plan", {column: price_id, "saas_module": row.saas_module, "paddle_environment": environment()}, fields, as_dict=True
+        )
+        if plan:
+            plan = variant_of(plan, cycle)
+            if plan.name == row.get("plan") and (plan.billing_cycle or "Monthly") == (row.get("billing_cycle") or "Monthly"):
+                return None
+            return plan
+    return None
 
 
 def _check_first_link(row, paddle_subscription_id: str, items) -> None:

@@ -92,9 +92,9 @@ def _add_card_payment(cards: list[dict]) -> str:
             ["paddle_subscription_id", "paddle_customer_id", "paddle_status", "paddle_scheduled_change"],
             as_dict=True,
         ) or {}
-        plan = frappe.db.get_value(
-            "SaaS Plan", card["plan"], ["currency", "paddle_price_id", "paddle_environment"], as_dict=True
-        ) if card.get("plan") else None
+        from reckon_saas_platform.plan_billing import plan_variant
+
+        plan = plan_variant(card["plan"], card.get("billing_cycle")) if card.get("plan") else None
         status = details.get("paddle_status") or ""
         card_live = bool(details.get("paddle_subscription_id")) and status in paddle.LIVE_PADDLE_STATUSES
         card["paddle"] = {

@@ -161,7 +161,7 @@ class SignupStartModeTests(unittest.TestCase):
             self.assertIn(needle, html)
         saas = (PKG / "saas.py").read_text(encoding="utf-8")
         self.assertIn('"start_mode": "Pay Now" if', saas)
-        self.assertIn("(plan_row.billing_cycle or billing_cycle)", saas)  # a Yearly plan bills yearly
+        self.assertIn("billing_cycle = cycle_for(plan_row, billing_cycle)", saas)  # a plan bills monthly, or yearly when it offers that and the buyer chose it
         import json
 
         data = json.loads((PKG / "saas_platform" / "doctype" / "saas_registration" / "saas_registration.json").read_text(encoding="utf-8"))
