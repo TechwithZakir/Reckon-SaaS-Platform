@@ -105,6 +105,7 @@ BN = {
     "&copy;": "&copy;",
     "&nbsp;&middot;": "&nbsp;&middot;",
     "{n}-day free trial": "{n} দিনের ফ্রি ট্রায়াল",
+    "Pay {n} months, get 12": "{n} মাসের দামে ১২ মাস",
     "Choose {name}": "{name} বেছে নিন",
     "Sign up for {name}": "{name}-এর জন্য সাইন আপ করুন",
     "What is inside {name}": "{name}-এর ভেতরে যা আছে",

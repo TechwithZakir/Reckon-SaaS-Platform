@@ -1175,7 +1175,7 @@ def get_plans() -> dict[str, list[dict]]:
     # A Monthly plan that allows paying a year at once also lists its yearly option: the same plan, priced for the year.
     for row in list(rows):
         if (row.get("billing_cycle") or "Monthly") == "Monthly" and row.get("allow_yearly_payment") and int(row.get("yearly_months_charged") or 0) > 0:
-            rows.append({**row, "billing_cycle": "Yearly", "price": row.get("yearly_price"), "paddle_price_id": row.get("paddle_yearly_price_id")})
+            rows.append({**row, "billing_cycle": "Yearly", "price": row.get("yearly_price"), "paddle_price_id": row.get("paddle_yearly_price_id"), "yearly_deal_months": int(row.get("yearly_months_charged") or 0)})
     for row in rows:
         key = row.get("saas_module")
         try:
@@ -1202,6 +1202,7 @@ def get_plans() -> dict[str, list[dict]]:
                 "cycle": cycle,
                 "price_text": _price_text(price, symbol, cycle),
                 "trial_days": int(row.get("trial_days") or 0),
+                "yearly_months": row.get("yearly_deal_months") if 0 < int(row.get("yearly_deal_months") or 0) < 12 else 0,
                 "covered": sorted(set(str(row.get("covered_modules") or "").split()) - {key}),
                 "max_users": int(row.get("max_users") or 0),
                 "max_storage_mb": int(row.get("max_storage_mb") or 0),

@@ -27,6 +27,7 @@
 <ul class="grid plans cur-set{% if loop.first %} primary{% endif %}" data-cur="{{ cur|e }}" data-cycle="{{ set.cycle|e }}">
   {% for plan in plans %}
   <li><article class="card"><h3>{{ plan.name|e }}</h3><p class="price"><strong{% if plan.paddle_price %} data-paddle-price="{{ plan.paddle_price|e }}" data-amount="{{ plan.amount_text|e }}"{% endif %}>{{ plan.price_text|e }}</strong></p>
+    {% if plan.yearly_months %}<p class="eyebrow" style="margin:0">{{ tr("Pay {n} months, get 12")|replace("{n}", plan.yearly_months) }}</p>{% endif %}
     {% if plan.trial_days %}<p class="eyebrow" style="margin:0">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</p>{% endif %}
     {% if plan.features %}<ul class="tick">{% for f in plan.features[:6] %}<li>{{ f|e }}</li>{% endfor %}</ul>{% endif %}
     <a class="btn solid" href="{{ u("/reckonerp-signup?module=" ~ mod.key ~ ("&currency=" ~ cur if cur else "") ~ ("&plan=" ~ plan.id|urlencode if plan.id else ""))|e }}">{{ tr("Choose {name}")|replace("{name}", plan.name) }}</a></article></li>
@@ -44,7 +45,7 @@
   <div class="table-wrap" tabindex="0" role="region" aria-label="{{ mod.name|e }}">
   <table class="cmp-table">
     <thead><tr><td class="cmp-corner"><span class="sr">{{ tr("Features") }}</span></td>
-      {% for plan in cmp.plans %}<th scope="col"><span class="cmp-plan">{{ plan.name|e }}</span><span class="cmp-price"{% if plan.paddle_price %} data-paddle-price="{{ plan.paddle_price|e }}" data-amount="{{ plan.amount_text|e }}"{% endif %}>{{ plan.price_text|e }}</span>{% if plan.trial_days %}<span class="cmp-trial">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</span>{% endif %}</th>{% endfor %}</tr></thead>
+      {% for plan in cmp.plans %}<th scope="col"><span class="cmp-plan">{{ plan.name|e }}</span><span class="cmp-price"{% if plan.paddle_price %} data-paddle-price="{{ plan.paddle_price|e }}" data-amount="{{ plan.amount_text|e }}"{% endif %}>{{ plan.price_text|e }}</span>{% if plan.yearly_months %}<span class="cmp-trial">{{ tr("Pay {n} months, get 12")|replace("{n}", plan.yearly_months) }}</span>{% endif %}{% if plan.trial_days %}<span class="cmp-trial">{{ tr("{n}-day free trial")|replace("{n}", plan.trial_days) }}</span>{% endif %}</th>{% endfor %}</tr></thead>
     <tbody>
       {% for row in cmp.rows %}<tr><th scope="row">{% if row.users %}{{ tr("Users") }}{% elif row.storage %}{{ tr("File storage") }}{% else %}{{ row.feature|e }}{% endif %}</th>
         {% for cell in row.cells %}<td>{% if row.users %}{% if cell.users %}{{ tr("Up to {n}")|replace("{n}", cell.users) }}{% else %}{{ tr("Unlimited") }}{% endif %}{% elif row.learning and not learning_ready %}<span class="cmp-no">{{ tr("Coming soon") }}</span>{% elif row.storage %}{% if cell.text %}{{ cell.text|e }}{% else %}{{ tr("Unlimited") }}{% endif %}{% elif cell.value %}{{ cell.value|e }}{% elif cell.included %}<span class="cmp-yes" role="img" aria-label="{{ tr("Included") }}"></span>{% else %}<span class="cmp-no" role="img" aria-label="{{ tr("Not included") }}">&ndash;</span>{% endif %}</td>{% endfor %}</tr>
