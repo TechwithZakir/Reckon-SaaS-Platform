@@ -1,3 +1,15 @@
+import hashlib
+from pathlib import Path
+
+
+def _asset_version(*parts):
+    """A short fingerprint of an asset file. nginx caches /assets for a year, so the URL changes when the file does."""
+    try:
+        return hashlib.md5((Path(__file__).parent / "public" / Path(*parts)).read_bytes()).hexdigest()[:10]
+    except OSError:
+        return "0"
+
+
 app_name = "reckon_saas_platform"
 app_title = "Reckon SaaS Platform"
 app_publisher = "Reckon Technologies Ltd."
@@ -44,7 +56,7 @@ after_request = [
 ]
 
 # A tenant's Apps menu lists the apps of the modules it subscribes to, not every installed app.
-app_include_js = ["/assets/reckon_saas_platform/js/tenant_company_default.js"]
+app_include_js = [f"/assets/reckon_saas_platform/js/tenant_company_default.js?v={_asset_version('js', 'tenant_company_default.js')}"]
 extend_bootinfo = "reckon_saas_platform.desk_apps.filter_bootinfo"
 override_whitelisted_methods = {"frappe.apps.get_apps": "reckon_saas_platform.desk_apps.get_apps"}
 
