@@ -274,6 +274,7 @@
     .rk-whatsapp-fab { height: 52px; width: 52px; padding: 0; justify-content: center; }
     .rk-whatsapp-fab span { display: none; }
   }
+  .rk-howpay { margin: 18px 0 0; } .rk-howpay > summary { cursor: pointer; font-weight: 700; font-size: 14px; opacity: .85; list-style: none; padding: 8px 0; } .rk-howpay > summary::-webkit-details-marker { display: none; } .rk-howpay > summary::after { content: " ▾"; }
 </style>
 {% endblock %}
 
@@ -557,7 +558,7 @@
     </div>
   </main>
 
-  <div class="rk-wrap">{% set pay_show = "both" %}{% include "reckon_saas_platform/templates/marketing/pay_footer.html" %}</div>
+  <div class="rk-wrap"><details class="rk-howpay"><summary>{{ t.how_pay }}</summary>{% set pay_show = "both" %}{% include "reckon_saas_platform/templates/marketing/pay_footer.html" %}</details></div>
   {% include "reckon_saas_platform/templates/marketing/footer.html" %}
 
   {% include "reckon_saas_platform/templates/marketing/chat.html" %}
@@ -679,6 +680,8 @@
       const chosen = document.querySelector('input[name="plan"]:checked');
       const days = chosen ? parseInt(chosen.closest("[data-trial-days]").getAttribute("data-trial-days"), 10) || 0 : 0;
       if (!startGroup) return;
+      // No plan picked yet: nothing about payment. The button names the payment only once the person chose to pay now.
+      if (!chosen) { startGroup.hidden = true; submitButton.textContent = submitButton.getAttribute("data-label-trial") + " →"; return; }
       startGroup.hidden = days <= 0;
       const hint = startGroup.querySelector("[data-start-trial-hint]");
       hint.textContent = hint.getAttribute("data-template").replace("{days}", String(days));
