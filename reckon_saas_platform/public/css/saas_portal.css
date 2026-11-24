@@ -119,6 +119,13 @@ body:has(.rs-portal) .page_content, body:has(.rs-portal) .page-content-wrapper, 
   .rs-team__who { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
   .rs-team__who small { color: var(--rs-muted); }
   .rs-team__level { font-size: 13px; font-weight: 700; color: var(--rs-muted); text-align: right; }
+  .rs-team__menu { position: relative; margin-left: 8px; }
+  .rs-team__menu summary { list-style: none; cursor: pointer; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--rs-line); border-radius: 8px; font-size: 20px; line-height: 1; }
+  .rs-team__menu summary::-webkit-details-marker { display: none; }
+  .rs-team__menu-list { position: absolute; right: 0; top: 38px; z-index: 5; min-width: 190px; display: grid; background: var(--rs-card, #fff); border: 1px solid var(--rs-line); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.14); overflow: hidden; }
+  .rs-team__menu-list button { text-align: left; padding: 10px 14px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  .rs-team__menu-list button:hover { background: rgba(127,127,127,.12); }
+  .rs-team__menu-list .is-danger { color: #b42318; }
   .rs-team__note { margin: 10px 0 0; font-size: 14px; }
   .rs-team__matrix { display: grid; gap: 8px; margin-top: 12px; }
   .rs-team__cell { display: grid; grid-template-columns: auto 1fr minmax(120px, 190px); gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--rs-line); border-radius: 10px; cursor: pointer; }

@@ -27,6 +27,15 @@
             <div class="rs-team__who">
               <div><strong>{{ row.full_name|e }}</strong><br><small>{{ row.user|e }}</small></div>
               <div class="rs-team__level">{% if row.role_profile == "Company Admin" %}Company admin{% else %}Team member{% endif %}{% if row.user == me %} &middot; you{% endif %}</div>
+              <details class="rs-team__menu">
+                <summary aria-label="Edit {{ row.full_name|e }}">&#8942;</summary>
+                <div class="rs-team__menu-list" role="menu">
+                  <button type="button" role="menuitem" data-edit-name="{{ row.user|e }}" data-name="{{ row.full_name|e }}">Edit name</button>
+                  {% if row.role_profile == "Company Admin" %}<button type="button" role="menuitem" data-level-set="Company Manager" data-user="{{ row.user|e }}">Make team member</button>
+                  {% else %}<button type="button" role="menuitem" data-level-set="Company Admin" data-user="{{ row.user|e }}">Make company admin</button>{% endif %}
+                  {% if row.user != me %}<button type="button" role="menuitem" class="is-danger" data-remove="{{ row.user|e }}">Remove from team</button>{% endif %}
+                </div>
+              </details>
             </div>
             {% if row.role_profile == "Company Admin" %}
             <p class="rs-team__note">Admin in every module: {% for m in overview.modules %}{{ m.name|e }}{{ ", " if not loop.last }}{% endfor %}.</p>
@@ -45,7 +54,6 @@
             </div>
             <div class="rs-team__actions">
               <button class="rs-portal__button rs-portal__button--primary" type="button" data-save="{{ row.user|e }}">Save access</button>
-              {% if row.user != me %}<button class="rs-portal__link rs-portal__link--danger" type="button" data-remove="{{ row.user|e }}">Remove from team</button>{% endif %}
               <span class="rs-portal__message" role="status"></span>
             </div>
             {% endif %}
@@ -158,6 +166,28 @@
         } catch (error) { say(message, error.message, "error"); button.disabled = false; }
       });
     }
+
+    function listMessage() { return document.querySelector("[data-list-message]"); }
+    document.querySelectorAll("[data-level-set]").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const level = button.getAttribute("data-level-set"), email = button.getAttribute("data-user");
+        const text = level === "Company Admin" ? "Make " + email + " a company admin? They get every module and can manage the team and the subscription."
+          : "Make " + email + " a team member? They keep a manager role in each module until you change it here.";
+        if (!window.confirm(text)) return;
+        button.disabled = true; say(listMessage(), "Saving...");
+        try { await call("edit_team_member", { email: email, level: level }); window.location.reload(); }
+        catch (error) { say(listMessage(), error.message, "error"); button.disabled = false; }
+      });
+    });
+    document.querySelectorAll("[data-edit-name]").forEach(function (button) {
+      button.addEventListener("click", async function () {
+        const name = window.prompt("Name for " + button.getAttribute("data-edit-name"), button.getAttribute("data-name") || "");
+        if (name === null || !name.trim()) return;
+        button.disabled = true; say(listMessage(), "Saving...");
+        try { await call("edit_team_member", { email: button.getAttribute("data-edit-name"), full_name: name }); window.location.reload(); }
+        catch (error) { say(listMessage(), error.message, "error"); button.disabled = false; }
+      });
+    });
 
     document.querySelectorAll("[data-remove]").forEach(function (button) {
       button.addEventListener("click", async function () {

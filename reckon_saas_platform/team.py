@@ -433,6 +433,72 @@ def set_member_access(email: str, access: str | list) -> dict:
     return {"user": email, "company": company, "modules": [row.module for row in doc.module_access]}
 
 
+def leaves_no_admin(admins: list[str], target: str, stays_admin: bool) -> bool:
+    """True when the change would leave the company without a company admin."""
+    remaining = {a for a in admins if a != target} | ({target} if stays_admin and target in admins else set())
+    return not remaining
+
+
+def _active_admins(company: str) -> list[str]:
+    return frappe.get_all("Tenant User Assignment", filters={"company": company, "active": 1, "role_profile": "Company Admin"}, pluck="user")
+
+
+def _default_access(company: str) -> list[dict]:
+    """Every module the company holds, at the lowest everyday role (Manager where the module has one): where a demoted admin starts."""
+    held = {m["key"]: m for m in get_saas_modules() if m.get("key") in {x["key"] for x in company_modules(company)}}
+    rows = []
+    for key, module in held.items():
+        options = choices_for(module)
+        choice = next((c for c in options if c["label"] == "Manager"), options[0])
+        rows.append({"module": key, "role_profile": choice["role_profile"], "module_role": choice["module_role"]})
+    return rows
+
+
+@frappe.whitelist(methods=["POST"])
+def edit_team_member(email: str, level: str | None = None, full_name: str | None = None) -> dict:
+    """Edit a person on the team: their name, and whether they are a company admin or a team member.
+
+    Done here, not on the User form: a company admin has no access to Frappe's own User list, which holds every company's people.
+    """
+    company = _admin_company(frappe.session.user)
+    email = (email or "").strip().lower()
+    name = frappe.db.get_value("Tenant User Assignment", {"user": email, "company": company, "active": 1}, "name")
+    if not name:
+        frappe.throw(_("This user is not on your team."))
+    out = {"user": email, "company": company}
+    if full_name and full_name.strip():
+        text = full_name.strip()[:140]
+        caller = frappe.session.user
+        frappe.set_user("Administrator")
+        try:
+            frappe.db.set_value("User", email, {"first_name": text, "full_name": text}, update_modified=True)
+        finally:
+            frappe.set_user(caller)
+        out["full_name"] = text
+    if level:
+        if level not in ALLOWED_PROFILES:
+            frappe.throw(_("Unknown access level."))
+        if leaves_no_admin(_active_admins(company), email, level == "Company Admin"):
+            frappe.throw(_("Your company needs at least one company admin. Make someone else an admin first."))
+        doc = frappe.get_doc("Tenant User Assignment", name)
+        if level == "Company Admin":
+            doc.role_profile = "Company Admin"
+            doc.set("module_access", [])
+            doc.module_role = ""
+        elif doc.role_profile != "Company Manager":
+            rows = _default_access(company)
+            doc.role_profile = "Company Manager"
+            if rows:
+                _write_access(doc, rows)
+            else:
+                doc.set("module_access", [])
+                doc.module_role = ""
+        doc.flags.ignore_permissions = True
+        doc.save()
+        out["role_profile"] = doc.role_profile
+    return out
+
+
 @frappe.whitelist(methods=["POST"])
 def remove_team_member(email: str) -> dict:
     company = _admin_company(frappe.session.user)
@@ -444,6 +510,8 @@ def remove_team_member(email: str) -> dict:
     )
     if not name:
         frappe.throw(_("This user is not on your team."))
+    if leaves_no_admin(_active_admins(company), email, False):
+        frappe.throw(_("Your company needs at least one company admin."))
     frappe.db.set_value("Tenant User Assignment", name, "active", 0)
     frappe.get_doc("Tenant User Assignment", name).run_method("on_update")
     return {"user": email, "company": company, "removed": True}
