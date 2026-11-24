@@ -81,6 +81,18 @@
     }
     function showCur(v){cur=v;paint()}
     paint();
+    // No choice of the visitor's own yet: the page is cached for everyone, so ask where this visit comes from. Taka in Bangladesh,
+    // US dollars elsewhere. A currency in the address (?currency=) or one picked before always wins.
+    var asked=null;try{asked=new URLSearchParams(location.search).get('currency')}catch(e){}
+    if(asked&&avail.indexOf(asked.toUpperCase())>-1){cur=asked.toUpperCase();paint()}
+    else if(!saved&&window.fetch){
+      fetch('/api/method/reckon_saas_platform.visitor_currency.visitor_currency',{credentials:'same-origin'}).then(function(r){return r.ok?r.json():null}).then(function(j){
+        var m=j&&j.message;if(!m||!m.currency)return;
+        var want=avail.indexOf(m.currency)>-1?m.currency:(avail.indexOf('USD')>-1?'USD':avail[0]);
+        var chosen=null;try{chosen=localStorage.getItem('reckon_cur')}catch(e){}
+        if(!chosen&&want&&want!==cur)showCur(want);
+      }).catch(function(){});
+    }
     d.querySelectorAll('[data-cur-set]').forEach(function(b){b.addEventListener('click',function(){var v=b.getAttribute('data-cur-set');try{localStorage.setItem('reckon_cur',v)}catch(e){}showCur(v)})});
     d.querySelectorAll('[data-cycle-set]').forEach(function(b){b.addEventListener('click',function(){cyc=b.getAttribute('data-cycle-set');try{localStorage.setItem('reckon_cycle',cyc)}catch(e){}paint()})});
   }
