@@ -8,6 +8,8 @@ lang: en
 
 # Reckon SaaS Platform: the subscription layer behind ReckonERP
 
+![Banner](banner.svg)
+
 ReckonERP at [app.reckon.tech](https://app.reckon.tech) is delivered as a self-service SaaS. The Reckon SaaS Platform is the layer that makes that possible: it looks after signup, verification, plans, payments, invoices, provisioning and the public website, so a business in Bangladesh can subscribe, get its own workspace and start working without a long project kickoff.
 
 ## Detailed features
